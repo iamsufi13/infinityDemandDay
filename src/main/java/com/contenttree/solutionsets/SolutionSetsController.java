@@ -36,8 +36,8 @@ public class SolutionSetsController {
     }
 
     @PostMapping
-    public ResponseEntity<ApiResponse1<SolutionSets>> addSolutionSets(@RequestParam String name, @RequestParam String fileType, @RequestParam MultipartFile file){
-        String uploadResponse = solutionSetsService.uploadSolutionSets(file);
+    public ResponseEntity<ApiResponse1<SolutionSets>> addSolutionSets(@RequestParam String name, @RequestParam String fileType, @RequestParam MultipartFile file, @RequestParam long vendorId){
+        String uploadResponse = solutionSetsService.uploadSolutionSets(file, vendorId);
         System.out.println("************************************");
         System.out.println("File Upload Successfull");
         System.out.println(uploadResponse);

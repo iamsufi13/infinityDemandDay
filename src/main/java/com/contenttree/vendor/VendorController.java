@@ -2,20 +2,27 @@ package com.contenttree.vendor;
 
 import com.contenttree.Jwt.JwtResponse;
 import com.contenttree.security.JwtHelper;
+import com.contenttree.solutionsets.SolutionSets;
+import com.contenttree.solutionsets.SolutionSetsController;
+import com.contenttree.solutionsets.SolutionSetsService;
 import com.contenttree.utils.ApiResponse1;
 import com.contenttree.utils.ResponseUtils;
 import org.apache.tomcat.util.http.fileupload.FileItemFactory;
+import org.aspectj.weaver.Iterators;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.HashMap;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api")
@@ -28,27 +35,8 @@ public class VendorController {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-//    @PostMapping("/login")
-//    public ResponseEntity<?> login(@RequestParam String email,
-//                                   @RequestParam String password){
-//        Vendors vendors = vendorsService.getVendorsByEmail(email);
-//        if (!password.equals(vendors.getPassword())){
-//            ApiResponse1<JwtResponse> response = ResponseUtils.createResponse1(null,"Email & Password Does Not Match", false);
-//            return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
-//        }
-//        if (!passwordEncoder.matches(password, vendors.getPassword())){
-//            ApiResponse1<JwtResponse> response = ResponseUtils.createResponse1(null,"Email & Password Does Not Match", false);
-//            return new ResponseEntity<>(response,HttpStatus.NOT_FOUND);
-//        }
-//        String token = this.helper.generateTokenVendors(vendors);
-//
-//        JwtResponse jwtResponse = JwtResponse.builder().jwtToken(token).username(vendors.getEmail()).build();
-//
-//        HashMap response = new HashMap();
-//        response.put("jwtToken", jwtResponse);
-//        System.out.println("Vendor Logged in");
-//        return new ResponseEntity<>(response,HttpStatus.OK);
-//    }
+    @Autowired
+    SolutionSetsService solutionSetsService;
 @PostMapping("/login")
 public ResponseEntity<?> login(@RequestParam String email,
                                @RequestParam String password) {
@@ -92,4 +80,27 @@ public ResponseEntity<?> login(@RequestParam String email,
         vendorsService.registerVendors(vendors);
         return ResponseEntity.ok("Admin Registered SuccessFully");
     }
-}
+    @GetMapping("/vendor/byid")
+    public ResponseEntity<ApiResponse1<SolutionSets>> getVendorById(@RequestParam long id){
+        SolutionSets solutionSets = solutionSetsService.getById(id);
+        return ResponseEntity.ok().body(ResponseUtils.createResponse1(solutionSets,"SUCESS",true));
+    }
+    @PostMapping("/vendor/add-solutionset")
+    public ResponseEntity<ApiResponse1<SolutionSets>> addSolutionSet(@RequestParam String name, @RequestParam MultipartFile file){
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication==null || !(authentication.getPrincipal() instanceof UserDetails)){
+            return ResponseEntity.status(401).body(null);
+        }
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        Vendors vendors = vendorsService.getVendorsByEmail(userDetails.getUsername());
+
+        if (vendors==null) {
+        return ResponseEntity.notFound().build();
+        }
+        solutionSetsService.uploadSolutionSets(file,vendors.getId());
+
+        return ResponseEntity.ok().body(ResponseUtils.createResponse1(null,"SUCCESS",true));
+        }
+    }
+

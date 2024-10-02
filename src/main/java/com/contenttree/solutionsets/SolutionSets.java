@@ -1,5 +1,6 @@
 package com.contenttree.solutionsets;
 
+import com.contenttree.vendor.Vendors;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -27,10 +28,16 @@ public class SolutionSets {
     @Lob
     private byte[] filePath;
 
+    @ManyToOne
+    @JoinColumn(name = "vendor_id")
+    private Vendors uploadedBy;
+
     @JsonIgnore
     private LocalDateTime dt1;
 
-    public void dt1(LocalDateTime dt1){
-        this.dt1=dt1;
+    @PrePersist
+    public void prePersist() {
+        this.dt1 = LocalDateTime.now();
     }
-}
+    }
+

@@ -11,6 +11,9 @@ public class VendorsService {
     public void registerVendors(Vendors vendors){
         vendorsRepository.save(vendors);
     }
+    public Vendors getVendorsById(long id){
+        return vendorsRepository.findById(id).orElse(null);
+    }
 
 
     public Vendors getVendorsByEmail(String email) {
