@@ -15,12 +15,11 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
-//@EnableWebSecurity/
 public class SpringSecurityConfig {
 
-    private final JwtHelper jwtHelper; // Ensure this is defined and injected
-    private final UserDetailsService userDetailsService; // Ensure this is defined and injected
-    private final AuthenticationEntryPoint point; // Ensure this is defined and injected
+    private final JwtHelper jwtHelper;
+    private final UserDetailsService userDetailsService;
+    private final AuthenticationEntryPoint point;
 
     public SpringSecurityConfig(JwtHelper jwtHelper, UserDetailsService userDetailsService, AuthenticationEntryPoint point) {
         this.jwtHelper = jwtHelper;
@@ -32,6 +31,7 @@ public class SpringSecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf(csrf -> csrf.disable())
                 .authorizeRequests(authorizeRequests -> authorizeRequests
+                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .requestMatchers("/admin").hasAnyRole("SUPERADMIN", "ADMIN", "EDITOR")
                         .requestMatchers("/api/login", "/api/register", "/admin/register", "/admin/login").permitAll()
                         .anyRequest().authenticated()
