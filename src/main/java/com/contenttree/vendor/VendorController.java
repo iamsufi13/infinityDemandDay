@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -102,5 +103,12 @@ public ResponseEntity<?> login(@RequestParam String email,
 
         return ResponseEntity.ok().body(ResponseUtils.createResponse1(null,"SUCCESS",true));
         }
+    @GetMapping("/vendor/solutionsets-by-vendors")
+    public ResponseEntity<ApiResponse1<List<SolutionSets>>> getSolutionSetsByVendor(@RequestParam long vendorId){
+    List<SolutionSets> list = solutionSetsService.getSolutionSetsByVendorId(vendorId);
+    return ResponseEntity.ok().body(ResponseUtils.createResponse1(list,"SUCCESS",true));
+    }
+
+
     }
 

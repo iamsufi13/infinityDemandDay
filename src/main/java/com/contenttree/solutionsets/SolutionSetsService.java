@@ -58,4 +58,8 @@ public class SolutionSetsService {
     public SolutionSets getById(long id) {
         return solutionSetsRepository.findById(id).orElse(null);
     }
+
+    public List<SolutionSets> getSolutionSetsByVendorId(long vendorId) {
+        return solutionSetsRepository.findByUploadedBy(vendorId);
+    }
 }

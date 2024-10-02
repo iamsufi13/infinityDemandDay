@@ -27,6 +27,7 @@ public class Vendors implements UserDetails {
 
     private String password;
 
+    @Column(unique = true)
     private String email;
     @JsonIgnore
     private LocalDateTime dt1;

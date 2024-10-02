@@ -1,5 +1,6 @@
 package com.contenttree.security;
 
+import com.contenttree.admin.Admin;
 import com.contenttree.vendor.Vendors;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -46,6 +47,11 @@ public class JwtHelper {
     public String generateTokenVendors(Vendors vendors){
         Map<String,Object> claims= new HashMap<>();
         return doGenerateToken(claims, vendors.getEmail());
+
+    }
+    public String generateTokenAdmins(Admin admin){
+        Map<String,Object> claims= new HashMap<>();
+        return doGenerateToken(claims, admin.getEmail());
 
     }
     private String doGenerateToken(Map<String, Object> claims,String subject){

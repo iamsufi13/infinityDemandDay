@@ -1,7 +1,5 @@
-package com.contenttree.solutionsets;
+package com.contenttree.admin;
 
-import com.contenttree.vendor.Vendors;
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -10,30 +8,29 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
-@Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Data
 @Builder
-public class SolutionSets {
-
+public class Admin {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
     private String name;
 
-    private String fileType;
+    private String password;
+    @Column(unique = true)
+    private String email;
 
-    @Lob
-    private byte[] filePath;
-
-    @JsonBackReference
-    @ManyToOne
-    @JoinColumn(name = "vendor_id")
-    private Vendors uploadedBy;
-
+    @ElementCollection(fetch = FetchType.EAGER)
+    @Enumerated(EnumType.STRING)
+    @CollectionTable(name = "admin_roles",joinColumns = @JoinColumn(name = "admin_id"))
+    @Column(name = "role")
+    private List<Role> role;
     @JsonIgnore
     private LocalDateTime dt1;
 
@@ -41,5 +38,4 @@ public class SolutionSets {
     public void prePersist() {
         this.dt1 = LocalDateTime.now();
     }
-    }
-
+}
