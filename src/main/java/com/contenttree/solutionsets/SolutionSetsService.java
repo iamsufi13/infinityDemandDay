@@ -1,5 +1,6 @@
 package com.contenttree.solutionsets;
 
+import com.contenttree.downloadlog.DownloadLogService;
 import com.contenttree.vendor.Vendors;
 import com.contenttree.vendor.VendorsService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +17,7 @@ public class SolutionSetsService {
     SolutionSetsRepository solutionSetsRepository;
     @Autowired
     VendorsService vendorsService;
+
 
     public String uploadSolutionSets(MultipartFile file, long vendorId){
 

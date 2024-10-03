@@ -1,5 +1,6 @@
 package com.contenttree.vendor;
 
+import com.contenttree.downloadlog.DownloadLog;
 import com.contenttree.solutionsets.SolutionSets;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
@@ -39,6 +40,8 @@ public class Vendors implements UserDetails {
 
     @OneToMany(mappedBy = "uploadedBy", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<SolutionSets> solutionSets;
+    @OneToMany(mappedBy = "vendor")
+    private List<DownloadLog> downloadLogs;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
