@@ -28,6 +28,9 @@ public class Vendors implements UserDetails {
 
     private String password;
 
+    @Enumerated(EnumType.STRING)
+    private VendorStatus status;
+
     @Column(unique = true)
     private String email;
     @JsonIgnore

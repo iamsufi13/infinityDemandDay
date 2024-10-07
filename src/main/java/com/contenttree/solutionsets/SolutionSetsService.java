@@ -37,6 +37,7 @@ public class SolutionSetsService {
                 .name(fileName)
                 .fileType(fileType)
                 .uploadedBy(v)
+                .status(SolutionSetsStatus.PENDING)
                 .filePath(fileBytes).build();
 
         solutionSetsRepository.save(solutionSets);

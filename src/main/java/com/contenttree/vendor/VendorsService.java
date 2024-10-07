@@ -9,6 +9,7 @@ public class VendorsService {
     VendorRepository vendorsRepository;
 
     public void registerVendors(Vendors vendors){
+        vendors.setStatus(VendorStatus.PENDING);
         vendorsRepository.save(vendors);
     }
     public Vendors getVendorsById(long id){

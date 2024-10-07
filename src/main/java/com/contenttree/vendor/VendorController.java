@@ -2,6 +2,7 @@ package com.contenttree.vendor;
 
 import com.contenttree.Jwt.JwtResponse;
 import com.contenttree.security.JwtHelper;
+import com.contenttree.security.VendorJwtHelper;
 import com.contenttree.solutionsets.SolutionSets;
 import com.contenttree.solutionsets.SolutionSetsController;
 import com.contenttree.solutionsets.SolutionSetsService;
@@ -25,12 +26,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 
+//@CrossOrigin("*")
 @RestController
 @RequestMapping("/api")
 public class VendorController {
 
     @Autowired
-    JwtHelper helper;
+    VendorJwtHelper helper;
     @Autowired
     VendorsService vendorsService;
     @Autowired
@@ -47,17 +49,21 @@ public ResponseEntity<?> login(@RequestParam String email,
         ApiResponse1<JwtResponse> response = ResponseUtils.createResponse1(null, "Vendor not found", false);
         return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
     }
+    if (vendors.getStatus()==VendorStatus.PENDING){
+        ApiResponse1<JwtResponse> response = ResponseUtils.createResponse1(null, "Vendor not Approved", false);
+        return new ResponseEntity<>(response,HttpStatus.NOT_ACCEPTABLE);
+    }
+    if (vendors.getStatus()==VendorStatus.REJECTED){
+        ApiResponse1<JwtResponse> response = ResponseUtils.createResponse1(null, "Vendor Rejected", false);
+        return new ResponseEntity<>(response,HttpStatus.NOT_ACCEPTABLE);
+    }
 
-    System.out.println("*******************************");
-    System.out.println(vendors.getPassword());
-    System.out.println("*******************************");
     if (!passwordEncoder.matches(password, vendors.getPassword())) {
         ApiResponse1<JwtResponse> response = ResponseUtils.createResponse1(null, "Email & Password Does Not Match", false);
         return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED); // Use 401 for unauthorized
     }
 
-    // Generate JWT token
-    String token = this.helper.generateTokenVendors(vendors);
+    String token = this.helper.generateToken(vendors);
 
     JwtResponse jwtResponse = JwtResponse.builder().jwtToken(token).username(vendors.getEmail()).build();
 
@@ -68,7 +74,7 @@ public ResponseEntity<?> login(@RequestParam String email,
 }
 
     @PostMapping("/register")
-    public ResponseEntity<String> registerAdmin(@RequestParam String email,
+    public ResponseEntity<String> registerVendor(@RequestParam String email,
                                                 @RequestParam String password,
                                                 @RequestParam String name){
         Vendors vendors = new Vendors();
@@ -79,7 +85,7 @@ public ResponseEntity<?> login(@RequestParam String email,
 
 
         vendorsService.registerVendors(vendors);
-        return ResponseEntity.ok("Admin Registered SuccessFully");
+        return ResponseEntity.ok("Vendor Registered SuccessFully Waiting For Approval From Central Team");
     }
     @GetMapping("/vendor/byid")
     public ResponseEntity<ApiResponse1<SolutionSets>> getVendorById(@RequestParam long id){

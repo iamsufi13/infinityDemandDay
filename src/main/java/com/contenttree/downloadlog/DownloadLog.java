@@ -25,7 +25,7 @@ public class DownloadLog {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "vendor_id")
     private Vendors vendor;
-
+ 
     @JsonIgnore
     private LocalDateTime dt1;
 

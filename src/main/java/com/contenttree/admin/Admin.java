@@ -6,8 +6,12 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 
 @Entity
@@ -15,7 +19,7 @@ import java.util.List;
 @NoArgsConstructor
 @Data
 @Builder
-public class Admin {
+public class Admin implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
@@ -37,5 +41,36 @@ public class Admin {
     @PrePersist
     public void prePersist() {
         this.dt1 = LocalDateTime.now();
+    }
+
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return role.stream().map(r-> new SimpleGrantedAuthority(r.name())).toList();
+    }
+
+    @Override
+    public String getUsername() {
+        return email;
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return UserDetails.super.isAccountNonExpired();
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return UserDetails.super.isAccountNonLocked();
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return UserDetails.super.isCredentialsNonExpired();
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return UserDetails.super.isEnabled();
     }
 }

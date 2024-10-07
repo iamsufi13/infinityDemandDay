@@ -34,6 +34,9 @@ public class SolutionSets {
     @JoinColumn(name = "vendor_id")
     private Vendors uploadedBy;
 
+    @Enumerated(EnumType.STRING)
+    private SolutionSetsStatus status;
+
     @JsonIgnore
     private LocalDateTime dt1;
 

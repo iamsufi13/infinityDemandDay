@@ -2,8 +2,11 @@ package com.contenttree.config;
 
 import com.contenttree.security.JwtAuthenticationFilter;
 import com.contenttree.security.JwtHelper;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -13,8 +16,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 @Configuration
+@Slf4j
+@EnableWebSecurity
 public class SpringSecurityConfig {
 
     private final JwtHelper jwtHelper;
@@ -28,20 +34,52 @@ public class SpringSecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http.csrf(csrf -> csrf.disable())
+    @Order(1)
+    public SecurityFilterChain adminSecurityFilterChain(HttpSecurity http) throws Exception {
+        http
+//                .securityMatcher(AntPathRequestMatcher.antMatcher("/admin/**"))
+        .csrf(csrf -> csrf.disable())
+                .cors(c -> c.disable())
                 .authorizeRequests(authorizeRequests -> authorizeRequests
-                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                        .requestMatchers("/admin").hasAnyRole("SUPERADMIN", "ADMIN", "EDITOR")
-                        .requestMatchers("/api/login", "/api/register", "/admin/register", "/admin/login").permitAll()
+                        .requestMatchers(AntPathRequestMatcher.antMatcher("/admin/**")).hasAnyAuthority("SUPERADMIN", "EDITOR", "ADMIN")
+                        .requestMatchers("/api/login", "/api/register", "/login/admin").permitAll()
                         .anyRequest().authenticated()
                 )
-                .exceptionHandling(ex -> ex.authenticationEntryPoint(point))
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint((request, response, authException) -> {
+//                            Logger logger = null;
+//                            logger.error("Unauthorized error: {}", authException.getMessage());
+                            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
+                        })
+                )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class); // Ensure proper filter order
+                .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
+    @Bean
+    @Order(2)
+    public SecurityFilterChain vendorSecurityFilterChain(HttpSecurity http) throws Exception {
+        http
+                .csrf(csrf -> csrf.disable())
+                .cors(cors -> cors.disable())
+                .authorizeRequests(authorizeRequests -> authorizeRequests
+                        .requestMatchers("/api/login", "/api/register","login/admin").permitAll()
+                        .anyRequest().authenticated()
+                )
+                .exceptionHandling(ex -> ex
+                                .authenticationEntryPoint((request, response, authException) -> {
+                                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
+                                })
+                )
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
+
+        return http.build();
+    }
+
+
+
 
     @Bean
     public PasswordEncoder passwordEncoder() {
