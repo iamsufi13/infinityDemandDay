@@ -2,6 +2,8 @@ package com.contenttree.config;
 
 import com.contenttree.admin.Admin;
 import com.contenttree.admin.AdminRepository;
+import com.contenttree.user.User;
+import com.contenttree.user.UserRepository;
 import com.contenttree.vendor.VendorRepository;
 import com.contenttree.vendor.VendorStatus;
 import com.contenttree.vendor.Vendors;
@@ -17,11 +19,13 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     private final VendorRepository vendorRepository;
     private final AdminRepository adminRepository;
+    private final UserRepository userRepository;
 
     @Autowired
-    public CustomUserDetailsService(@Lazy VendorRepository vendorRepository, AdminRepository adminRepository) {
+    public CustomUserDetailsService(@Lazy VendorRepository vendorRepository, AdminRepository adminRepository,UserRepository userRepository) {
         this.vendorRepository = vendorRepository;
         this.adminRepository = adminRepository;
+        this.userRepository= userRepository;
     }
 
     @Override
@@ -39,6 +43,11 @@ public class CustomUserDetailsService implements UserDetailsService {
                 throw new UsernameNotFoundException("Vendor account is not approved");
             }
             return vendor;
+        }
+        User user = userRepository.findByEmailIgnoreCase(username);
+
+        if (user!=null){
+            return user;
         }
 
         throw new UsernameNotFoundException("User not found with email " + username);

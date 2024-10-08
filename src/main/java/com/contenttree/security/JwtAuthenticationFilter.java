@@ -99,6 +99,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
+        String requestPath = request.getServletPath();
+        if (requestPath.startsWith("/api/user/confirm-account") ||
+                requestPath.equals("/api/login") ||
+                requestPath.equals("/api/register")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         String requestHeader = request.getHeader("Authorization");
         logger.debug("Authorization Header: {}", requestHeader); // Log the incoming Authorization header

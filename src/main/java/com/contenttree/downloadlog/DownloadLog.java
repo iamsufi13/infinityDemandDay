@@ -1,5 +1,6 @@
 package com.contenttree.downloadlog;
 
+import com.contenttree.user.User;
 import com.contenttree.vendor.Vendors;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
@@ -25,6 +26,10 @@ public class DownloadLog {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "vendor_id")
     private Vendors vendor;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
  
     @JsonIgnore
     private LocalDateTime dt1;
