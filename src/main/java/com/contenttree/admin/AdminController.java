@@ -6,11 +6,13 @@ import com.contenttree.security.JwtHelper;
 import com.contenttree.solutionsets.SolutionSets;
 import com.contenttree.solutionsets.SolutionSetsRepository;
 import com.contenttree.solutionsets.SolutionSetsStatus;
+import com.contenttree.user.UserService;
 import com.contenttree.utils.ApiResponse1;
 import com.contenttree.utils.ResponseUtils;
 import com.contenttree.vendor.VendorRepository;
 import com.contenttree.vendor.VendorStatus;
 import com.contenttree.vendor.Vendors;
+import com.contenttree.vendor.VendorsService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -39,6 +41,11 @@ public class AdminController
     AdminService adminService;
     @Autowired
     PasswordEncoder passwordEncoder;
+    @Autowired
+    VendorsService vendorsService;
+
+    @Autowired
+    UserService userService;
     @GetMapping("/admin/hello-world")
     public ResponseEntity<String> helloWorld(){
         return ResponseEntity.ok("Hello World in Admin Controller");
@@ -63,8 +70,14 @@ public class AdminController
         else {roles.add(Role.ADMIN);}
 
         admin.setRole(roles);
-        adminService.registerAdmin(admin);
-        return ResponseEntity.ok("Admin Registered SuccessFully");
+
+        if (vendorsService.getVendorsByEmail(email)==null&&userService.getUserByEmail(email)==null){
+            adminService.registerAdmin(admin);
+            return ResponseEntity.ok("Admin Registered SuccessFully");
+        }
+
+        return ResponseEntity.ok("Email Already Registered Please Try With Other Email");
+
 
     }
     @PostMapping("/login/admin")

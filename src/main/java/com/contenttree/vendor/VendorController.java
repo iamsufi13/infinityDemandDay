@@ -1,31 +1,26 @@
 package com.contenttree.vendor;
 
 import com.contenttree.Jwt.JwtResponse;
-import com.contenttree.security.JwtHelper;
+import com.contenttree.admin.AdminService;
 import com.contenttree.security.VendorJwtHelper;
 import com.contenttree.solutionsets.SolutionSets;
-import com.contenttree.solutionsets.SolutionSetsController;
 import com.contenttree.solutionsets.SolutionSetsService;
+import com.contenttree.user.UserService;
 import com.contenttree.utils.ApiResponse1;
 import com.contenttree.utils.ResponseUtils;
-import org.apache.tomcat.util.http.fileupload.FileItemFactory;
-import org.aspectj.weaver.Iterators;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.HashMap;
 import java.util.List;
-import java.util.Optional;
-
 //@CrossOrigin("*")
 @RestController
 @RequestMapping("/api")
@@ -37,6 +32,12 @@ public class VendorController {
     VendorsService vendorsService;
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    AdminService adminService;
+
+    @Autowired
+    UserService userService;
 
     @Autowired
     SolutionSetsService solutionSetsService;
@@ -83,9 +84,15 @@ public ResponseEntity<?> login(@RequestParam String email,
         vendors.setPassword(hashpassword);
         vendors.setEmail(email);
 
+        if (adminService.getAdminByEmailId(email)==null&&userService.getUserByEmail(email)==null){
+            vendorsService.registerVendors(vendors);
+            return ResponseEntity.ok("Vendor Registered SuccessFully Waiting For Approval From Central Team");
+        }
 
-        vendorsService.registerVendors(vendors);
-        return ResponseEntity.ok("Vendor Registered SuccessFully Waiting For Approval From Central Team");
+        return ResponseEntity.ok("Email Already Registered Please Try Again");
+
+
+
     }
     @GetMapping("/vendor/byid")
     public ResponseEntity<ApiResponse1<SolutionSets>> getVendorById(@RequestParam long id){
@@ -93,7 +100,7 @@ public ResponseEntity<?> login(@RequestParam String email,
         return ResponseEntity.ok().body(ResponseUtils.createResponse1(solutionSets,"SUCESS",true));
     }
     @PostMapping("/vendor/add-solutionset")
-    public ResponseEntity<ApiResponse1<SolutionSets>> addSolutionSet(@RequestParam String name, @RequestParam MultipartFile file){
+    public ResponseEntity<ApiResponse1<SolutionSets>> addSolutionSet(@RequestParam MultipartFile file){
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication==null || !(authentication.getPrincipal() instanceof UserDetails)){
@@ -103,12 +110,13 @@ public ResponseEntity<?> login(@RequestParam String email,
         Vendors vendors = vendorsService.getVendorsByEmail(userDetails.getUsername());
 
         if (vendors==null) {
-        return ResponseEntity.notFound().build();
+            return ResponseEntity.notFound().build();
         }
         solutionSetsService.uploadSolutionSets(file,vendors.getId());
 
         return ResponseEntity.ok().body(ResponseUtils.createResponse1(null,"SUCCESS",true));
-        }
+    }
+
     @GetMapping("/vendor/solutionsets-by-vendors")
     public ResponseEntity<ApiResponse1<List<SolutionSets>>> getSolutionSetsByVendor(@RequestParam long vendorId){
     List<SolutionSets> list = solutionSetsService.getSolutionSetsByVendorId(vendorId);

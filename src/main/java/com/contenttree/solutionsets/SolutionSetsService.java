@@ -8,6 +8,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
 
@@ -45,8 +48,8 @@ public class SolutionSetsService {
 
         return "File Uploaded SuccessFully:"+ fileBytes;
     }
-    public byte[] downloadPdf(String name){
-        Optional<SolutionSets> dbPdfData = solutionSetsRepository.findByName(name);
+    public byte[] downloadPdf(long name){
+        Optional<SolutionSets> dbPdfData = solutionSetsRepository.findById(name);
 
         if (dbPdfData.isPresent()){
             return dbPdfData.get().getFilePath();
@@ -64,5 +67,8 @@ public class SolutionSetsService {
 
     public List<SolutionSets> getSolutionSetsByVendorId(long vendorId) {
         return solutionSetsRepository.findByUploadedBy(vendorId);
+    }
+    public List<SolutionSets> getAllSolutionSets(){
+        return solutionSetsRepository.findAll();
     }
 }

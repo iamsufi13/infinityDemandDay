@@ -26,6 +26,7 @@ public class Admin implements UserDetails {
 
     private String name;
 
+    @JsonIgnore
     private String password;
     @Column(unique = true)
     private String email;

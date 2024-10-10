@@ -2,6 +2,7 @@ package com.contenttree.user;
 
 import com.contenttree.confirmationtoken.ConfirmationToken;
 import com.contenttree.confirmationtoken.ConfirmationTokenRepository;
+import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;

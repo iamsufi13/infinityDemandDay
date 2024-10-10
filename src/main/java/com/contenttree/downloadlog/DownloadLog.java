@@ -21,7 +21,7 @@ public class DownloadLog {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    private String pdfName;
+    private long pdfId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "vendor_id")

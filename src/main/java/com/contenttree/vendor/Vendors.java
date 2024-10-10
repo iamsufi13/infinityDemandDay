@@ -2,6 +2,7 @@ package com.contenttree.vendor;
 
 import com.contenttree.downloadlog.DownloadLog;
 import com.contenttree.solutionsets.SolutionSets;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
@@ -26,6 +27,7 @@ public class Vendors implements UserDetails {
 
     private String name;
 
+    @JsonIgnore
     private String password;
 
     @Enumerated(EnumType.STRING)
@@ -41,8 +43,10 @@ public class Vendors implements UserDetails {
         this.dt1 = LocalDateTime.now();
     }
 
+    @JsonBackReference
     @OneToMany(mappedBy = "uploadedBy", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<SolutionSets> solutionSets;
+    @JsonBackReference
     @OneToMany(mappedBy = "vendor")
     private List<DownloadLog> downloadLogs;
 

@@ -17,18 +17,18 @@ public class DownloadLogService {
     @Autowired
     UserService userService;
 
-    public void logPdfDownload(String name,long vendorId){
+    public void logPdfDownload(long name,long vendorId){
         DownloadLog log = new DownloadLog();
-        log.setPdfName(name);
+        log.setPdfId(name);
         log.setVendor(vendorsService.getVendorsById(vendorId));
         log.setDt1(LocalDateTime.now());
 
         downloadLogRepository.save(log);
 
     }
-    public void lodPdfDownloadUser(String name, long userId){
+    public void lodPdfDownloadUser(long name, long userId){
         DownloadLog downloadLog= new DownloadLog();
-        downloadLog.setPdfName(name);
+        downloadLog.setPdfId(name);
         downloadLog.setUser(userService.getUserById(userId));
         downloadLog.setDt1(LocalDateTime.now());
 

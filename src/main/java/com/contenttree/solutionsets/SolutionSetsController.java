@@ -34,7 +34,7 @@ public class SolutionSetsController {
         return ResponseEntity.ok().body(ResponseUtils.createResponse1(list,"SUCCESS",true));
     }
     @GetMapping("/downloadpdf")
-    public ResponseEntity<byte[]> downloadSolutionSets(@RequestParam String name,
+    public ResponseEntity<byte[]> downloadSolutionSets(@RequestParam long name,
                                                        @AuthenticationPrincipal Vendors vendor){
     byte[] pdfData = solutionSetsService.downloadPdf(name);
     if (pdfData==null || pdfData.length ==0){

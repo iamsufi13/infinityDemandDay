@@ -43,7 +43,7 @@ public class SpringSecurityConfig {
                 .cors(c -> c.disable())
                 .authorizeRequests(authorizeRequests -> authorizeRequests
                         .requestMatchers(AntPathRequestMatcher.antMatcher("/admin/**")).hasAnyAuthority("SUPERADMIN", "EDITOR", "ADMIN")
-                        .requestMatchers("/api/login", "/api/register", "/login/admin","/api/user/register","/api/user/login","/api/user/confirm-account").permitAll()
+                        .requestMatchers("/api/login", "/api/register", "/login/admin","/api/user/register","/api/user/login","/api/user/confirm-account","/api/home").permitAll()
                         .requestMatchers("/error").permitAll()
                         .anyRequest().authenticated()
                 )
