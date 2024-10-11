@@ -23,7 +23,7 @@ import java.util.HashMap;
 import java.util.List;
 //@CrossOrigin("*")
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/vendor")
 public class VendorController {
 
     @Autowired
@@ -94,13 +94,13 @@ public ResponseEntity<?> login(@RequestParam String email,
 
 
     }
-    @GetMapping("/vendor/byid")
+    @GetMapping("/byid")
     public ResponseEntity<ApiResponse1<SolutionSets>> getVendorById(@RequestParam long id){
         SolutionSets solutionSets = solutionSetsService.getById(id);
         return ResponseEntity.ok().body(ResponseUtils.createResponse1(solutionSets,"SUCESS",true));
     }
-    @PostMapping("/vendor/add-solutionset")
-    public ResponseEntity<ApiResponse1<SolutionSets>> addSolutionSet(@RequestParam MultipartFile file){
+    @PostMapping("/add-solutionset")
+    public ResponseEntity<ApiResponse1<SolutionSets>> addSolutionSet(@RequestParam MultipartFile file, @RequestParam String category){
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication==null || !(authentication.getPrincipal() instanceof UserDetails)){
@@ -112,12 +112,12 @@ public ResponseEntity<?> login(@RequestParam String email,
         if (vendors==null) {
             return ResponseEntity.notFound().build();
         }
-        solutionSetsService.uploadSolutionSets(file,vendors.getId());
+        solutionSetsService.uploadSolutionSets(file,vendors.getId(), category);
 
         return ResponseEntity.ok().body(ResponseUtils.createResponse1(null,"SUCCESS",true));
     }
 
-    @GetMapping("/vendor/solutionsets-by-vendors")
+    @GetMapping("/solutionsets-by-vendor")
     public ResponseEntity<ApiResponse1<List<SolutionSets>>> getSolutionSetsByVendor(@RequestParam long vendorId){
     List<SolutionSets> list = solutionSetsService.getSolutionSetsByVendorId(vendorId);
     return ResponseEntity.ok().body(ResponseUtils.createResponse1(list,"SUCCESS",true));

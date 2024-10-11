@@ -47,7 +47,8 @@ public class SolutionSetsController {
 
     @PostMapping
     public ResponseEntity<ApiResponse1<SolutionSets>> addSolutionSets(
-                                                                      @RequestParam MultipartFile file){
+                                                                      @RequestParam MultipartFile file,
+                                                                      @RequestParam String category){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication==null || !(authentication.getPrincipal() instanceof UserDetails)){
             return ResponseEntity.status(401).body(null);
@@ -58,7 +59,7 @@ public class SolutionSetsController {
         if (vendors==null) {
             return ResponseEntity.notFound().build();
         }
-        String uploadResponse = solutionSetsService.uploadSolutionSets(file, vendors.getId());
+        String uploadResponse = solutionSetsService.uploadSolutionSets(file, vendors.getId(),category);
         return ResponseEntity.ok(new ApiResponse1<>(true,"SUCCESS",null));
     }
 }

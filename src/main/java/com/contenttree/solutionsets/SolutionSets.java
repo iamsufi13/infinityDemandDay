@@ -29,6 +29,8 @@ public class SolutionSets {
     @Lob
     private byte[] filePath;
 
+    private String category;
+
     @JsonBackReference
     @ManyToOne
     @JoinColumn(name = "vendor_id")

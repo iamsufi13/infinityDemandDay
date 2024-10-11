@@ -1,6 +1,8 @@
 package com.contenttree.solutionsets;
 
 import com.contenttree.downloadlog.DownloadLogService;
+import com.contenttree.vendor.VendorDto;
+import com.contenttree.vendor.VendorMapper;
 import com.contenttree.vendor.Vendors;
 import com.contenttree.vendor.VendorsService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,8 +13,10 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class SolutionSetsService {
@@ -22,7 +26,7 @@ public class SolutionSetsService {
     VendorsService vendorsService;
 
 
-    public String uploadSolutionSets(MultipartFile file, long vendorId){
+    public String uploadSolutionSets(MultipartFile file, long vendorId,String category){
 
         String fileName = file.getOriginalFilename();
         String fileType = file.getContentType();
@@ -41,6 +45,7 @@ public class SolutionSetsService {
                 .fileType(fileType)
                 .uploadedBy(v)
                 .status(SolutionSetsStatus.PENDING)
+                .category(category)
                 .filePath(fileBytes).build();
 
         solutionSetsRepository.save(solutionSets);
@@ -57,6 +62,21 @@ public class SolutionSetsService {
         return null;
     }
 
+    public List<SolutionSets> getLatestUploadedSolutionSets(){
+        List<SolutionSets> solutionSets = solutionSetsRepository.findAll();
+        List<SolutionSets>  solutionSets1 =solutionSetsRepository.findAll().stream()
+                .sorted(Comparator.comparing(SolutionSets::getDt1).reversed())
+                .limit(5)
+                .collect(Collectors.toList());
+        List<SolutionSetDto> solutionSetDtos = solutionSets1.stream().map(SolutionSetMapper::toSolutionSetDto)
+                .toList();
+
+        return solutionSets;
+
+
+    }
+
+
     public List<SolutionSets> getAllSolutioinSets() {
         return solutionSetsRepository.findAll();
     }
@@ -70,5 +90,9 @@ public class SolutionSetsService {
     }
     public List<SolutionSets> getAllSolutionSets(){
         return solutionSetsRepository.findAll();
+    }
+    public List<SolutionSets> getSolutionSetsByCategory(String category)
+    {
+        return solutionSetsRepository.findByCategoryIgnoreCase(category);
     }
 }

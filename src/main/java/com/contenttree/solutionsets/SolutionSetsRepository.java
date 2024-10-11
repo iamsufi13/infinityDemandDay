@@ -13,4 +13,7 @@ public interface SolutionSetsRepository extends JpaRepository<SolutionSets,Long>
 
     @Query("select s from SolutionSets s where s.uploadedBy.id = :vendorId")
     List<SolutionSets> findByUploadedBy(long vendorId);
+
+    @Query("select s from SolutionSets s where s.category = :category")
+    List<SolutionSets> findByCategoryIgnoreCase(String category);
 }

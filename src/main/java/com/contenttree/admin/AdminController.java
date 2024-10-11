@@ -13,6 +13,7 @@ import com.contenttree.vendor.VendorRepository;
 import com.contenttree.vendor.VendorStatus;
 import com.contenttree.vendor.Vendors;
 import com.contenttree.vendor.VendorsService;
+import io.swagger.annotations.Api;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -125,7 +126,7 @@ public class AdminController
         log.info("inside the Admin controller");
         SolutionSets solutionSet = solutionSetsRepository.findById(solutionId)
                 .orElseThrow(() -> new RuntimeException("Solution Set not found"));
-        solutionSet.setStatus(SolutionSetsStatus.APPROVED); // Approve PDF
+        solutionSet.setStatus(SolutionSetsStatus.APPROVED);
         solutionSetsRepository.save(solutionSet);
         return ResponseEntity.ok("Solution set approved successfully");
     }
@@ -137,5 +138,20 @@ public class AdminController
         solutionSet.setStatus(SolutionSetsStatus.REJECTED); // Reject PDF
         solutionSetsRepository.save(solutionSet);
         return ResponseEntity.ok("Solution set rejected successfully");
+    }
+
+    @PostMapping("/admin/newsletter/sharing")
+    public ResponseEntity<ApiResponse1<String>> shareNewsLetterOnMail(@RequestParam (required = false) String newsLetterName){
+        return null;
+    }
+    @GetMapping("/admin/getbyemailid")
+    public ResponseEntity<ApiResponse1<Admin>> getAdminByEmailId(@RequestParam String adminEmailId){
+        Admin admin = adminService.getAdminByEmailId(adminEmailId);
+        return ResponseEntity.ok().body(ResponseUtils.createResponse1(admin,"SUCCESS",true));
+    }
+    @GetMapping("/admin/getbyid")
+    public ResponseEntity<ApiResponse1<Admin>> getAdminById(@RequestParam long id){
+        Admin admin = adminService.adminRepository.findById(id).orElse(null);
+        return ResponseEntity.ok().body(ResponseUtils.createResponse1(admin,"SUCCESS",true));
     }
 }

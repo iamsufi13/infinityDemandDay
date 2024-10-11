@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class VendorsService {
@@ -13,6 +14,19 @@ public class VendorsService {
 
     public List<Vendors> getAllVendors(){
         return vendorsRepository.findAll();
+    }
+
+    public List<VendorDto> getApprovedVendors() {
+        List<Vendors> vendors = vendorsRepository.findAll();
+        List<Vendors> approvedVendors = vendors.stream()
+                .filter(vendor -> "approved".equalsIgnoreCase(String.valueOf(vendor.getStatus())))
+                .collect(Collectors.toList());
+
+        List<VendorDto> vendorDtos = approvedVendors.stream()
+                .map(VendorMapper::tovendorDto)
+                .collect(Collectors.toList());
+
+        return vendorDtos;
     }
 
     public void registerVendors(Vendors vendors){
