@@ -26,8 +26,9 @@ public class SolutionSets {
 
     private String fileType;
 
-    @Lob
-    private byte[] filePath;
+//    @Lob
+//    private byte[] filePath;
+private String filePath;
 
     private String category;
 

@@ -43,7 +43,7 @@ public class SpringSecurityConfig {
                 .cors(c -> c.disable())
                 .authorizeRequests(authorizeRequests -> authorizeRequests
                         .requestMatchers(AntPathRequestMatcher.antMatcher("/admin/**")).hasAnyAuthority("SUPERADMIN", "EDITOR", "ADMIN")
-                        .requestMatchers("/api/login", "/api/register", "/login/admin","/api/user/register","/api/user/login","/api/user/confirm-account","/api/home").permitAll()
+                        .requestMatchers("/api/login", "/api/register", "/api/vendor/login","/login/admin","/api/user/register","/api/user/login","/api/user/confirm-account","/api/home").permitAll()
                         .requestMatchers("/error").permitAll()
                         .anyRequest().authenticated()
                 )
@@ -66,7 +66,7 @@ public class SpringSecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.disable())
                 .authorizeRequests(authorizeRequests -> authorizeRequests
-                        .requestMatchers("/api/login", "/api/register","login/admin").permitAll()
+                        .requestMatchers("/api/login","/api/vendor/login", "/api/register","login/admin").permitAll()
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(ex -> ex

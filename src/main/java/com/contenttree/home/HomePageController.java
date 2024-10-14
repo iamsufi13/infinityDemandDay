@@ -42,7 +42,7 @@ public class HomePageController {
         count.put("Vendors",vendorsCount);
 
         List<User> usersCount = userService.getAllUsers();
-        count.put("indsutries",usersCount.size());
+        count.put("industries",usersCount.size());
         count.put("vendorsOffering",solutionSetsCount);
 
 

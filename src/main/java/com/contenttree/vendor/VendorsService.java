@@ -20,7 +20,7 @@ public class VendorsService {
         List<Vendors> vendors = vendorsRepository.findAll();
         List<Vendors> approvedVendors = vendors.stream()
                 .filter(vendor -> "approved".equalsIgnoreCase(String.valueOf(vendor.getStatus())))
-                .collect(Collectors.toList());
+                .toList();
 
         List<VendorDto> vendorDtos = approvedVendors.stream()
                 .map(VendorMapper::tovendorDto)
