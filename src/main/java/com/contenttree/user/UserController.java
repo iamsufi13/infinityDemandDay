@@ -45,11 +45,16 @@ public class UserController {
         this.passwordEncoder = passwordEncoder;
     }
 
-    @PostMapping("/register")
+    @RequestMapping("/register")
     public ResponseEntity<?> registerUser(@RequestParam String name,
                                           @RequestParam String password,
                                           @RequestParam String email) {
 
+        System.out.println("+++++++++++++++++++++++");
+        System.out.println(email);
+        System.out.println(password);
+        System.out.println(name);
+        System.out.println("+++++++++++++++++++++++");
         User user = new User();
         user.setName(name);
         String hasCode = passwordEncoder.encode(password);
@@ -87,8 +92,12 @@ public class UserController {
 
         return userService.confirmEmail(confirmationToken);
     }
-    @PostMapping("/login")
+    @RequestMapping("/login")
     public ResponseEntity<?> loginUserAccount(@RequestParam String email, @RequestParam String password) {
+        System.out.println("+++++++++++++++++++++++");
+        System.out.println(email);
+        System.out.println(password);
+        System.out.println("+++++++++++++++++++++++");
         User user = userService.getUserByEmail(email);
 
         log.info("User fetched from service: {}", user);

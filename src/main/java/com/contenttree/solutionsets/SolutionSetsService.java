@@ -1,8 +1,7 @@
 package com.contenttree.solutionsets;
 
-import com.contenttree.downloadlog.DownloadLogService;
-import com.contenttree.vendor.VendorDto;
-import com.contenttree.vendor.VendorMapper;
+import com.contenttree.category.Category;
+import com.contenttree.category.CategoryRepository;
 import com.contenttree.vendor.Vendors;
 import com.contenttree.vendor.VendorsService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,9 +24,11 @@ public class SolutionSetsService {
     SolutionSetsRepository solutionSetsRepository;
     @Autowired
     VendorsService vendorsService;
+    @Autowired
+    CategoryRepository categoryRepository;
 
 
-    public String uploadSolutionSets(MultipartFile file, long vendorId, String category) {
+    public String uploadSolutionSets(MultipartFile file, long vendorId, long categoryId) {
 
         String uploadDir = "src/main/resources/uploads/";
 
@@ -47,21 +48,30 @@ public class SolutionSetsService {
             return "File Upload failed: " + e.getMessage();
         }
 
-        Vendors v = vendorsService.getVendorsById(vendorId);
+        Vendors vendor = vendorsService.getVendorsById(vendorId);
+        if (vendor == null) {
+            return "Vendor not found";
+        }
+
+        Category category = categoryRepository.findById(categoryId).orElse(null);
+        if (category == null) {
+            return "Category not found";
+        }
 
         SolutionSets solutionSets = SolutionSets.builder()
                 .name(fileName)
                 .fileType(fileType)
-                .uploadedBy(v)
+                .uploadedBy(vendor)
                 .status(SolutionSetsStatus.PENDING)
                 .category(category)
-                .filePath(fileName)
+                .filePath(uploadDir + fileName)
                 .build();
 
         solutionSetsRepository.save(solutionSets);
 
         return "File Uploaded Successfully: " + fileName;
     }
+
     public byte[] downloadPdf(long name){
         Optional<SolutionSets> dbPdfData = solutionSetsRepository.findById(name);
 
@@ -100,5 +110,13 @@ public class SolutionSetsService {
     public List<SolutionSets> getSolutionSetsByCategory(String category)
     {
         return solutionSetsRepository.findByCategoryIgnoreCase(category);
+    }
+
+    public List<SolutionSets> getByCategoryId(long id) {
+        List<SolutionSets> solutionSets= solutionSetsRepository.findAll();
+        List<SolutionSets> solutionSets1 = solutionSets.stream()
+                .filter(solutionSet -> solutionSet.getCategory().getId()==id)
+                .toList();
+        return solutionSets1;
     }
 }

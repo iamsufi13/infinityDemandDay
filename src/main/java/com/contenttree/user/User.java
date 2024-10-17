@@ -4,6 +4,7 @@ import com.contenttree.confirmationtoken.ConfirmationToken;
 import com.contenttree.downloadlog.DownloadLog;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -27,6 +28,7 @@ public class User implements UserDetails {
     private String name;
 
     @Column(unique = true)
+    @Email
     private String email;
 
     @JsonIgnore

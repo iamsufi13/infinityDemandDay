@@ -1,6 +1,5 @@
 package com.contenttree.admin;
 
-import com.contenttree.vendor.Vendors;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

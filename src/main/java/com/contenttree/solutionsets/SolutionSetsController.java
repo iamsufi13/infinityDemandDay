@@ -48,7 +48,7 @@ public class SolutionSetsController {
     @PostMapping
     public ResponseEntity<ApiResponse1<SolutionSets>> addSolutionSets(
                                                                       @RequestParam MultipartFile file,
-                                                                      @RequestParam String category){
+                                                                      @RequestParam long category){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication==null || !(authentication.getPrincipal() instanceof UserDetails)){
             return ResponseEntity.status(401).body(null);

@@ -22,7 +22,7 @@ public class CustomUserDetailsService implements UserDetailsService {
     private final UserRepository userRepository;
 
     @Autowired
-    public CustomUserDetailsService(@Lazy VendorRepository vendorRepository, AdminRepository adminRepository,UserRepository userRepository) {
+    public CustomUserDetailsService(@Lazy VendorRepository vendorRepository,@Lazy AdminRepository adminRepository,@Lazy UserRepository userRepository) {
         this.vendorRepository = vendorRepository;
         this.adminRepository = adminRepository;
         this.userRepository= userRepository;

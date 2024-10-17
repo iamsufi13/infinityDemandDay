@@ -1,5 +1,6 @@
 package com.contenttree.solutionsets;
 
+import com.contenttree.category.Category;
 import com.contenttree.vendor.Vendors;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -30,7 +31,11 @@ public class SolutionSets {
 //    private byte[] filePath;
 private String filePath;
 
-    private String category;
+@JsonBackReference
+    @ManyToOne
+    @JoinColumn(name = "category_id")
+    private Category category;
+
 
     @JsonBackReference
     @ManyToOne

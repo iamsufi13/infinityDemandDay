@@ -9,7 +9,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.oauth2.resourceserver.OAuth2ResourceServerSecurityMarker;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -43,10 +42,12 @@ public class SpringSecurityConfig {
                 .cors(c -> c.disable())
                 .authorizeRequests(authorizeRequests -> authorizeRequests
                         .requestMatchers(AntPathRequestMatcher.antMatcher("/admin/**")).hasAnyAuthority("SUPERADMIN", "EDITOR", "ADMIN")
-                        .requestMatchers("/api/login", "/api/register", "/api/vendor/login","/login/admin","/api/user/register","/api/user/login","/api/user/confirm-account","/api/home").permitAll()
+                        .requestMatchers("/api/login", "/api/register","/api/category/**", "/api/vendor/login","/login/admin","/api/user/register","/api/user/login","/api/user/confirm-account","/api/home").permitAll()
                         .requestMatchers("/error").permitAll()
                         .anyRequest().authenticated()
                 )
+//                .oauth2Login(Customizer.withDefaults())
+//                .formLogin(Customizer.withDefaults())
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint((request, response, authException) -> {
 //                            Logger logger = null;
@@ -100,11 +101,6 @@ public class SpringSecurityConfig {
 
         return http.build();
     }
-
-
-
-
-
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
