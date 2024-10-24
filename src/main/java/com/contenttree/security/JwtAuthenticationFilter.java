@@ -108,36 +108,36 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         String requestHeader = request.getHeader("Authorization");
-        logger.debug("Authorization Header: {}", requestHeader); // Log the incoming Authorization header
+        logger.debug("Authorization Header: {}", requestHeader);
 
         if (requestHeader != null && requestHeader.startsWith(TOKEN_PREFIX)) {
-            String token = requestHeader.substring(TOKEN_PREFIX.length()); // Remove "Bearer " prefix
-            logger.debug("Extracted Token: {}", token); // Log the extracted token
+            String token = requestHeader.substring(TOKEN_PREFIX.length());
+            logger.debug("Extracted Token: {}", token);
 
             try {
                 String username = jwtHelper.getUsernameFromToken(token);
-                logger.debug("Extracted Username: {}", username); // Log the username extracted from the token
+                logger.debug("Extracted Username: {}", username);
 
                 if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                     UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-                    logger.debug("Loaded UserDetails: {}", userDetails); // Log the loaded UserDetails
+                    logger.debug("Loaded UserDetails: {}", userDetails);
 
                     if (jwtHelper.validateToken(token, userDetails)) {
-                        logger.debug("Token is valid for user: {}", username); // Log successful token validation
+                        logger.debug("Token is valid for user: {}", username);
                         UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                                 userDetails, null, userDetails.getAuthorities());
                         SecurityContextHolder.getContext().setAuthentication(authentication);
                     } else {
-                        logger.warn("Invalid JWT token for user: {}", username); // Log invalid token
+                        logger.warn("Invalid JWT token for user: {}", username);
                     }
                 } else {
-                    logger.warn("Username not found in token or already authenticated"); // Log if username is not found
+                    logger.warn("Username not found in token or already authenticated");
                 }
             } catch (Exception e) {
-                logger.error("JWT token validation failed: ", e); // Log any exception during token validation
+                logger.error("JWT token validation failed: ", e);
             }
         } else {
-            logger.warn("No JWT token found in the request"); // Log if no token is found
+            logger.warn("No JWT token found in the request");
         }
 
         filterChain.doFilter(request, response);

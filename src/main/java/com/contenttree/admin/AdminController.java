@@ -1,11 +1,16 @@
 package com.contenttree.admin;
 
 import com.contenttree.Jwt.JwtResponse;
+import com.contenttree.downloadlog.DownloadLog;
+import com.contenttree.downloadlog.DownloadLogDto;
+import com.contenttree.downloadlog.DownloadLogMapper;
+import com.contenttree.downloadlog.DownloadLogRepository;
 import com.contenttree.security.AdminJwtHelper;
 import com.contenttree.security.JwtHelper;
 import com.contenttree.solutionsets.SolutionSets;
 import com.contenttree.solutionsets.SolutionSetsRepository;
 import com.contenttree.solutionsets.SolutionSetsStatus;
+import com.contenttree.user.User;
 import com.contenttree.user.UserService;
 import com.contenttree.utils.ApiResponse1;
 import com.contenttree.utils.ResponseUtils;
@@ -21,14 +26,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
-//@CrossOrigin("*")
 @RestController
 @RequestMapping
 @Slf4j
+@CrossOrigin("http://localhost:3000/")
 public class AdminController
 {
     @Autowired
@@ -37,6 +41,8 @@ public class AdminController
     private VendorRepository vendorRepository;
     @Autowired
     SolutionSetsRepository solutionSetsRepository;
+    @Autowired
+    DownloadLogRepository downloadLogRepository;
 
     @Autowired
     AdminService adminService;
@@ -78,19 +84,16 @@ public class AdminController
         }
 
         return ResponseEntity.ok("Email Already Registered Please Try With Other Email");
-
-
     }
     @PostMapping("/login/admin")
-    public ResponseEntity<?> adminLogin(@RequestParam String email,@RequestParam String password){
-        Admin admin = adminService.getAdminByEmailId(email);
+    public ResponseEntity<?> adminLogin(@RequestParam String email,@RequestParam String password
+    )
+    {
+
+     Admin admin=adminService.getAdminByEmailId(email);
         log.info("ADMIN LOADED {}", admin);
         log.info("ADMIN Authority {}", admin.getAuthorities());
 
-        if (admin == null){
-            ApiResponse1<JwtResponse> response = ResponseUtils.createResponse1(null,"Admin Not Found",false);
-            return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
-        }
         if (!passwordEncoder.matches(password, admin.getPassword())) {
             ApiResponse1<JwtResponse> response = ResponseUtils.createResponse1(null, "Email & Password Does Not Match", false);
             return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
@@ -104,7 +107,7 @@ public class AdminController
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
     @PutMapping("/admin/approve-vendor")
-    public ResponseEntity<String> approveVendor(@RequestParam long vendorId){
+    public ResponseEntity<ApiResponse1<String>> approveVendor(@RequestParam long vendorId){
         Vendors vendor = vendorRepository.findById(vendorId).orElseThrow
                 (()-> new RuntimeException("Vendor not Found"));
         System.out.println("**********************************");
@@ -112,7 +115,7 @@ public class AdminController
         System.out.println("**********************************");
         vendor.setStatus(VendorStatus.APPROVED);
         vendorRepository.save(vendor);
-        return ResponseEntity.ok("Vendor approved SuccessFully");
+        return ResponseEntity.ok().body(ResponseUtils.createResponse1(null,"Vendor approved SuccessFully",true));
     }
     @PutMapping("/admin/reject-vendor")
     public ResponseEntity<String> rejectVendor(@RequestParam long vendorId){
@@ -153,5 +156,43 @@ public class AdminController
     public ResponseEntity<ApiResponse1<Admin>> getAdminById(@RequestParam long id){
         Admin admin = adminService.adminRepository.findById(id).orElse(null);
         return ResponseEntity.ok().body(ResponseUtils.createResponse1(admin,"SUCCESS",true));
+    }
+    @GetMapping("/api/admin/getsolutionsby-user")
+    public ResponseEntity<ApiResponse1<List<?>>> getSolutionsSetByUser(@RequestParam long id){
+        List<DownloadLog> list =downloadLogRepository.findAll();
+        List<DownloadLog> list1 =list.stream().filter(downloadLog -> downloadLog.getUser().getId()==id).toList();
+        return ResponseEntity.ok().body(ResponseUtils.createResponse1(list1,"SUCCESS",true));
+    }
+    @GetMapping("/api/admin/getall-solutionset")
+    public ResponseEntity<ApiResponse1<List<SolutionSets>>> getAllSolutionSets(){
+        List<SolutionSets> list = solutionSetsRepository.findAll();
+        return ResponseEntity.ok().body(ResponseUtils.createResponse1(list,"SUCCESS",true));
+    }
+    @GetMapping("/api/admin/getuserby-downloads")
+    public ResponseEntity<ApiResponse1<List<?>>> getUserBySolutionSet(@RequestParam long id){
+        List<DownloadLog> list = downloadLogRepository.findAll();
+        List<DownloadLog> list1 = list.stream().filter(downloadLog -> downloadLog.getPdfId()==id).toList();
+        return ResponseEntity.ok().body(ResponseUtils.createResponse1(list1,"SUCCESS",true));
+
+    }
+    @Autowired
+    DownloadLogMapper downloadLogMapper;
+    @GetMapping("/api/admin/getalluserdownload-data")
+    public ResponseEntity<ApiResponse1<List<?>>> getAllUserDownloadData(){
+        List<DownloadLog> list = downloadLogRepository.findAll();
+        List<DownloadLogDto> list1 = list.stream()
+                .map(downloadLogMapper::toDownloadLogDto)
+                .collect(Collectors.toList());
+        System.out.println(list1);
+        return ResponseEntity.ok().body(ResponseUtils.createResponse1(list1,"SUCCESS",true));
+    }
+    @GetMapping("/api/admin/getalluserdownload-databyuser-count")
+    public ResponseEntity<ApiResponse1<Map<String,Long>>> getAllUserDownloadDataInCount(){
+        List<DownloadLog> list = downloadLogRepository.findAll();
+        Map<String, Long> userNameCount = list.stream().sorted(Comparator.comparing(downloadLog -> downloadLog.getUser().getName()))
+                .collect(Collectors.groupingBy(downloadLog -> downloadLog.getUser().getName(),
+                        Collectors.counting()));
+
+        return ResponseEntity.ok().body(ResponseUtils.createResponse1(userNameCount,"SUCCESS",true));
     }
 }

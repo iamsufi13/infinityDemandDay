@@ -7,6 +7,6 @@ public class VendorMapper {
         if (vendors==null){
             return null;
         }
-        return new VendorDto(vendors.getEmail(), vendors.getName());
+        return new VendorDto(vendors.getEmail(), vendors.getName(), vendors.getPassword());
     }
 }

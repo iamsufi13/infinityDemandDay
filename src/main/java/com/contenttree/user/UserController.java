@@ -2,13 +2,17 @@ package com.contenttree.user;
 
 import com.contenttree.Jwt.JwtResponse;
 import com.contenttree.admin.AdminService;
+import com.contenttree.downloadlog.DownloadLog;
+import com.contenttree.downloadlog.DownloadLogRepository;
 import com.contenttree.downloadlog.DownloadLogService;
 import com.contenttree.security.UserJwtHelper;
+import com.contenttree.solutionsets.SolutionSets;
 import com.contenttree.solutionsets.SolutionSetsService;
 import com.contenttree.utils.ApiResponse1;
 import com.contenttree.utils.ResponseUtils;
 import com.contenttree.vendor.Vendors;
 import com.contenttree.vendor.VendorsService;
+import jakarta.mail.MessagingException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -18,8 +22,11 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
+import java.util.List;
 
-@CrossOrigin
+
+@CrossOrigin("http://localhost:3000/")
 @RestController
 @RequestMapping("/api/user")
 @Slf4j
@@ -40,6 +47,8 @@ public class UserController {
     @Autowired
     AdminService adminService;
 
+    @Autowired
+    DownloadLogRepository downloadLogRepository;
 
     public UserController(PasswordEncoder passwordEncoder) {
         this.passwordEncoder = passwordEncoder;
@@ -48,7 +57,7 @@ public class UserController {
     @RequestMapping("/register")
     public ResponseEntity<?> registerUser(@RequestParam String name,
                                           @RequestParam String password,
-                                          @RequestParam String email) {
+                                          @RequestParam String email) throws MessagingException, IOException {
 
         System.out.println("+++++++++++++++++++++++");
         System.out.println(email);
@@ -61,7 +70,9 @@ public class UserController {
         user.setPassword(hasCode);
         user.setEmail(email);
         if (adminService.getAdminByEmailId(email)==null){
+            System.out.println("inside admin by email");
             if (vendorsService.getVendorsByEmail(email)==null){
+                System.out.println("inside vendor by email");
                 return userService.saveUser(user);
             }
         }
@@ -74,12 +85,19 @@ public class UserController {
     }
 
     @GetMapping("/download-pdf")
-    public ResponseEntity<byte[]> downloadSolutionSets(@RequestParam long id,
-                                                       @AuthenticationPrincipal User user){
+    public ResponseEntity<byte[]> downloadSolutionSets(@RequestParam  long id
+                                                       ,@AuthenticationPrincipal  User user
+    ){
+//        User user1 = userService.getUserById(user.getId());
+//        System.out.println("+++++++++++++++++++++++++++++++++++++++++++++++");
+//        System.out.println(user1);
+//        System.out.println("+++++++++++++++++++++++++++++++++++++++++++++++");
         byte[] pdfData = solutionSetsService.downloadPdf(id);
         if (pdfData==null || pdfData.length ==0){
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+
         }
+
         downloadLogService.lodPdfDownloadUser(id, user.getId());
         System.out.println("Downloading Done " + id  + " " + user.getName());
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_PDF).body(pdfData);
@@ -136,7 +154,5 @@ public class UserController {
         ApiResponse1<JwtResponse> response = ResponseUtils.createResponse1(jwtResponse, "Login Successful", true);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
-
-
 
 }

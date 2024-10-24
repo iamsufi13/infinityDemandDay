@@ -7,7 +7,6 @@ import com.contenttree.vendor.VendorsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -15,8 +14,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
 
 @Service
 public class SolutionSetsService {
@@ -75,7 +76,10 @@ public class SolutionSetsService {
     public byte[] downloadPdf(long name){
         Optional<SolutionSets> dbPdfData = solutionSetsRepository.findById(name);
 
-        return dbPdfData.map(SolutionSets::getFilePath).orElse(null).getBytes();
+        return Objects.requireNonNull(dbPdfData.map(SolutionSets::getFilePath).orElse(null)).getBytes();
+    }
+    public SolutionSets getSolutionSetById(long id){
+        return solutionSetsRepository.findById(id).orElse(null);
     }
 
     public List<SolutionSets> getLatestUploadedSolutionSets(){
@@ -83,7 +87,7 @@ public class SolutionSetsService {
         List<SolutionSets> solutionSets1 = solutionSetsRepository.findAll().stream()
                 .sorted(Comparator.nullsLast(Comparator.comparing(SolutionSets::getDt1)))
                 .limit(5)
-                .collect(Collectors.toList());
+                .toList();
         List<SolutionSetDto> solutionSetDtos = solutionSets1.stream().map(SolutionSetMapper::toSolutionSetDto)
                 .toList();
 
@@ -114,9 +118,8 @@ public class SolutionSetsService {
 
     public List<SolutionSets> getByCategoryId(long id) {
         List<SolutionSets> solutionSets= solutionSetsRepository.findAll();
-        List<SolutionSets> solutionSets1 = solutionSets.stream()
+        return solutionSets.stream()
                 .filter(solutionSet -> solutionSet.getCategory().getId()==id)
                 .toList();
-        return solutionSets1;
     }
 }

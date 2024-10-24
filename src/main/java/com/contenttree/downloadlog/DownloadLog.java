@@ -2,6 +2,7 @@ package com.contenttree.downloadlog;
 
 import com.contenttree.user.User;
 import com.contenttree.vendor.Vendors;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -23,11 +24,13 @@ public class DownloadLog {
 
     private long pdfId;
 
+    @JsonBackReference
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "vendor_id")
     private Vendors vendor;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @JsonBackReference
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id")
     private User user;
  

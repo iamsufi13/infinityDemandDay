@@ -1,7 +1,7 @@
 package com.contenttree.downloadlog;
 
 import com.contenttree.user.UserService;
-import com.contenttree.vendor.Vendors;
+import java.util.List;
 import com.contenttree.vendor.VendorsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -25,6 +25,9 @@ public class DownloadLogService {
 
         downloadLogRepository.save(log);
 
+    }
+    public List<DownloadLog> getAllDownloadLogByUser(long user_id){
+        return downloadLogRepository.findByUserId(user_id);
     }
     public void lodPdfDownloadUser(long name, long userId){
         DownloadLog downloadLog= new DownloadLog();

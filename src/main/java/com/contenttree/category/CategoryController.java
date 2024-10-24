@@ -1,6 +1,7 @@
 package com.contenttree.category;
 
 import com.contenttree.solutionsets.SolutionSets;
+import com.contenttree.solutionsets.SolutionSetsRepository;
 import com.contenttree.solutionsets.SolutionSetsService;
 import com.contenttree.utils.ApiResponse1;
 import com.contenttree.utils.ResponseUtils;
@@ -10,13 +11,17 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@CrossOrigin
 @RestController
 @RequestMapping("/api/category")
 public class CategoryController {
     @Autowired
     CategoryService categoryService;
     @Autowired
-    SolutionSetsService solutionSetsService;
+   public SolutionSetsService solutionSetsService;
+    @Autowired
+    SolutionSetsRepository solutionSetsRepository;
+
 
     @PostMapping("/add")
     public ResponseEntity<ApiResponse1<Category>> addCategory(@RequestParam String name){
@@ -28,5 +33,10 @@ public class CategoryController {
         List<SolutionSets> list = solutionSetsService.getByCategoryId(id);
         return ResponseEntity.ok().body(ResponseUtils.createResponse1(list,"SUCCESS",true));
 
+    }
+    @GetMapping("/getall-solutionset")
+    public ResponseEntity<ApiResponse1<List<SolutionSets>>> getAllSolutionSets(){
+        List<SolutionSets> list = solutionSetsRepository.findAll();
+        return ResponseEntity.ok().body(ResponseUtils.createResponse1(list,"SUCCESS",true));
     }
 }

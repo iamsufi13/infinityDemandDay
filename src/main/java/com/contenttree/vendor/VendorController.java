@@ -22,6 +22,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.HashMap;
 import java.util.List;
 
+@CrossOrigin("http://localhost:3000/")
 @RestController
 @RequestMapping("/api/vendor")
 public class VendorController {
@@ -82,7 +83,7 @@ public class VendorController {
 
     @PostMapping("/register")
     public ResponseEntity<String> registerVendor(@RequestParam String email,
-                                                 @RequestParam String password,
+                                                  @RequestParam String password,
                                                  @RequestParam String name) {
         Vendors vendors = new Vendors();
         vendors.setName(name);
@@ -97,6 +98,26 @@ public class VendorController {
 
         return ResponseEntity.ok("Email Already Registered. Please Try Again");
     }
+    @PostMapping("/register123")
+    public ResponseEntity<String> registerVendor(@RequestBody VendorDto vendorDTO) {
+        String email = vendorDTO.getEmail();
+        String password = vendorDTO.getPassword();
+        String name = vendorDTO.getName();
+
+        Vendors vendors = new Vendors();
+        vendors.setName(name);
+        String hashPassword = passwordEncoder.encode(password);
+        vendors.setPassword(hashPassword);
+        vendors.setEmail(email);
+
+        if (adminService.getAdminByEmailId(email) == null && userService.getUserByEmail(email) == null) {
+            vendorsService.registerVendors(vendors);
+            return ResponseEntity.ok("Vendor Registered Successfully. Waiting for Approval From Central Team");
+        }
+
+        return ResponseEntity.ok("Email Already Registered. Please Try Again");
+    }
+
 
     @GetMapping("/byid")
     public ResponseEntity<ApiResponse1<SolutionSetDto>> getVendorById(@RequestParam long id) {
