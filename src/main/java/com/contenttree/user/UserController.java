@@ -138,7 +138,8 @@ public ResponseEntity<byte[]> downloadSolutionSets(@RequestParam long id,
     UserDataStorage userDataStorage = new UserDataStorage();
     userDataStorage.setUser_id(user.getId());
     userDataStorage.setIp(clientIp);
-    userDataStorage.setCity(info.getCity());
+    System.out.println("City name " + info.getCity());
+    userDataStorage.setCity(info.getCity() != null ? info.getCity() : "Unknown");
     userDataStorage.setCountry(info.getCountry());
     userDataStorage.setRegion(info.getRegion());
     userDataStorage.setOrg(info.getOrg());
@@ -184,7 +185,10 @@ public ResponseEntity<byte[]> downloadSolutionSets(@RequestParam long id,
                 throw new RuntimeException("IP info response body is null.");
             }
 
+            System.out.println("responseBody " + response.getBody());
+            System.out.println("responseBody 1" + response);
             return response.getBody();
+
         } catch (Exception e) {
             System.out.println("Error while calling ipinfo.io: " + e.getMessage());
             e.printStackTrace();
