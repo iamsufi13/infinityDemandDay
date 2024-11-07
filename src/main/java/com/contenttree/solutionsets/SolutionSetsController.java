@@ -33,17 +33,17 @@ public class SolutionSetsController {
         List<SolutionSets> list = solutionSetsService.getAllSolutioinSets();
         return ResponseEntity.ok().body(ResponseUtils.createResponse1(list,"SUCCESS",true));
     }
-    @GetMapping("/downloadpdf")
-    public ResponseEntity<byte[]> downloadSolutionSets(@RequestParam long name,
-                                                       @AuthenticationPrincipal Vendors vendor){
-    byte[] pdfData = solutionSetsService.downloadPdf(name);
-    if (pdfData==null || pdfData.length ==0){
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-    }
-    downloadLogService.logPdfDownload(name, vendor.getId());
-        System.out.println("Downloading Done " + name  + " " + vendor.getName());
-    return ResponseEntity.ok().contentType(MediaType.APPLICATION_PDF).body(pdfData);
-    }
+//    @GetMapping("/downloadpdf")
+//    public ResponseEntity<byte[]> downloadSolutionSets(@RequestParam long name,
+//                                                       @AuthenticationPrincipal Vendors vendor){
+//    byte[] pdfData = solutionSetsService.downloadPdf(name);
+//    if (pdfData==null || pdfData.length ==0){
+//        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+//    }
+//    downloadLogService.logPdfDownload(name, vendor.getId());
+//        System.out.println("Downloading Done " + name  + " " + vendor.getName());
+//    return ResponseEntity.ok().contentType(MediaType.APPLICATION_PDF).body(pdfData);
+//    }
 
     @PostMapping
     public ResponseEntity<ApiResponse1<SolutionSets>> addSolutionSets(

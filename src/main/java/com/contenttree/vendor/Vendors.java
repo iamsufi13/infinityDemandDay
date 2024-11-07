@@ -27,6 +27,10 @@ public class Vendors implements UserDetails {
 
     private String name;
 
+    private String phone;
+
+    private String companyName;
+
     @JsonIgnore
     private String password;
 

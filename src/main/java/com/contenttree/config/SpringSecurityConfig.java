@@ -60,7 +60,7 @@ public class SpringSecurityConfig {
                 .cors(AbstractHttpConfigurer::disable)
                 .authorizeRequests(authorizeRequests -> authorizeRequests
                         .requestMatchers(AntPathRequestMatcher.antMatcher("/admin/**")).hasAnyAuthority("SUPERADMIN", "EDITOR", "ADMIN")
-                        .requestMatchers("/api/login", "/api/register","/api/category/**", "/api/vendor/login","/login/admin","/api/user/register","/api/user/login","/api/user/confirm-account","/api/home","/api/vendor/login","/api/vendor/register","/api/vendor/register123","/error/**").permitAll()
+                        .requestMatchers("/api/login", "/api/register","/api/category/**", "/api/vendor/login","/login/admin","/register/admin","/api/user/register","/api/user/login","/api/user/confirm-account","/api/home","/api/vendor/login","/api/vendor/register","/api/vendor/register123","/error/**").permitAll()
                         .requestMatchers(HttpMethod.OPTIONS).permitAll()
                         .requestMatchers("/error").permitAll()
                         .anyRequest().authenticated()
@@ -87,7 +87,7 @@ public class SpringSecurityConfig {
                 .csrf(csrf-> csrf.disable())
 //                .cors(withDefaults())
                 .authorizeRequests(authorizeRequests -> authorizeRequests
-                        .requestMatchers("/api/login","/api/vendor/login", "/api/register","login/admin").permitAll()
+                        .requestMatchers("/api/user/registers","/api/login","/api/vendor/login", "/api/register","login/admin").permitAll()
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(ex -> ex

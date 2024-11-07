@@ -1,10 +1,14 @@
 com\contenttree\user\UserController.class
 com\contenttree\config\WebConfig.class
 com\contenttree\vendor\VendorRepository.class
+com\contenttree\userdatastorage\UserDataStorage.class
 com\contenttree\solutionsets\SolutionSetDto.class
 com\contenttree\solutionsets\SolutionSets.class
 com\contenttree\solutionsets\SolutionSetsStatus.class
+com\contenttree\userdatastorage\IpInfo.class
 com\contenttree\admin\AdminController.class
+com\contenttree\userdatastorage\UserDataStorageRepository.class
+com\contenttree\downloadlog\DownloadLogDto.class
 com\contenttree\ContenttreeApplication.class
 com\contenttree\solutionsets\SolutionSetsRepository.class
 com\contenttree\security\JwtAuthenticationEntryPoint.class
@@ -16,6 +20,8 @@ com\contenttree\solutionsets\SolutionSetMapper.class
 com\contenttree\user\UserMapper.class
 com\contenttree\security\JwtHelper.class
 com\contenttree\vendor\VendorController.class
+com\contenttree\user\ImageUtil.class
+com\contenttree\downloadlog\DownloadLogMapper.class
 com\contenttree\home\HomePageDto.class
 com\contenttree\Jwt\JwtResponse.class
 com\contenttree\vendor\VendorMapper.class
@@ -48,6 +54,7 @@ com\contenttree\admin\AdminRepository.class
 com\contenttree\user\User.class
 com\contenttree\vendor\VendorStatus.class
 com\contenttree\security\AdminJwtHelper.class
+com\contenttree\userdatastorage\UserDataStorageService.class
 com\contenttree\banner\BannerService.class
 com\contenttree\banner\BannerEntity$BannerEntityBuilder.class
 com\contenttree\config\SpringSecurityConfig.class

@@ -1,18 +1,21 @@
 package com.contenttree.user;
 
 import com.contenttree.Jwt.JwtResponse;
+
 import com.contenttree.admin.AdminService;
-import com.contenttree.downloadlog.DownloadLog;
 import com.contenttree.downloadlog.DownloadLogRepository;
 import com.contenttree.downloadlog.DownloadLogService;
 import com.contenttree.security.UserJwtHelper;
 import com.contenttree.solutionsets.SolutionSets;
 import com.contenttree.solutionsets.SolutionSetsService;
+import com.contenttree.userdatastorage.IpInfo;
+import com.contenttree.userdatastorage.UserDataStorage;
+import com.contenttree.userdatastorage.UserDataStorageService;
 import com.contenttree.utils.ApiResponse1;
 import com.contenttree.utils.ResponseUtils;
-import com.contenttree.vendor.Vendors;
 import com.contenttree.vendor.VendorsService;
 import jakarta.mail.MessagingException;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -21,8 +24,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -31,8 +36,13 @@ import java.util.List;
 @RequestMapping("/api/user")
 @Slf4j
 public class UserController {
+
+
     @Autowired
     private UserService userService;
+
+    @Autowired
+    com.contenttree.userdatastorage.UserDataStorageService userDataStorageService;
 
     @Autowired
    private PasswordEncoder passwordEncoder;
@@ -46,6 +56,8 @@ public class UserController {
     VendorsService vendorsService;
     @Autowired
     AdminService adminService;
+    @Autowired
+    UserRepository userRepository;
 
     @Autowired
     DownloadLogRepository downloadLogRepository;
@@ -54,7 +66,7 @@ public class UserController {
         this.passwordEncoder = passwordEncoder;
     }
 
-    @RequestMapping("/register")
+    @PostMapping("/register")
     public ResponseEntity<?> registerUser(@RequestParam String name,
                                           @RequestParam String password,
                                           @RequestParam String email) throws MessagingException, IOException {
@@ -84,24 +96,114 @@ public class UserController {
         return ResponseEntity.ok().body(ResponseUtils.createResponse1(user,"Account Created SuccessFully",true));
     }
 
-    @GetMapping("/download-pdf")
-    public ResponseEntity<byte[]> downloadSolutionSets(@RequestParam  long id
-                                                       ,@AuthenticationPrincipal  User user
-    ){
-//        User user1 = userService.getUserById(user.getId());
-//        System.out.println("+++++++++++++++++++++++++++++++++++++++++++++++");
-//        System.out.println(user1);
-//        System.out.println("+++++++++++++++++++++++++++++++++++++++++++++++");
-        byte[] pdfData = solutionSetsService.downloadPdf(id);
-        if (pdfData==null || pdfData.length ==0){
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+@GetMapping("/download-pdf")
+public ResponseEntity<byte[]> downloadSolutionSets(@RequestParam long id,
+                                                   @AuthenticationPrincipal User user,
+                                                   HttpServletRequest request) throws MessagingException, IOException {
 
+    byte[] pdfData = solutionSetsService.downloadPdf(id);
+
+    if (pdfData == null || pdfData.length == 0) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+    }
+
+    String clientIp = getClientIp(request);
+
+    SolutionSets solutionSets = solutionSetsService.getSolutionSetById(id);
+    String categoryName = solutionSets.getCategory().getName();
+
+    List<String> oldFavorites = user.getFavorites();
+    List<String> updatedFavorites = new ArrayList<>();
+
+    com.contenttree.userdatastorage.IpInfo info = getIpInfo(clientIp);
+
+
+    if (oldFavorites == null) {
+        oldFavorites = new ArrayList<>();
+    }
+
+    if (!oldFavorites.contains(categoryName)) {
+        updatedFavorites.add(categoryName);
+    }
+
+    updatedFavorites.addAll(oldFavorites);
+
+    user.setFavorites(updatedFavorites);
+
+    downloadLogService.logPdfDownload(id, user.getId(),clientIp);
+    System.out.println("Downloading Done " + id + " " + user.getName());
+    System.out.println(updatedFavorites);
+    System.out.println("IP: " + clientIp);
+
+    UserDataStorage userDataStorage = new UserDataStorage();
+    userDataStorage.setUser_id(user.getId());
+    userDataStorage.setIp(clientIp);
+    userDataStorage.setCity(info.getCity());
+    userDataStorage.setCountry(info.getCountry());
+    userDataStorage.setRegion(info.getRegion());
+    userDataStorage.setOrg(info.getOrg());
+    userDataStorage.setPostal(info.getPostal());
+
+    System.out.println("UserDataStorage " + userDataStorage);
+
+
+    userDataStorageService.addUserDataStorage(userDataStorage);
+
+    user.setIpAddress(clientIp);
+    userService.updateUser(user);
+
+    return ResponseEntity.ok()
+            .contentType(MediaType.APPLICATION_PDF)
+            .body(pdfData);
+}
+
+    private String getClientIp(HttpServletRequest request) {
+        String ipAddress = request.getHeader("X-Forwarded-For");
+
+        if (ipAddress == null || ipAddress.isEmpty()) {
+            ipAddress = request.getRemoteAddr();
+        } else {
+            ipAddress = ipAddress.split(",")[0].trim();
         }
 
-        downloadLogService.lodPdfDownloadUser(id, user.getId());
-        System.out.println("Downloading Done " + id  + " " + user.getName());
-        return ResponseEntity.ok().contentType(MediaType.APPLICATION_PDF).body(pdfData);
+        return ipAddress;
     }
+
+
+
+
+
+    private IpInfo getIpInfo(String clientIp) {
+        String url = "https://ipinfo.io/" + clientIp + "/json?token=fac558d39300f3";
+
+        try {
+            RestTemplate restTemplate = new RestTemplate();
+            ResponseEntity<IpInfo> response = restTemplate.getForEntity(url, IpInfo.class);
+
+            if (response.getBody() == null) {
+                throw new RuntimeException("IP info response body is null.");
+            }
+
+            return response.getBody();
+        } catch (Exception e) {
+            System.out.println("Error while calling ipinfo.io: " + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("Failed to retrieve IP info: " + e.getMessage(), e);
+        }
+    }
+
+
+    @GetMapping("/favbyid")
+    public ResponseEntity<ApiResponse1<List<String>>> getAllFavorites(@RequestParam long id){
+        User user = userService.getUserById(id);
+        List <String> fav=user.getFavorites();
+        return ResponseEntity.ok().body(ResponseUtils.createResponse1(fav,"SUCCESS",true));
+
+    }
+
+
+
+
 
     @RequestMapping(value="/confirm-account", method= {RequestMethod.GET, RequestMethod.POST})
 //    @GetMapping("/confirm-account")

@@ -62,7 +62,7 @@ public class UserService {
 
         String logoUrl = "https://infinitydemand.com/wp-content/uploads/2024/01/cropped-Logo-22.png";
 
-        String confirmationUrl = "http://localhost:8080/api/user/confirm-account?token=" + confirmationToken.getConfirmationToken();
+        String confirmationUrl = "http://141.136.35.203:8080/api/user/confirm-account?token=" + confirmationToken.getConfirmationToken();
 
         String htmlMessage = "<div style=\"font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px; background-color: #f9f9f9;\">" +
                 "<div style=\"text-align: center; margin-bottom: 30px;\">" +
@@ -93,6 +93,13 @@ public class UserService {
         return ResponseEntity.ok("Verify email by the link sent to your email address");
     }
 
+    public ResponseEntity<User> updateUser(User user){
+        User user1 = getUserById(user.getId());
+        user1.setFavorites(user.getFavorites());
+        user1.setIpAddress(user.getIpAddress());
+        userRepository.save(user1);
+        return ResponseEntity.ok().body(user1);
+    }
 
 
 

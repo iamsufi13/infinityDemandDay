@@ -29,6 +29,8 @@ public class DownloadLog {
     @JoinColumn(name = "vendor_id")
     private Vendors vendor;
 
+    private String ipAddress;
+
     @JsonBackReference
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id")

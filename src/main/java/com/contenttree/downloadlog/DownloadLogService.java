@@ -17,10 +17,11 @@ public class DownloadLogService {
     @Autowired
     UserService userService;
 
-    public void logPdfDownload(long name,long vendorId){
+    public void logPdfDownload(long name,long vendorId,String clientIp){
         DownloadLog log = new DownloadLog();
         log.setPdfId(name);
         log.setVendor(vendorsService.getVendorsById(vendorId));
+        log.setIpAddress(clientIp);
         log.setDt1(LocalDateTime.now());
 
         downloadLogRepository.save(log);

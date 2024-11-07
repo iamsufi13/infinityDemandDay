@@ -26,10 +26,22 @@ public class User implements UserDetails {
     private long id;
 
     private String name;
+    private String lastName;
+    private String country;
+    private long phone;
+    private String jobTitle;
+    private String company;
+
+//    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+//    private UserDataStorage userDataStorage;
 
     @Column(unique = true)
     @Email
     private String email;
+
+    private String ipAddress;
+
+    private List<String> favorites;
 
     @JsonIgnore
     private String password;
