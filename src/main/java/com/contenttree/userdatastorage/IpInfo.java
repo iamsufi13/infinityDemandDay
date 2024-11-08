@@ -10,4 +10,6 @@ public class IpInfo {
     private String region;
     private String org;
     private String postal;
+    private String location;
+    private String timeZone;
 }

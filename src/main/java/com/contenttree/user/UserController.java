@@ -18,9 +18,7 @@ import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
@@ -96,7 +94,169 @@ public class UserController {
         return ResponseEntity.ok().body(ResponseUtils.createResponse1(user,"Account Created SuccessFully",true));
     }
 
-@GetMapping("/download-pdf")
+//    @GetMapping("/save-pdf")
+//    public ResponseEntity<ApiResponse1<SolutionSets>> savePdf(@RequestParam long id,@AuthenticationPrincipal User user,HttpServletRequest request){
+//        SolutionSets solutionSets = solutionSetsService.getSolutionSetById(id);
+//        List<Long> oldSaved = user.getSavedPdf();
+//        List<Long> updatedSaved = new ArrayList<>();
+//
+//        String clientIp = getClientIp(request);
+//
+//
+//        if (oldSaved == null) {
+//            oldSaved = new ArrayList<>();
+//        }
+//
+//        if (!oldSaved.contains(id)) {
+//            updatedSaved.add(id);
+//        }
+//
+//        updatedSaved.addAll(oldSaved);
+//        user.setSavedPdf(updatedSaved);
+//        com.contenttree.userdatastorage.IpInfo info = getIpInfo(clientIp);
+//        UserDataStorage userDataStorage = new UserDataStorage();
+//        userDataStorage.setUser_id(user.getId());
+//        userDataStorage.setIp(clientIp);
+//        System.out.println("City name " + info.getCity());
+//        userDataStorage.setCity(info.getCity() != null ? info.getCity() : "Unknown");
+//        userDataStorage.setCountry(info.getCountry());
+//        userDataStorage.setRegion(info.getRegion());
+//        userDataStorage.setOrg(info.getOrg());
+//        userDataStorage.setPostal(info.getPostal());
+//
+//        System.out.println("UserDataStorage " + userDataStorage);
+//
+//
+//        userDataStorageService.addUserDataStorage(userDataStorage);
+//
+//        user.setIpAddress(clientIp);
+//        userService.updateUser(user);
+//        return ResponseEntity.ok().body(ResponseUtils.createResponse1(solutionSets,"SUCCESS",true));
+//    }
+//    @GetMapping("/view-pdf")
+//    public ResponseEntity<byte[]> viewPdf(@RequestParam long id, @AuthenticationPrincipal User user, HttpServletRequest request) {
+//        SolutionSets solutionSets = solutionSetsService.getSolutionSetById(id);
+//
+//        byte[] pdfData = solutionSetsService.downloadPdf(id);
+//
+//        List<Long> oldView = user.getSavedPdf();
+//        List<Long> updatedView = new ArrayList<>();
+//
+//        if (oldView == null) {
+//            oldView = new ArrayList<>();
+//        }
+//
+//        if (!oldView.contains(id)) {
+//            updatedView.add(id);
+//        }
+//
+//        updatedView.addAll(oldView);
+//
+//        user.setViewdPdf(updatedView);
+//
+//        String clientIp = getClientIp(request);
+//        com.contenttree.userdatastorage.IpInfo info = getIpInfo(clientIp);
+//        UserDataStorage userDataStorage = new UserDataStorage();
+//        userDataStorage.setUser_id(user.getId());
+//        userDataStorage.setIp(clientIp);
+//        userDataStorage.setCity(info.getCity() != null ? info.getCity() : "Unknown");
+//        userDataStorage.setCountry(info.getCountry());
+//        userDataStorage.setRegion(info.getRegion());
+//        userDataStorage.setOrg(info.getOrg());
+//        userDataStorage.setPostal(info.getPostal());
+//        userDataStorageService.addUserDataStorage(userDataStorage);
+//        user.setIpAddress(clientIp);
+//        userService.updateUser(user);
+//
+//        HttpHeaders headers = new HttpHeaders();
+//        headers.setContentType(MediaType.APPLICATION_PDF);
+//        headers.setContentDisposition(ContentDisposition.inline().filename("solution.pdf").build());
+//
+//        return ResponseEntity.ok()
+//                .headers(headers)
+//                .body(pdfData);
+//    }
+@GetMapping("/save-pdf")
+public ResponseEntity<ApiResponse1<SolutionSets>> savePdf(@RequestParam long id, @AuthenticationPrincipal User user, HttpServletRequest request) {
+    SolutionSets solutionSets = solutionSetsService.getSolutionSetById(id);
+    List<Long> oldSaved = user.getSavedPdf();
+
+    if (oldSaved == null) {
+        oldSaved = new ArrayList<>();
+    }
+
+    if (!oldSaved.contains(id)) {
+        oldSaved.add(id);
+    }
+
+    user.setSavedPdf(oldSaved);
+    userService.updateUser(user);
+
+    String clientIp = getClientIp(request);
+    com.contenttree.userdatastorage.IpInfo info = getIpInfo(clientIp);
+    UserDataStorage userDataStorage = new UserDataStorage();
+    userDataStorage.setUser_id(user.getId());
+    userDataStorage.setIp(clientIp);
+    userDataStorage.setCity(info.getCity() != null ? info.getCity() : "Unknown");
+    userDataStorage.setCountry(info.getCountry());
+    userDataStorage.setRegion(info.getRegion());
+    userDataStorage.setOrg(info.getOrg());
+    userDataStorage.setLocation(info.getLocation());
+    userDataStorage.setTimezone(info.getTimeZone());
+    userDataStorage.setPostal(info.getPostal());
+
+    userDataStorageService.addUserDataStorage(userDataStorage);
+
+    user.setIpAddress(clientIp);
+    userService.updateUser(user);
+    return ResponseEntity.ok().body(ResponseUtils.createResponse1(solutionSets, "SUCCESS", true));
+}
+
+    @GetMapping("/view-pdf")
+    public ResponseEntity<byte[]> viewPdf(@RequestParam long id, @AuthenticationPrincipal User user, HttpServletRequest request) {
+        SolutionSets solutionSets = solutionSetsService.getSolutionSetById(id);
+        byte[] pdfData = solutionSetsService.downloadPdf(id);
+
+        List<Long> oldView = user.getViewdPdf();
+
+        if (oldView == null) {
+            oldView = new ArrayList<>();
+        }
+
+        if (!oldView.contains(id)) {
+            oldView.add(id);
+        }
+
+        user.setViewdPdf(oldView); // Update viewdPdf list
+        userService.updateUser(user); // Persist the changes
+
+        String clientIp = getClientIp(request);
+        com.contenttree.userdatastorage.IpInfo info = getIpInfo(clientIp);
+        UserDataStorage userDataStorage = new UserDataStorage();
+        userDataStorage.setUser_id(user.getId());
+        userDataStorage.setIp(clientIp);
+        userDataStorage.setCity(info.getCity() != null ? info.getCity() : "Unknown");
+        userDataStorage.setCountry(info.getCountry());
+        userDataStorage.setRegion(info.getRegion());
+        userDataStorage.setOrg(info.getOrg());
+        userDataStorage.setLocation(info.getLocation());
+        userDataStorage.setTimezone(info.getTimeZone());
+        userDataStorage.setPostal(info.getPostal());
+        userDataStorageService.addUserDataStorage(userDataStorage);
+
+        user.setIpAddress(clientIp);
+        userService.updateUser(user);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_PDF);
+        headers.setContentDisposition(ContentDisposition.inline().filename("solution.pdf").build());
+
+        return ResponseEntity.ok().headers(headers).body(pdfData);
+    }
+
+
+
+    @GetMapping("/download-pdf")
 public ResponseEntity<byte[]> downloadSolutionSets(@RequestParam long id,
                                                    @AuthenticationPrincipal User user,
                                                    HttpServletRequest request) throws MessagingException, IOException {
@@ -141,6 +301,8 @@ public ResponseEntity<byte[]> downloadSolutionSets(@RequestParam long id,
     System.out.println("City name " + info.getCity());
     userDataStorage.setCity(info.getCity() != null ? info.getCity() : "Unknown");
     userDataStorage.setCountry(info.getCountry());
+        userDataStorage.setLocation(info.getLocation());
+        userDataStorage.setTimezone(info.getTimeZone());
     userDataStorage.setRegion(info.getRegion());
     userDataStorage.setOrg(info.getOrg());
     userDataStorage.setPostal(info.getPostal());

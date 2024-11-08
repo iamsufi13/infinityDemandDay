@@ -43,6 +43,8 @@ public class User implements UserDetails {
 
     private List<String> favorites;
 
+    private List<Long> savedPdf;
+    private List<Long> viewdPdf;
     @JsonIgnore
     private String password;
 

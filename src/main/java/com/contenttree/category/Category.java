@@ -21,6 +21,10 @@ public class Category {
 
     private String name;
 
+    private String iconPath;
+
+    private String bannerPath;
+
 
     @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, orphanRemoval = true,fetch = FetchType.LAZY)
     private List<SolutionSets> solutionSets;

@@ -1,10 +1,10 @@
 package com.contenttree.userdatastorage;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.*;
 import lombok.Data;
+
+import java.time.LocalDateTime;
 
 @Entity
 @Data
@@ -26,4 +26,13 @@ public class UserDataStorage {
     private String postal;
     private String timezone;
     private String location;
+
+    @JsonIgnore
+    private LocalDateTime dt1;
+
+    @PrePersist
+    public void prePersist() {
+        this.dt1 = LocalDateTime.now();
+    }
+
 }
