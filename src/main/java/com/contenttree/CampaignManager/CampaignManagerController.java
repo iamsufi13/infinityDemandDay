@@ -54,14 +54,18 @@ public class CampaignManagerController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body(ResponseUtils.createResponse1(null, "Unauthorized access", false));
         }
-
         event.setAdmin(admin);
         eventRepository.save(event);
         return ResponseEntity.ok().body(ResponseUtils.createResponse1(event, "SUCCESS", true));
     }
-
-
-
-
-
+    @PostMapping("/add-webinar")
+    public ResponseEntity<ApiResponse1<Webinar>> addWebinar(@RequestBody Webinar event, @AuthenticationPrincipal Admin admin) {
+        if (admin.getRole() == null || !admin.getRole().contains(Role.CAMPAIGNMANAGER)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(ResponseUtils.createResponse1(null, "Unauthorized access", false));
+        }
+        event.setAdmin(admin);
+        webinarRepository.save(event);
+        return ResponseEntity.ok().body(ResponseUtils.createResponse1(event, "SUCCESS", true));
+    }
 }
