@@ -72,7 +72,9 @@ public class AdminController
         if (isSuperAdmin ==1){
             roles.add(Role.SUPERADMIN);
         } else if (isSuperAdmin==2) {
-            roles.add(Role.EDITOR);
+            roles.add(Role.CAMPAIGNMANAGER);
+        }else if(isSuperAdmin==3){
+            roles.add(Role.ADMIN);
         }
         else {roles.add(Role.ADMIN);}
 
