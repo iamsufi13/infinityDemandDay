@@ -200,6 +200,8 @@ public ResponseEntity<ApiResponse1<SolutionSets>> savePdf(@RequestParam long id,
     userDataStorage.setCity(info.getCity() != null ? info.getCity() : "Unknown");
     userDataStorage.setCountry(info.getCountry());
     userDataStorage.setRegion(info.getRegion());
+    userDataStorage.setSolutionSetId(id);
+    userDataStorage.setSave(1);
     userDataStorage.setOrg(info.getOrg());
     userDataStorage.setLocation(info.getLocation());
     userDataStorage.setTimezone(info.getTimeZone());
@@ -227,19 +229,21 @@ public ResponseEntity<ApiResponse1<SolutionSets>> savePdf(@RequestParam long id,
             oldView.add(id);
         }
 
-        user.setViewdPdf(oldView); // Update viewdPdf list
-        userService.updateUser(user); // Persist the changes
+        user.setViewdPdf(oldView);
+        userService.updateUser(user);
 
         String clientIp = getClientIp(request);
         com.contenttree.userdatastorage.IpInfo info = getIpInfo(clientIp);
         UserDataStorage userDataStorage = new UserDataStorage();
         userDataStorage.setUser_id(user.getId());
         userDataStorage.setIp(clientIp);
+        userDataStorage.setSolutionSetId(id);
         userDataStorage.setCity(info.getCity() != null ? info.getCity() : "Unknown");
         userDataStorage.setCountry(info.getCountry());
         userDataStorage.setRegion(info.getRegion());
         userDataStorage.setOrg(info.getOrg());
         userDataStorage.setLocation(info.getLocation());
+        userDataStorage.setView(1);
         userDataStorage.setTimezone(info.getTimeZone());
         userDataStorage.setPostal(info.getPostal());
         userDataStorageService.addUserDataStorage(userDataStorage);
@@ -298,6 +302,8 @@ public ResponseEntity<byte[]> downloadSolutionSets(@RequestParam long id,
     UserDataStorage userDataStorage = new UserDataStorage();
     userDataStorage.setUser_id(user.getId());
     userDataStorage.setIp(clientIp);
+    userDataStorage.setDownload(1);
+    userDataStorage.setSolutionSetId(id);
     System.out.println("City name " + info.getCity());
     userDataStorage.setCity(info.getCity() != null ? info.getCity() : "Unknown");
     userDataStorage.setCountry(info.getCountry());

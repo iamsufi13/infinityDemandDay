@@ -26,6 +26,11 @@ public class UserDataStorage {
     private String postal;
     private String timezone;
     private String location;
+    private long solutionSetId;
+    private int download;
+    private int view;
+    private int save;
+
 
     @JsonIgnore
     private LocalDateTime dt1;
