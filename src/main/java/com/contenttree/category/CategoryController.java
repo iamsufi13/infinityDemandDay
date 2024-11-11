@@ -41,7 +41,7 @@ public class CategoryController {
 
         if (filter != null) {
             list = list.stream()
-                    .filter(entry -> entry.getName().toLowerCase().startsWith(filter.toLowerCase())) 
+                    .filter(entry -> entry.getName().toLowerCase().startsWith(filter.toLowerCase()))
                     .collect(Collectors.toList());
         }
 
