@@ -2,6 +2,7 @@ package com.contenttree.category;
 
 import com.contenttree.solutionsets.SolutionSets;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -25,12 +26,16 @@ public class Category {
 
     private String bannerPath;
 
-
+    @JsonManagedReference
     @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, orphanRemoval = true,fetch = FetchType.LAZY)
     private List<SolutionSets> solutionSets;
 
     @JsonIgnore
     private LocalDateTime dt1;
+
+    public Category(String line, Object o, Object o1, Object o2, Object o3) {
+    }
+
 
 
     @jakarta.persistence.PrePersist

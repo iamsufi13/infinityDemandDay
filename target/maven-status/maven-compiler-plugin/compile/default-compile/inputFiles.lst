@@ -7,8 +7,15 @@ D:\Java\infinityDemandDay\src\main\java\com\contenttree\banner\BannerController.
 D:\Java\infinityDemandDay\src\main\java\com\contenttree\banner\BannerEntity.java
 D:\Java\infinityDemandDay\src\main\java\com\contenttree\banner\BannerRepository.java
 D:\Java\infinityDemandDay\src\main\java\com\contenttree\banner\BannerService.java
+D:\Java\infinityDemandDay\src\main\java\com\contenttree\CampaignManager\CampaignManagerController.java
+D:\Java\infinityDemandDay\src\main\java\com\contenttree\CampaignManager\Event.java
+D:\Java\infinityDemandDay\src\main\java\com\contenttree\CampaignManager\EventRepository.java
+D:\Java\infinityDemandDay\src\main\java\com\contenttree\CampaignManager\Webinar.java
+D:\Java\infinityDemandDay\src\main\java\com\contenttree\CampaignManager\WebinarRepository.java
 D:\Java\infinityDemandDay\src\main\java\com\contenttree\category\Category.java
 D:\Java\infinityDemandDay\src\main\java\com\contenttree\category\CategoryController.java
+D:\Java\infinityDemandDay\src\main\java\com\contenttree\category\CategoryDto.java
+D:\Java\infinityDemandDay\src\main\java\com\contenttree\category\CategoryMapper.java
 D:\Java\infinityDemandDay\src\main\java\com\contenttree\category\CategoryRepository.java
 D:\Java\infinityDemandDay\src\main\java\com\contenttree\category\CategoryService.java
 D:\Java\infinityDemandDay\src\main\java\com\contenttree\config\CustomUserDetailsService.java

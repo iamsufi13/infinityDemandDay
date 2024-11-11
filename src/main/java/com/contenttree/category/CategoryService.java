@@ -1,14 +1,22 @@
 package com.contenttree.category;
 
+import org.apache.catalina.connector.InputBuffer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import org.w3c.dom.stylesheets.LinkStyle;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Service
 public class CategoryService {
@@ -51,4 +59,21 @@ public class CategoryService {
         return "Category added successfully!";
     }
 
+    public void saveBulkCategory(MultipartFile file) throws IOException{
+        List<Category> categories = new ArrayList<>();
+        BufferedReader reader = new BufferedReader(new InputStreamReader(file.getInputStream()));
+        String line;
+
+        while ((line = reader.readLine()) != null){
+//            categories.add(new Category(line,null,null,null,null));
+            Category category = new Category();
+            System.out.println("+++++++++++++++++");
+            System.out.println(line);
+            System.out.println("+++++++++++++++++");
+            category.setName(line);
+            categories.add(category);
+
+        }
+        categoryRepository.saveAll(categories);
+    }
 }
