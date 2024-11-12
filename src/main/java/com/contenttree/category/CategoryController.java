@@ -28,7 +28,7 @@ public class CategoryController {
     @Autowired
     SolutionSetsRepository solutionSetsRepository;
 
-    @GetMapping("/")
+    @GetMapping
     public ResponseEntity<ApiResponse1<List<CategoryDto>>> getAllCategory(
             @RequestParam(required = false) String filter,
             @RequestParam(required = false) String name) {
