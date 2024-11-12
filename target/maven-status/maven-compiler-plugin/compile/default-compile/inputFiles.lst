@@ -35,6 +35,10 @@ D:\Java\infinityDemandDay\src\main\java\com\contenttree\home\HomePageController.
 D:\Java\infinityDemandDay\src\main\java\com\contenttree\home\HomePageDto.java
 D:\Java\infinityDemandDay\src\main\java\com\contenttree\home\HomePageMapper.java
 D:\Java\infinityDemandDay\src\main\java\com\contenttree\Jwt\JwtResponse.java
+D:\Java\infinityDemandDay\src\main\java\com\contenttree\NewsLetter\NewsLetter.java
+D:\Java\infinityDemandDay\src\main\java\com\contenttree\NewsLetter\NewsLetterController.java
+D:\Java\infinityDemandDay\src\main\java\com\contenttree\NewsLetter\NewsLetterRepository.java
+D:\Java\infinityDemandDay\src\main\java\com\contenttree\NewsLetter\NewsLetterService.java
 D:\Java\infinityDemandDay\src\main\java\com\contenttree\security\AdminJwtHelper.java
 D:\Java\infinityDemandDay\src\main\java\com\contenttree\security\JwtAuthenticationEntryPoint.java
 D:\Java\infinityDemandDay\src\main\java\com\contenttree\security\JwtAuthenticationFilter.java

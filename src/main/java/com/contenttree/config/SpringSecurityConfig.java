@@ -60,7 +60,7 @@ public class SpringSecurityConfig {
                 .cors(AbstractHttpConfigurer::disable)
                 .authorizeRequests(authorizeRequests -> authorizeRequests
                         .requestMatchers(AntPathRequestMatcher.antMatcher("/admin/**")).hasAnyAuthority("SUPERADMIN", "EDITOR", "ADMIN")
-                        .requestMatchers("/api/login", "/api/register","/api/category/**", "/api/vendor/login","/login/admin","/register/admin","/api/user/register","/api/user/login","/api/user/confirm-account","/api/home","/api/vendor/login","/api/vendor/register","/api/vendor/register123","/error/**").permitAll()
+                        .requestMatchers("/api/login", "/api/register","/api/category/**", "/api/vendor/login","/login/admin","/register/admin","/api/user/register","/api/user/login","/api/user/confirm-account","/api/home","/api/vendor/login","/api/vendor/register","/api/vendor/register123","/error/**","/api/category").permitAll()
                         .requestMatchers(HttpMethod.OPTIONS).permitAll()
                         .requestMatchers("/error").permitAll()
                         .anyRequest().authenticated()
@@ -134,7 +134,9 @@ public class SpringSecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("http://localhost:3000"));
+//        config.setAllowedOrigins(List.of("http://localhost:3000"));
+        config.setAllowedOrigins(List.of("https://demanday-infiniteb2b-5oa9.vercel.app"));
+        config.setAllowedOrigins(List.of("*"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);

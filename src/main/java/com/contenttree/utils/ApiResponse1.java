@@ -1,7 +1,10 @@
 package com.contenttree.utils;
 
+import lombok.Getter;
+
 public class ApiResponse1<T> {
     private boolean status;
+    @Getter
     private String message;
     private T responseData;
 
@@ -9,10 +12,6 @@ public class ApiResponse1<T> {
         this.status = status;
         this.message = message;
         this.responseData = responseData;
-    }
-
-    public String getMessage() {
-        return message;
     }
 
     public void setMessage(String message) {
