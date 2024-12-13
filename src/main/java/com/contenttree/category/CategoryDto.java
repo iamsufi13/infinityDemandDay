@@ -12,7 +12,13 @@ public class CategoryDto {
     private String name;
     private String iconImage;
     private String bannerImage;
+    private int isSubscribe;
 
     private long solutionSetCount;
 
+    public CategoryDto(long id, String name, int size) {
+    }
+
+    public CategoryDto(long id, String name, String iconPath, String bannerPath, int size) {
+    }
 }

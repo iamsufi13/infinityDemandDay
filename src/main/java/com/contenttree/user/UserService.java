@@ -62,14 +62,17 @@ public class UserService {
 
         String logoUrl = "https://infinitydemand.com/wp-content/uploads/2024/01/cropped-Logo-22.png";
 
-        String confirmationUrl = "http://141.136.35.203:8080/api/user/confirm-account?token=" + confirmationToken.getConfirmationToken();
+//        String confirmationUrl = "http://141.136.35.203:8080/api/user/confirm-account?token=" + confirmationToken.getConfirmationToken();
+//        String confirmationUrl = "https://141.136.35.203:8443/api/user/confirm-account?token=" + confirmationToken.getConfirmationToken();
+        String confirmationUrl = "https://infiniteb2b.com:8443/api/user/confirm-account?token=" + confirmationToken.getConfirmationToken();
 
         String htmlMessage = "<div style=\"font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px; background-color: #f9f9f9;\">" +
                 "<div style=\"text-align: center; margin-bottom: 30px;\">" +
-                "<img src=\"" + logoUrl + "\" alt=\"Company Logo\" style=\"max-width: 150px;\">" +  // Use online logo URL here
+                "<img src=\"" + logoUrl + "\" alt=\"Company Logo\" style=\"max-width: 150px;\">" +
                 "</div>" +
                 "<h2 style=\"text-align: center; color: #28a745; font-size: 24px;\">Complete Your Registration</h2>" +
                 "<p style=\"font-size: 16px; line-height: 1.5; text-align: center;\">" +
+                "Thank you for registering with <strong>InfiniteB2B</strong>! To confirm your account and complete the registration process, please click the button below." +
                 "Thank you for registering with <strong>InfiniteB2B</strong>! To confirm your account and complete the registration process, please click the button below." +
                 "</p>" +
                 "<div style=\"text-align: center; margin: 30px 0;\">" +
@@ -103,16 +106,30 @@ public class UserService {
 
 
 
-    public ResponseEntity<?> confirmEmail(String confirmationToken) {
-        ConfirmationToken token = confirmationTokenRepository.findByConfirmationToken(confirmationToken);
-        if (token != null) {
-            User user = token.getUser();
-            if (user != null) {
-                user.setEnabled(true);
-                userRepository.save(user);
-                return ResponseEntity.ok("Email verified successfully!");
-            }
+//    public ResponseEntity<?> confirmEmail(String confirmationToken) {
+//        ConfirmationToken token = confirmationTokenRepository.findByConfirmationToken(confirmationToken);
+//        if (token != null) {
+//            User user = token.getUser();
+//            if (user != null) {
+//                user.setEnabled(true);
+//                userRepository.save(user);
+//                return ResponseEntity.ok("Email verified successfully!");
+//            }
+//        }
+//        return ResponseEntity.badRequest().body("Error: Couldn't verify email");
+//    }
+public ResponseEntity<?> confirmEmail(String confirmationToken) {
+    ConfirmationToken token = confirmationTokenRepository.findByConfirmationToken(confirmationToken);
+    if (token != null) {
+        User user = token.getUser();
+        if (user != null) {
+            user.setEnabled(true);
+            userRepository.save(user);
+            return ResponseEntity.status(302)
+                    .header("Location", "https://infiniteb2b.com/login")
+                    .build();
         }
-        return ResponseEntity.badRequest().body("Error: Couldn't verify email");
     }
+    return ResponseEntity.badRequest().body("Error: Couldn't verify email");
+}
 }

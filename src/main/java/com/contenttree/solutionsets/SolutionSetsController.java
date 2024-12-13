@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 
-@CrossOrigin
+@CrossOrigin("http://localhost:3000/")
 @RestController
 @RequestMapping("/api/solutionsets")
 public class SolutionSetsController {
@@ -48,7 +48,10 @@ public class SolutionSetsController {
     @PostMapping
     public ResponseEntity<ApiResponse1<SolutionSets>> addSolutionSets(
                                                                       @RequestParam MultipartFile file,
-                                                                      @RequestParam long category){
+                                                                      @RequestParam MultipartFile image,
+                                                                      @RequestParam long category,
+                                                                      @RequestParam String desc,
+                                                                      @RequestParam String title){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication==null || !(authentication.getPrincipal() instanceof UserDetails)){
             return ResponseEntity.status(401).body(null);
@@ -59,7 +62,7 @@ public class SolutionSetsController {
         if (vendors==null) {
             return ResponseEntity.notFound().build();
         }
-        String uploadResponse = solutionSetsService.uploadSolutionSets(file, vendors.getId(),category);
+        String uploadResponse = solutionSetsService.uploadSolutionSets(file,image, vendors.getId(),category,desc,title);
         return ResponseEntity.ok(new ApiResponse1<>(true,"SUCCESS",null));
     }
 }

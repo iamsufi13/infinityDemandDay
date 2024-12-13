@@ -1,26 +1,40 @@
 package com.contenttree.vendor;
 
+import com.contenttree.Blogs.Blogs;
+import com.contenttree.Blogs.BlogsRepository;
 import com.contenttree.Jwt.JwtResponse;
+import com.contenttree.NewsLetter.NewsLetter;
+import com.contenttree.NewsLetter.NewsLetterRepository;
 import com.contenttree.admin.AdminService;
+import com.contenttree.admin.DashboardWidgetsResponse;
+import com.contenttree.admin.Widget;
 import com.contenttree.category.Category;
 import com.contenttree.category.CategoryService;
 import com.contenttree.security.VendorJwtHelper;
 import com.contenttree.solutionsets.*;
+import com.contenttree.user.EmailService;
+import com.contenttree.user.User;
 import com.contenttree.user.UserService;
+import com.contenttree.userdatastorage.UserDataStorage;
 import com.contenttree.utils.ApiResponse1;
 import com.contenttree.utils.ResponseUtils;
+import jakarta.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @CrossOrigin("http://localhost:3000/")
 @RestController
@@ -34,7 +48,18 @@ public class VendorController {
     VendorsService vendorsService;
 
     @Autowired
+    BlogsRepository blogsRepository;
+
+    @Autowired
+    NewsLetterRepository newsLetterRepository;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    EmailService emailService;
+
+
 
     @Autowired
     AdminService adminService;
@@ -48,38 +73,91 @@ public class VendorController {
     @Autowired
     CategoryService categoryService;
 
-    @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestParam String email,
-                                   @RequestParam String password) {
-        Vendors vendors = vendorsService.getVendorsByEmail(email);
+    private static final String logoUrl = "https://infinitydemand.com/wp-content/uploads/2024/01/cropped-Logo-22.png";
 
-        if (vendors == null) {
-            ApiResponse1<JwtResponse> response = ResponseUtils.createResponse1(null, "Vendor not found", false);
-            return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
-        }
-        if (vendors.getStatus() == VendorStatus.PENDING) {
-            ApiResponse1<JwtResponse> response = ResponseUtils.createResponse1(null, "Vendor not Approved", false);
-            return new ResponseEntity<>(response, HttpStatus.NOT_ACCEPTABLE);
-        }
-        if (vendors.getStatus() == VendorStatus.REJECTED) {
-            ApiResponse1<JwtResponse> response = ResponseUtils.createResponse1(null, "Vendor Rejected", false);
-            return new ResponseEntity<>(response, HttpStatus.NOT_ACCEPTABLE);
-        }
+    private static final String whitepaperUrl="https://infiniteb2b.com/";
 
-        if (!passwordEncoder.matches(password, vendors.getPassword())) {
-            ApiResponse1<JwtResponse> response = ResponseUtils.createResponse1(null, "Email & Password Does Not Match", false);
-            return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
-        }
+//    @PostMapping("/login")
+//    public ResponseEntity<?> login(@RequestParam String email,
+//                                   @RequestParam String password) {
+//        Vendors vendors = vendorsService.getVendorsByEmail(email);
+//
+//        if (vendors == null) {
+//            ApiResponse1<JwtResponse> response = ResponseUtils.createResponse1(null, "Vendor not found", false);
+//            return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+//        }
+//        if (vendors.getStatus() == VendorStatus.PENDING) {
+//            ApiResponse1<JwtResponse> response = ResponseUtils.createResponse1(null, "Vendor not Approved", false);
+//            return new ResponseEntity<>(response, HttpStatus.NOT_ACCEPTABLE);
+//        }
+//        if (vendors.getStatus() == VendorStatus.REJECTED) {
+//            ApiResponse1<JwtResponse> response = ResponseUtils.createResponse1(null, "Vendor Rejected", false);
+//            return new ResponseEntity<>(response, HttpStatus.NOT_ACCEPTABLE);
+//        }
+//
+//        if (!passwordEncoder.matches(password, vendors.getPassword())) {
+//            ApiResponse1<JwtResponse> response = ResponseUtils.createResponse1(null, "Email & Password Does Not Match", false);
+//            return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
+//        }
+//
+//        String token = this.helper.generateToken(vendors);
+//
+//        JwtResponse jwtResponse = JwtResponse.builder().jwtToken(token).username(vendors.getEmail()).build();
+//
+//        HashMap<String, Object> response = new HashMap<>();
+//        response.put("jwtToken", jwtResponse);
+//        System.out.println("Vendor Logged in");
+//        return new ResponseEntity<>(response, HttpStatus.OK);
+//    }
+@PostMapping("/login")
+public ResponseEntity<Map<String, Object>> login(@RequestParam String email,
+                                                 @RequestParam String password) {
+    Vendors vendors = vendorsService.getVendorsByEmail(email);
 
-        String token = this.helper.generateToken(vendors);
-
-        JwtResponse jwtResponse = JwtResponse.builder().jwtToken(token).username(vendors.getEmail()).build();
-
-        HashMap<String, Object> response = new HashMap<>();
-        response.put("jwtToken", jwtResponse);
-        System.out.println("Vendor Logged in");
-        return new ResponseEntity<>(response, HttpStatus.OK);
+    if (vendors == null) {
+        Map<String, Object> errorResponse = new HashMap<>();
+        errorResponse.put("message", "Vendor not found");
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
     }
+
+    if (vendors.getStatus() == VendorStatus.PENDING) {
+        Map<String, Object> errorResponse = new HashMap<>();
+        errorResponse.put("message", "Vendor not Approved");
+        return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(errorResponse);
+    }
+
+    if (vendors.getStatus() == VendorStatus.REJECTED) {
+        Map<String, Object> errorResponse = new HashMap<>();
+        errorResponse.put("message", "Vendor Rejected");
+        return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(errorResponse);
+    }
+
+    if (!passwordEncoder.matches(password, vendors.getPassword())) {
+        Map<String, Object> errorResponse = new HashMap<>();
+        errorResponse.put("message", "Email & Password Does Not Match");
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
+    }
+
+    String token = this.helper.generateToken(vendors);
+
+    Map<String, Object> vendorDetails = new HashMap<>();
+    vendorDetails.put("_id", vendors.getId());
+    vendorDetails.put("email", vendors.getEmail());
+    vendorDetails.put("company_name", vendors.getCompanyName());
+    vendorDetails.put("role", "vendor");
+    vendorDetails.put("status", vendors.getStatus().name());
+    vendorDetails.put("password", "********");
+    vendorDetails.put("confirm_password", "********");
+
+    // Prepare response object
+    Map<String, Object> response = new HashMap<>();
+    response.put("message", "success");
+    response.put("token", token);
+    response.put("data", vendorDetails);
+
+    return ResponseEntity.ok(response);
+}
+
 
     @PostMapping("/register")
     public ResponseEntity<String> registerVendor(@RequestParam String email,
@@ -122,41 +200,227 @@ public class VendorController {
     @GetMapping("/byid")
     public ResponseEntity<ApiResponse1<SolutionSetDto>> getVendorById(@RequestParam long id) {
         SolutionSets solutionSets = solutionSetsService.getById(id);
-        SolutionSetDto solutionSetDto = SolutionSetMapper.toSolutionSetDto(solutionSets); // Map to DTO
-        return ResponseEntity.ok().body(ResponseUtils.createResponse1(solutionSetDto, "SUCCESS", true));
+//        SolutionSetDto solutionSetDto = SolutionSetMapper(solutionSets); // Map to DTO
+//        return ResponseEntity.ok().body(ResponseUtils.createResponse1(solutionSetDto, "SUCCESS", true));
+        return null;
     }
 
-    @PostMapping("/add-solutionset")
-    public ResponseEntity<ApiResponse1<SolutionSets>> addSolutionSet(@RequestParam MultipartFile file, @RequestParam String category) {
+//    @PostMapping("/add-solutionset")
+//    public ResponseEntity<ApiResponse1<SolutionSets>> addSolutionSet(@RequestParam MultipartFile file,@RequestParam(required = false) MultipartFile image, @RequestParam String category
+//    ,@RequestParam String desc,@RequestParam String title) throws MessagingException {
+//
+//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+//        if (authentication == null || !(authentication.getPrincipal() instanceof UserDetails)) {
+//            return ResponseEntity.status(401).body(null);
+//        }
+//
+//        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+//        Vendors vendors = vendorsService.getVendorsByEmail(userDetails.getUsername());
+//
+//        if (vendors == null) {
+//            return ResponseEntity.notFound().build();
+//        }
+//
+//
+//        Category categoryEntity = categoryService.getCategoryByName(category);
+//        if (categoryEntity == null) {
+//            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+//                    .body(ResponseUtils.createResponse1(null, "Invalid category name", false));
+//        }
+//        List<User> userList =userService.getAllUsers();
+//        userList.stream().filter(a-> a.getIsSubscriber()==1).toList();
+//        String htmlMessage = "<div style=\"font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px; background-color: #f9f9f9;\">" +
+//                "<div style=\"text-align: center; margin-bottom: 30px;\">" +
+//                "<img src=\"" + logoUrl + "\" alt=\"Company Logo\" style=\"max-width: 150px;\">" +
+//                "</div>" +
+//                "<h2 style=\"text-align: center; color: #007bff; font-size: 24px;\">Latest Whitepapers Released! " +  title +" </h2>" +
+//                "<p style=\"font-size: 16px; line-height: 1.5; text-align: center;\">" +
+//                "We are excited to share the latest updates from <strong>InfiniteB2B</strong>! Our new whitepapers on <strong>" + categoryEntity.getName() + "</strong> are now available. Explore the latest insights and trends to stay ahead in your field." +
+//                "</p>" +
+//                "<div style=\"text-align: center; margin: 30px 0;\">" +
+//                "<a href=\"" + whitepaperUrl + "\" style=\"font-size: 18px; padding: 12px 24px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px;\">Explore Now</a>" +
+//                "</div>" +
+//                "<p style=\"font-size: 14px; line-height: 1.5; text-align: center;\">" +
+//                "If the button above doesn’t work, copy and paste the following URL into your browser:" +
+//                "</p>" +
+//                "<p style=\"font-size: 14px; line-height: 1.5; text-align: center;\">" +
+//                "<a href=\"" + whitepaperUrl + "\" style=\"color: #007bff; word-wrap: break-word;\">" + whitepaperUrl + "</a>" +
+//                "</p>" +
+//                "<hr style=\"border: 0; border-top: 1px solid #e0e0e0; margin: 40px 0;\">" +
+//                "<footer style=\"text-align: center; font-size: 12px; color: #999;\">" +
+//                "<p>&copy; 2024 InfiniteB2B. All rights reserved.</p>" +
+//                "<p><a href=\"#\" style=\"color: #999; text-decoration: none;\">Unsubscribe</a> | <a href=\"#\" style=\"color: #999; text-decoration: none;\">Contact Us</a></p>" +
+//                "</footer>" +
+//                "</div>";
+//
+//        solutionSetsService.uploadSolutionSets(file,image, vendors.getId(), categoryEntity.getId(),desc,title);
+//
+//        for (User user : userList){
+//        emailService.sendHtmlEmail(user.getEmail(),"New WhitePaper Added in your Favorite Category " + categoryEntity.getName(), htmlMessage);}
+//
+//        return ResponseEntity.ok().body(ResponseUtils.createResponse1(null, "SUCCESS", true));
+//    }
+@PostMapping("/add-solutionset")
+public ResponseEntity<ApiResponse1<SolutionSets>> addSolutionSet(
+        @RequestParam MultipartFile file,
+        @RequestParam(required = false) MultipartFile image,
+        @RequestParam String category,
+        @RequestParam String desc,
+        @RequestParam String title) throws MessagingException {
 
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !(authentication.getPrincipal() instanceof UserDetails)) {
-            return ResponseEntity.status(401).body(null);
-        }
-
-        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-        Vendors vendors = vendorsService.getVendorsByEmail(userDetails.getUsername());
-
-        if (vendors == null) {
-            return ResponseEntity.notFound().build();
-        }
-
-
-        Category categoryEntity = categoryService.getCategoryByName(category);
-        if (categoryEntity == null) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(ResponseUtils.createResponse1(null, "Invalid category name", false));
-        }
-
-        solutionSetsService.uploadSolutionSets(file, vendors.getId(), categoryEntity.getId());
-
-        return ResponseEntity.ok().body(ResponseUtils.createResponse1(null, "SUCCESS", true));
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    if (authentication == null || !(authentication.getPrincipal() instanceof UserDetails)) {
+        return ResponseEntity.status(401).body(null);
     }
 
+    UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+    Vendors vendors = vendorsService.getVendorsByEmail(userDetails.getUsername());
+    if (vendors == null) {
+        return ResponseEntity.notFound().build();
+    }
+
+    Category categoryEntity = categoryService.getCategoryByName(category);
+    if (categoryEntity == null) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ResponseUtils.createResponse1(null, "Invalid category name", false));
+    }
+
+    String solutionSet = solutionSetsService.uploadSolutionSets(
+            file, image, vendors.getId(), categoryEntity.getId(), desc, title);
+
+    String baseUrl = "https://infiniteb2b.com";
+    String whitepaperUrl = baseUrl + "/category/" + categoryEntity.getName();
+
+    List<User> userList = userService.getAllUsers();
+    userList = userList.stream().filter(a -> a.getIsSubscriber() == 1).toList();
+
+    String htmlMessage = "<div style=\"font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px; background-color: #f9f9f9;\">" +
+            "<div style=\"text-align: center; margin-bottom: 30px;\">" +
+            "<img src=\"" + logoUrl + "\" alt=\"Company Logo\" style=\"max-width: 150px;\">" +
+            "</div>" +
+            "<h2 style=\"text-align: center; color: #007bff; font-size: 24px;\">Latest Whitepapers Released! " + title + "</h2>" +
+            "<p style=\"font-size: 16px; line-height: 1.5; text-align: center;\">" +
+            "We are excited to share the latest updates from <strong>InfiniteB2B</strong>! Our new whitepapers on <strong>" + categoryEntity.getName() + "</strong> are now available. Explore the latest insights and trends to stay ahead in your field." +
+            "</p>" +
+            "<div style=\"text-align: center; margin: 30px 0;\">" +
+            "<a href=\"" + whitepaperUrl + "\" style=\"font-size: 18px; padding: 12px 24px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px;\">Explore Now</a>" +
+            "</div>" +
+            "<p style=\"font-size: 14px; line-height: 1.5; text-align: center;\">" +
+            "If the button above doesn’t work, copy and paste the following URL into your browser:" +
+            "</p>" +
+            "<p style=\"font-size: 14px; line-height: 1.5; text-align: center;\">" +
+            "<a href=\"" + whitepaperUrl + "\" style=\"color: #007bff; word-wrap: break-word;\">" + whitepaperUrl + "</a>" +
+            "</p>" +
+            "<hr style=\"border: 0; border-top: 1px solid #e0e0e0; margin: 40px 0;\">" +
+            "<footer style=\"text-align: center; font-size: 12px; color: #999;\">" +
+            "<p>&copy; 2024 InfiniteB2B. All rights reserved.</p>" +
+            "<p><a href=\"#\" style=\"color: #999; text-decoration: none;\">Unsubscribe</a> | <a href=\"#\" style=\"color: #999; text-decoration: none;\">Contact Us</a></p>" +
+            "</footer>" +
+            "</div>";
+
+    for (User user : userList) {
+        emailService.sendHtmlEmail(user.getEmail(),
+                "New WhitePaper Added in your Favorite Category " + categoryEntity.getName(),
+                htmlMessage);
+    }
+
+    return ResponseEntity.ok().body(ResponseUtils.createResponse1(null, "SUCCESS", true));
+}
+
+@Autowired
+SolutionSetMapper solutionSetMapper;
     @GetMapping("/solutionsets-by-vendor")
     public ResponseEntity<ApiResponse1<List<SolutionSetDto>>> getSolutionSetsByVendor(@RequestParam long vendorId) {
         List<SolutionSets> list = solutionSetsService.getSolutionSetsByVendorId(vendorId);
-        List<SolutionSetDto> dtoList = list.stream().map(SolutionSetMapper::toSolutionSetDto).toList();
+        List<SolutionSetDto> dtoList = list.stream().map(solutionSetMapper::toSolutionSetDto).toList();
         return ResponseEntity.ok().body(ResponseUtils.createResponse1(dtoList, "SUCCESS", true));
     }
+//    @GetMapping("/dashboard")
+//    public ResponseEntity<ApiResponse1<Map<?, ?>>> getVendorDashboard(@AuthenticationPrincipal Vendors vendors) {
+//        List<SolutionSets> solutionSetsList = solutionSetsService.getAllSolutionSets();
+//
+//        long whitepapersSubmitted = solutionSetsList.stream()
+//                .filter(sets -> sets.getUploadedBy() != null
+//                        && sets.getUploadedBy().getId() == vendors.getId()) // Primitive comparison
+//                .count();
+//
+//        long whitepapersApproved = solutionSetsList.stream()
+//                .filter(sets -> sets.getUploadedBy() != null
+//                        && sets.getUploadedBy().getId() == vendors.getId()
+//                        && "APPROVED".equalsIgnoreCase(String.valueOf(sets.getStatus())))
+//                .count();
+//
+//        long whitepapersPending = solutionSetsList.stream()
+//                .filter(sets -> sets.getUploadedBy() != null
+//                        && sets.getUploadedBy().getId() == vendors.getId()
+//                        && "PENDING".equalsIgnoreCase(String.valueOf(sets.getStatus())))
+//                .count();
+//
+//        long whitepapersRejected = solutionSetsList.stream()
+//                .filter(sets -> sets.getUploadedBy() != null
+//                        && sets.getUploadedBy().getId() == vendors.getId()
+//                        && "REJECTED".equalsIgnoreCase(String.valueOf(sets.getStatus())))
+//                .count();
+//
+//        Map<String, Long> map = new HashMap<>();
+//        map.put("whitePaperSubmitted", whitepapersSubmitted);
+//        map.put("whitePaperApproved", whitepapersApproved);
+//        map.put("whitePaperPending", whitepapersPending);
+//        map.put("whitepapersRejected", whitepapersRejected);
+//
+//        return ResponseEntity.ok().body(ResponseUtils.createResponse1(map, "SUCCESS", true));
+//    }
+@GetMapping("/dashboard")
+public ResponseEntity<DashboardWidgetsResponse> getWidgets(@AuthenticationPrincipal Vendors vendors) {
+    List<Widget> ecomWidgets = new ArrayList<>();
+    List<Widget> totalecomWidgets = new ArrayList<>();
+
+    List<SolutionSets> solutionSetsList = solutionSetsService.getAllSolutionSets();
+
+        long whitepapersSubmitted = solutionSetsList.stream()
+                .filter(sets -> sets.getUploadedBy() != null
+                        && sets.getUploadedBy().getId() == vendors.getId())
+                .count();
+
+        long whitepapersApproved = solutionSetsList.stream()
+                .filter(sets -> sets.getUploadedBy() != null
+                        && sets.getUploadedBy().getId() == vendors.getId()
+                        && "APPROVED".equalsIgnoreCase(String.valueOf(sets.getStatus())))
+                .count();
+
+        long whitepapersPending = solutionSetsList.stream()
+                .filter(sets -> sets.getUploadedBy() != null
+                        && sets.getUploadedBy().getId() == vendors.getId()
+                        && "PENDING".equalsIgnoreCase(String.valueOf(sets.getStatus())))
+                .count();
+    long whitepapersRejected = solutionSetsList.stream()
+            .filter(sets -> sets.getUploadedBy() != null
+                    && sets.getUploadedBy().getId() == vendors.getId()
+                    && "REJECTED".equalsIgnoreCase(String.valueOf(sets.getStatus())))
+            .count();
+
+
+    ecomWidgets.add(new Widget(1L, "primary", "WhitePapers Submitted", String.valueOf(whitepapersSubmitted), "View All", "secondary", "bx bx-file", 0));
+    ecomWidgets.add(new Widget(2L, "secondary", "WhitePapers Approved", String.valueOf(whitepapersApproved), "View All", "primary", "bx bx-book", 0));
+    ecomWidgets.add(new Widget(3L, "success", "WhitePapers Pending", String.valueOf(whitepapersPending), "View All", "success", "bx bx-user-circle", 0));
+    ecomWidgets.add(new Widget(4L, "success", "WhitePapers Rejected", String.valueOf(whitepapersRejected), "View All", "success", "bx bx-user-circle", 0));
+
+    DashboardWidgetsResponse response = new DashboardWidgetsResponse();
+    response.setEcomWidgets(ecomWidgets);
+    response.setTotalecomWidgets(totalecomWidgets);
+
+    return ResponseEntity.ok(response);
+}
+@Autowired
+SolutionSetsRepository solutionSetsRepository;
+    @GetMapping("/get-allwhitepapers")
+    public ResponseEntity<ApiResponse1<List<SolutionSetDto>>> getAllWhitePapersList(@AuthenticationPrincipal Vendors vendors){
+        List<SolutionSets> list = solutionSetsRepository.findAll();
+        List<SolutionSetDto> solutionSetDtos = list.stream().filter(s->s.getUploadedBy().getId()== vendors.getId())
+                .map(solutionSetMapper::toSolutionSetDto)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok().body(ResponseUtils.createResponse1(solutionSetDtos,"SUCCESS",true));
+    }
+
+
 }

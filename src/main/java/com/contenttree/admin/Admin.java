@@ -1,7 +1,10 @@
 package com.contenttree.admin;
 
+import com.contenttree.Blogs.Blogs;
+import com.contenttree.CampaignManager.Campaign;
 import com.contenttree.CampaignManager.Event;
 import com.contenttree.CampaignManager.Webinar;
+import com.contenttree.NewsLetter.NewsLetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -28,20 +31,38 @@ public class Admin implements UserDetails {
 
     private String name;
 
+    private long phone;
+
+    private String location;
+
     @JsonIgnore
     private String password;
     @Column(unique = true)
     private String email;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "admin", cascade = CascadeType.ALL)
     private List<Webinar> webinars;
+    @JsonIgnore
+    @OneToMany(mappedBy = "admin",cascade = CascadeType.ALL)
+    private List<Campaign> campaignList;
+    @JsonIgnore
     @OneToMany(mappedBy = "admin",cascade = CascadeType.ALL)
     private List<Event> events;
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "admin",cascade = CascadeType.ALL)
+    private List<Blogs> blogs;
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "admin",cascade = CascadeType.ALL)
+    private List<NewsLetter> newsLetters;
 
     @ElementCollection(fetch = FetchType.EAGER)
     @Enumerated(EnumType.STRING)
     @CollectionTable(name = "admin_roles",joinColumns = @JoinColumn(name = "admin_id"))
     @Column(name = "role", length = 50)
+    @JsonIgnore
     private List<Role> role;
     @JsonIgnore
     private LocalDateTime dt1;

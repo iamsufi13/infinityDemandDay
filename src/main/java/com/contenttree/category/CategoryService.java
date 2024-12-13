@@ -1,5 +1,6 @@
 package com.contenttree.category;
 
+import com.contenttree.solutionsets.SolutionSets;
 import org.apache.catalina.connector.InputBuffer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -13,10 +14,7 @@ import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 public class CategoryService {
@@ -27,37 +25,64 @@ public class CategoryService {
         return categoryRepository.findByNameIgnoreCase(name);
     }
 
-    public String addCategory(String name, MultipartFile icon, MultipartFile banner) {
+    public Optional<Category> getCategoryBySolutionSet(long id){
+        List<Category> category = categoryRepository.findAll();
 
-        String uploadDir = "src/main/resources/uploads/category/";
+
+        Optional<Category> matchingCategory = category.stream()
+                .filter(cat -> cat.getSolutionSets() != null
+                        && cat.getSolutionSets().stream()
+                        .anyMatch(solution -> solution.getId() == id))
+                .findFirst();
+
+
+        return matchingCategory;
+
+
+
+
+    }
+
+    public Category addCategory(String name, MultipartFile icon, MultipartFile banner,String desc) {
+
+//        String uploadDir = "src/main/resources/uploads/category/";
+        String uploadDir = "/var/www/infiniteb2b/springboot/whitepapersSet";
         File directory = new File(uploadDir);
         if (!directory.exists()) {
             directory.mkdirs();
         }
 
-        String iconName = icon.getOriginalFilename();
-        String bannerName = banner.getOriginalFilename();
+        String iconName = null;
+        String bannerName = null;
 
         try {
-            Path iconPath = Paths.get(uploadDir + iconName);
-            Path bannerPath = Paths.get(uploadDir + bannerName);
+            if (icon != null && !icon.isEmpty()) {
+                iconName = icon.getOriginalFilename();
+                Path iconPath = Paths.get(uploadDir + iconName);
+                Files.write(iconPath, icon.getBytes());
+            }
 
-            Files.write(iconPath, icon.getBytes());
-            Files.write(bannerPath, banner.getBytes());
-
+            if (banner != null && !banner.isEmpty()) {
+                bannerName = banner.getOriginalFilename();
+                Path bannerPath = Paths.get(uploadDir + bannerName);
+                Files.write(bannerPath, banner.getBytes());
+            }
         } catch (IOException e) {
-            return "File Upload failed: " + e.getMessage();
+            return null;
         }
-
         Category category = new Category();
-        category.setName(name);
-        category.setIconPath(iconName);
-        category.setBannerPath(bannerName);
+        String updatedName = name.replace(" ", "-");
+        category.setName(updatedName);
+        category.setDescp(desc);
+        String updatedIconPath = iconName != null ? iconName.replace(" ", "-") : "";
+        category.setIconPath(updatedIconPath);
+        String updatedBannerPath = bannerName != null ? bannerName.replace(" ", "-") : "";
+        category.setBannerPath(updatedBannerPath);
 
         categoryRepository.save(category);
-
-        return "Category added successfully!";
+        return category;
     }
+
 
     public void saveBulkCategory(MultipartFile file) throws IOException{
         List<Category> categories = new ArrayList<>();
@@ -75,5 +100,34 @@ public class CategoryService {
 
         }
         categoryRepository.saveAll(categories);
+    }
+
+    public Category updateCategory(long id, String name, MultipartFile icon, MultipartFile banner) {
+        Category category = categoryRepository.findById(id).orElse(null);
+        String uploadDir = "/var/www/infiniteb2b/springboot/whitepapersSet";
+        File directory = new File(uploadDir);
+        if (!directory.exists()) {
+            directory.mkdirs();
+        }
+
+        String iconName = icon.getOriginalFilename();
+        String bannerName = banner.getOriginalFilename();
+
+        try {
+            Path iconPath = Paths.get(uploadDir + iconName);
+            Path bannerPath = Paths.get(uploadDir + bannerName);
+
+            Files.write(iconPath, icon.getBytes());
+            Files.write(bannerPath, banner.getBytes());
+
+        } catch (IOException e) {
+            return null;
+        }
+
+        category.setName(name);
+        category.setIconPath(iconName);
+        category.setBannerPath(bannerName);
+
+        return categoryRepository.save(category);
     }
 }

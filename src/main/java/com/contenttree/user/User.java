@@ -1,5 +1,6 @@
 package com.contenttree.user;
 
+import com.contenttree.NewsLetter.NewsLetter;
 import com.contenttree.confirmationtoken.ConfirmationToken;
 import com.contenttree.downloadlog.DownloadLog;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -7,6 +8,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDateTime;
@@ -31,20 +33,30 @@ public class User implements UserDetails {
     private long phone;
     private String jobTitle;
     private String company;
+    private int isSubscriber;
 
     @Column(unique = true)
     @Email
     private String email;
 
+    @JsonIgnore
     private String ipAddress;
 
+    @JsonIgnore
     private List<String> favorites;
 
+    @OneToMany
+    @JoinColumn(name = "user_id")
+    private List<NewsLetter> newsLetterList;
+
+    @JsonIgnore
     private List<Long> savedPdf;
+    @JsonIgnore
     private List<Long> viewdPdf;
     @JsonIgnore
     private String password;
 
+    @JsonIgnore
     private boolean isEnabled;
 
     @JsonIgnore
@@ -55,41 +67,50 @@ public class User implements UserDetails {
         this.dt1 = LocalDateTime.now();
     }
 
+    @JsonIgnore
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<ConfirmationToken> confirmationTokens;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL,orphanRemoval = true)
     private List<DownloadLog> downloadLogs;
+  @JsonIgnore
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of();
     }
 
+    @JsonIgnore
     @Override
     public String getPassword() {
         return password;
     }
 
+    @JsonIgnore
     @Override
     public String getUsername() {
         return email;
     }
 
+    @JsonIgnore
     @Override
     public boolean isAccountNonExpired() {
         return UserDetails.super.isAccountNonExpired();
     }
 
+    @JsonIgnore
     @Override
     public boolean isAccountNonLocked() {
         return UserDetails.super.isAccountNonLocked();
     }
 
+    @JsonIgnore
     @Override
     public boolean isCredentialsNonExpired() {
         return UserDetails.super.isCredentialsNonExpired();
     }
 
+    @JsonIgnore
     @Override
     public boolean isEnabled() {
         return isEnabled;

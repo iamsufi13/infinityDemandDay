@@ -3,30 +3,49 @@ package com.contenttree.user;
 import com.contenttree.Jwt.JwtResponse;
 
 import com.contenttree.admin.AdminService;
+import com.contenttree.admin.DashboardWidgetsResponse;
+import com.contenttree.admin.Widget;
+import com.contenttree.category.Category;
+import com.contenttree.category.CategoryDto;
+import com.contenttree.category.CategoryRepository;
+import com.contenttree.category.CategoryService;
 import com.contenttree.downloadlog.DownloadLogRepository;
 import com.contenttree.downloadlog.DownloadLogService;
 import com.contenttree.security.UserJwtHelper;
+import com.contenttree.solutionsets.SolutionSetResponse;
 import com.contenttree.solutionsets.SolutionSets;
+import com.contenttree.solutionsets.SolutionSetsRepository;
 import com.contenttree.solutionsets.SolutionSetsService;
 import com.contenttree.userdatastorage.IpInfo;
 import com.contenttree.userdatastorage.UserDataStorage;
+import com.contenttree.userdatastorage.UserDataStorageRepository;
 import com.contenttree.userdatastorage.UserDataStorageService;
 import com.contenttree.utils.ApiResponse1;
+import com.contenttree.utils.ApiResponseTemplate;
 import com.contenttree.utils.ResponseUtils;
 import com.contenttree.vendor.VendorsService;
+import io.github.classgraph.Resource;
+import io.swagger.annotations.Api;
 import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.format.number.AbstractNumberFormatter;
 import org.springframework.http.*;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.util.RedirectUrlBuilder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 
 @CrossOrigin("http://localhost:3000/")
@@ -46,6 +65,8 @@ public class UserController {
    private PasswordEncoder passwordEncoder;
     @Autowired
     UserJwtHelper helper;
+    @Autowired
+    UserDataStorageRepository userDataStorageRepository;
     @Autowired
     SolutionSetsService solutionSetsService;
     @Autowired
@@ -67,22 +88,26 @@ public class UserController {
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@RequestParam String name,
                                           @RequestParam String password,
-                                          @RequestParam String email) throws MessagingException, IOException {
+                                          @RequestParam String email,
+                                          @RequestParam String lastName,
+                                          @RequestParam String country,
+                                          @RequestParam String jobTitle,
+                                          @RequestParam String company,
+                                          @RequestParam long phone) throws MessagingException, IOException {
 
-        System.out.println("+++++++++++++++++++++++");
-        System.out.println(email);
-        System.out.println(password);
-        System.out.println(name);
-        System.out.println("+++++++++++++++++++++++");
         User user = new User();
         user.setName(name);
         String hasCode = passwordEncoder.encode(password);
         user.setPassword(hasCode);
         user.setEmail(email);
+        user.setCompany(company);
+        user.setIsSubscriber(1);
+        user.setCountry(country);
+        user.setLastName(lastName);
+        user.setPhone(phone);
+        user.setJobTitle(jobTitle);
         if (adminService.getAdminByEmailId(email)==null){
-            System.out.println("inside admin by email");
             if (vendorsService.getVendorsByEmail(email)==null){
-                System.out.println("inside vendor by email");
                 return userService.saveUser(user);
             }
         }
@@ -92,6 +117,12 @@ public class UserController {
 
 
         return ResponseEntity.ok().body(ResponseUtils.createResponse1(user,"Account Created SuccessFully",true));
+    }
+    @PutMapping("/update")
+    public ResponseEntity<ApiResponse1<User>> updateUser(@AuthenticationPrincipal User user){
+        User user1 = userService.getUserById(user.getId());
+        return null;
+
     }
 
 //    @GetMapping("/save-pdf")
@@ -133,49 +164,49 @@ public class UserController {
 //        userService.updateUser(user);
 //        return ResponseEntity.ok().body(ResponseUtils.createResponse1(solutionSets,"SUCCESS",true));
 //    }
-//    @GetMapping("/view-pdf")
-//    public ResponseEntity<byte[]> viewPdf(@RequestParam long id, @AuthenticationPrincipal User user, HttpServletRequest request) {
-//        SolutionSets solutionSets = solutionSetsService.getSolutionSetById(id);
-//
-//        byte[] pdfData = solutionSetsService.downloadPdf(id);
-//
-//        List<Long> oldView = user.getSavedPdf();
-//        List<Long> updatedView = new ArrayList<>();
-//
-//        if (oldView == null) {
-//            oldView = new ArrayList<>();
-//        }
-//
-//        if (!oldView.contains(id)) {
-//            updatedView.add(id);
-//        }
-//
-//        updatedView.addAll(oldView);
-//
-//        user.setViewdPdf(updatedView);
-//
-//        String clientIp = getClientIp(request);
-//        com.contenttree.userdatastorage.IpInfo info = getIpInfo(clientIp);
-//        UserDataStorage userDataStorage = new UserDataStorage();
-//        userDataStorage.setUser_id(user.getId());
-//        userDataStorage.setIp(clientIp);
-//        userDataStorage.setCity(info.getCity() != null ? info.getCity() : "Unknown");
-//        userDataStorage.setCountry(info.getCountry());
-//        userDataStorage.setRegion(info.getRegion());
-//        userDataStorage.setOrg(info.getOrg());
-//        userDataStorage.setPostal(info.getPostal());
-//        userDataStorageService.addUserDataStorage(userDataStorage);
-//        user.setIpAddress(clientIp);
-//        userService.updateUser(user);
-//
-//        HttpHeaders headers = new HttpHeaders();
-//        headers.setContentType(MediaType.APPLICATION_PDF);
-//        headers.setContentDisposition(ContentDisposition.inline().filename("solution.pdf").build());
-//
-//        return ResponseEntity.ok()
-//                .headers(headers)
-//                .body(pdfData);
-//    }
+    @GetMapping("/view-pdf")
+    public ResponseEntity<byte[]> viewPdf(@RequestParam long id, @AuthenticationPrincipal User user, HttpServletRequest request) throws IOException {
+        SolutionSets solutionSets = solutionSetsService.getSolutionSetById(id);
+
+        byte[] pdfData = solutionSetsService.downloadPdf(id);
+
+        List<Long> oldView = user.getSavedPdf();
+        List<Long> updatedView = new ArrayList<>();
+
+        if (oldView == null) {
+            oldView = new ArrayList<>();
+        }
+
+        if (!oldView.contains(id)) {
+            updatedView.add(id);
+        }
+
+        updatedView.addAll(oldView);
+
+        user.setViewdPdf(updatedView);
+
+        String clientIp = getClientIp(request);
+        com.contenttree.userdatastorage.IpInfo info = getIpInfo(clientIp);
+        UserDataStorage userDataStorage = new UserDataStorage();
+        userDataStorage.setUser_id(user.getId());
+        userDataStorage.setIp(clientIp);
+        userDataStorage.setCity(info.getCity() != null ? info.getCity() : "Unknown");
+        userDataStorage.setCountry(info.getCountry());
+        userDataStorage.setRegion(info.getRegion());
+        userDataStorage.setOrg(info.getOrg());
+        userDataStorage.setPostal(info.getPostal());
+        userDataStorageService.addUserDataStorage(userDataStorage);
+        user.setIpAddress(clientIp);
+        userService.updateUser(user);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_PDF);
+        headers.setContentDisposition(ContentDisposition.inline().filename("solution.pdf").build());
+
+        return ResponseEntity.ok()
+                .headers(headers)
+                .body(pdfData);
+    }
 @GetMapping("/save-pdf")
 public ResponseEntity<ApiResponse1<SolutionSets>> savePdf(@RequestParam long id, @AuthenticationPrincipal User user, HttpServletRequest request) {
     SolutionSets solutionSets = solutionSetsService.getSolutionSetById(id);
@@ -214,53 +245,119 @@ public ResponseEntity<ApiResponse1<SolutionSets>> savePdf(@RequestParam long id,
     return ResponseEntity.ok().body(ResponseUtils.createResponse1(solutionSets, "SUCCESS", true));
 }
 
-    @GetMapping("/view-pdf")
-    public ResponseEntity<byte[]> viewPdf(@RequestParam long id, @AuthenticationPrincipal User user, HttpServletRequest request) {
-        SolutionSets solutionSets = solutionSetsService.getSolutionSetById(id);
-        byte[] pdfData = solutionSetsService.downloadPdf(id);
 
-        List<Long> oldView = user.getViewdPdf();
-
-        if (oldView == null) {
-            oldView = new ArrayList<>();
-        }
-
-        if (!oldView.contains(id)) {
-            oldView.add(id);
-        }
-
-        user.setViewdPdf(oldView);
-        userService.updateUser(user);
-
-        String clientIp = getClientIp(request);
-        com.contenttree.userdatastorage.IpInfo info = getIpInfo(clientIp);
-        UserDataStorage userDataStorage = new UserDataStorage();
-        userDataStorage.setUser_id(user.getId());
-        userDataStorage.setIp(clientIp);
-        userDataStorage.setSolutionSetId(id);
-        userDataStorage.setCity(info.getCity() != null ? info.getCity() : "Unknown");
-        userDataStorage.setCountry(info.getCountry());
-        userDataStorage.setRegion(info.getRegion());
-        userDataStorage.setOrg(info.getOrg());
-        userDataStorage.setLocation(info.getLocation());
-        userDataStorage.setView(1);
-        userDataStorage.setTimezone(info.getTimeZone());
-        userDataStorage.setPostal(info.getPostal());
-        userDataStorageService.addUserDataStorage(userDataStorage);
-
-        user.setIpAddress(clientIp);
-        userService.updateUser(user);
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_PDF);
-        headers.setContentDisposition(ContentDisposition.inline().filename("solution.pdf").build());
-
-        return ResponseEntity.ok().headers(headers).body(pdfData);
-    }
-
+//    @GetMapping("/download-pdf")
+//    public ResponseEntity<byte[]> downloadPdf(@RequestParam long id, @AuthenticationPrincipal User user, HttpServletRequest request) {
+//        SolutionSets solutionSets = solutionSetsService.getSolutionSetById(id);
+//        byte[] pdfData = solutionSetsService.downloadPdf1(id);
+//
+//        List<Long> oldDownloads = user.getViewdPdf();
+//        if (oldDownloads == null) {
+//            oldDownloads = new ArrayList<>();
+//        }
+//        if (!oldDownloads.contains(id)) {
+//            oldDownloads.add(id);
+//        }
+//        user.setViewdPdf(oldDownloads);
+//        userService.updateUser(user);
+//
+//        String clientIp = getClientIp(request);
+//        com.contenttree.userdatastorage.IpInfo info = getIpInfo(clientIp);
+//
+//        UserDataStorage userDataStorage = new UserDataStorage();
+//        userDataStorage.setUser_id(user.getId());
+//        userDataStorage.setIp(clientIp);
+//        userDataStorage.setSolutionSetId(id);
+//        userDataStorage.setCity(info.getCity() != null ? info.getCity() : "Unknown");
+//        userDataStorage.setCountry(info.getCountry());
+//        userDataStorage.setRegion(info.getRegion());
+//        userDataStorage.setOrg(info.getOrg());
+//        userDataStorage.setLocation(info.getLocation());
+//        userDataStorage.setDownload(1);
+//        userDataStorage.setTimezone(info.getTimeZone());
+//        userDataStorage.setPostal(info.getPostal());
+//        userDataStorageService.addUserDataStorage(userDataStorage);
+//
+//        user.setIpAddress(clientIp);
+//        userService.updateUser(user);
+//
+//        HttpHeaders headers = new HttpHeaders();
+//        headers.setContentType(MediaType.APPLICATION_PDF);
+//        headers.setContentDisposition(ContentDisposition.attachment().filename("solution-download.pdf").build());
+//
+//        return ResponseEntity.ok().headers(headers).body(pdfData);
+//    }
 
 
-    @GetMapping("/download-pdf")
+
+
+
+//        @GetMapping("/download-pdf")
+//public ResponseEntity<String> downloadSolutionSets(@RequestParam long id,
+//                                                   @AuthenticationPrincipal User user,
+//                                                   HttpServletRequest request) throws MessagingException, IOException {
+//
+//    String pdfData = solutionSetsService.downloadPdf(id);
+//
+//    if (pdfData == null || pdfData.isEmpty()) {
+//        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+//    }
+//
+//    String clientIp = getClientIp(request);
+//
+//    SolutionSets solutionSets = solutionSetsService.getSolutionSetById(id);
+//    String categoryName = solutionSets.getCategory().getName();
+//
+//    List<String> oldFavorites = user.getFavorites();
+//    List<String> updatedFavorites = new ArrayList<>();
+//
+//    com.contenttree.userdatastorage.IpInfo info = getIpInfo(clientIp);
+//
+//
+//    if (oldFavorites == null) {
+//        oldFavorites = new ArrayList<>();
+//    }
+//
+//    if (!oldFavorites.contains(categoryName)) {
+//        updatedFavorites.add(categoryName);
+//    }
+//
+//    updatedFavorites.addAll(oldFavorites);
+//
+//    user.setFavorites(updatedFavorites);
+//
+//    downloadLogService.logPdfDownload(id, user.getId(),clientIp);
+//    System.out.println("Downloading Done " + id + " " + user.getName());
+//    System.out.println(updatedFavorites);
+//    System.out.println("IP: " + clientIp);
+//
+//    UserDataStorage userDataStorage = new UserDataStorage();
+//    userDataStorage.setUser_id(user.getId());
+//    userDataStorage.setIp(clientIp);
+//    userDataStorage.setDownload(1);
+//    userDataStorage.setSolutionSetId(id);
+//    System.out.println("City name " + info.getCity());
+//    userDataStorage.setCity(info.getCity() != null ? info.getCity() : "Unknown");
+//    userDataStorage.setCountry(info.getCountry());
+//        userDataStorage.setLocation(info.getLocation());
+//        userDataStorage.setTimezone(info.getTimeZone());
+//    userDataStorage.setRegion(info.getRegion());
+//    userDataStorage.setOrg(info.getOrg());
+//    userDataStorage.setPostal(info.getPostal());
+//
+//    System.out.println("UserDataStorage " + userDataStorage);
+//
+//
+//    userDataStorageService.addUserDataStorage(userDataStorage);
+//
+//    user.setIpAddress(clientIp);
+//    userService.updateUser(user);
+//
+//    return ResponseEntity.ok()
+//            .contentType(MediaType.APPLICATION_PDF)
+//            .body(pdfData);
+//}
+@GetMapping("/download-pdf")
 public ResponseEntity<byte[]> downloadSolutionSets(@RequestParam long id,
                                                    @AuthenticationPrincipal User user,
                                                    HttpServletRequest request) throws MessagingException, IOException {
@@ -281,7 +378,6 @@ public ResponseEntity<byte[]> downloadSolutionSets(@RequestParam long id,
 
     com.contenttree.userdatastorage.IpInfo info = getIpInfo(clientIp);
 
-
     if (oldFavorites == null) {
         oldFavorites = new ArrayList<>();
     }
@@ -294,7 +390,7 @@ public ResponseEntity<byte[]> downloadSolutionSets(@RequestParam long id,
 
     user.setFavorites(updatedFavorites);
 
-    downloadLogService.logPdfDownload(id, user.getId(),clientIp);
+    downloadLogService.logPdfDownload(id, user.getId(), clientIp);
     System.out.println("Downloading Done " + id + " " + user.getName());
     System.out.println(updatedFavorites);
     System.out.println("IP: " + clientIp);
@@ -307,14 +403,13 @@ public ResponseEntity<byte[]> downloadSolutionSets(@RequestParam long id,
     System.out.println("City name " + info.getCity());
     userDataStorage.setCity(info.getCity() != null ? info.getCity() : "Unknown");
     userDataStorage.setCountry(info.getCountry());
-        userDataStorage.setLocation(info.getLocation());
-        userDataStorage.setTimezone(info.getTimeZone());
+    userDataStorage.setLocation(info.getLocation());
+    userDataStorage.setTimezone(info.getTimeZone());
     userDataStorage.setRegion(info.getRegion());
     userDataStorage.setOrg(info.getOrg());
     userDataStorage.setPostal(info.getPostal());
 
     System.out.println("UserDataStorage " + userDataStorage);
-
 
     userDataStorageService.addUserDataStorage(userDataStorage);
 
@@ -323,8 +418,141 @@ public ResponseEntity<byte[]> downloadSolutionSets(@RequestParam long id,
 
     return ResponseEntity.ok()
             .contentType(MediaType.APPLICATION_PDF)
+            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"solution-set-" + id + ".pdf\"")
             .body(pdfData);
 }
+
+//@GetMapping("/download-pdf")
+//public ResponseEntity<String> downloadSolutionSets(@RequestParam long id,
+//                                                   @AuthenticationPrincipal User user,
+//                                                   HttpServletRequest request) throws MessagingException, IOException {
+//
+//    String fileUrl = solutionSetsService.downloadPdf(id, request);
+//
+//    if (fileUrl == null || fileUrl.isEmpty()) {
+//        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("File not found");
+//    }
+//
+//    String clientIp = getClientIp(request);
+//
+//    SolutionSets solutionSets = solutionSetsService.getSolutionSetById(id);
+//    String categoryName = solutionSets.getCategory().getName();
+//
+//    List<String> oldFavorites = user.getFavorites();
+//    List<String> updatedFavorites = new ArrayList<>();
+//
+//    if (oldFavorites == null) {
+//        oldFavorites = new ArrayList<>();
+//    }
+//
+//    if (!oldFavorites.contains(categoryName)) {
+//        updatedFavorites.add(categoryName);
+//    }
+//
+//    updatedFavorites.addAll(oldFavorites);
+//
+//    user.setFavorites(updatedFavorites);
+//
+//    downloadLogService.logPdfDownload(id, user.getId(), clientIp);
+//    System.out.println("Downloading Done " + id + " " + user.getName());
+//    System.out.println(updatedFavorites);
+//    System.out.println("IP: " + clientIp);
+//
+//    UserDataStorage userDataStorage = new UserDataStorage();
+//    userDataStorage.setUser_id(user.getId());
+//    userDataStorage.setIp(clientIp);
+//    userDataStorage.setDownload(1);
+//    userDataStorage.setSolutionSetId(id);
+//    com.contenttree.userdatastorage.IpInfo info = getIpInfo(clientIp);
+//    System.out.println("City name " + info.getCity());
+//    userDataStorage.setCity(info.getCity() != null ? info.getCity() : "Unknown");
+//    userDataStorage.setCountry(info.getCountry());
+//    userDataStorage.setLocation(info.getLocation());
+//    userDataStorage.setTimezone(info.getTimeZone());
+//    userDataStorage.setRegion(info.getRegion());
+//    userDataStorage.setOrg(info.getOrg());
+//    userDataStorage.setPostal(info.getPostal());
+//
+//    System.out.println("UserDataStorage " + userDataStorage);
+//
+//    userDataStorageService.addUserDataStorage(userDataStorage);
+//
+//    user.setIpAddress(clientIp);
+//    userService.updateUser(user);
+//
+//    HttpHeaders headers = new HttpHeaders();
+//    headers.setContentType(MediaType.TEXT_PLAIN);
+//    headers.set("Access-Control-Allow-Origin", "*"); // Allow requests from any origin
+//
+//    return ResponseEntity.ok().headers(headers).body(fileUrl);
+//}
+//    @GetMapping("/download-pdf")
+//    public ResponseEntity<?> downloadSolutionSets(@RequestParam long id,
+//                                                         @AuthenticationPrincipal User user,
+//                                                         HttpServletRequest request) throws MessagingException, IOException {
+//        String filePath = solutionSetsService.downloadPdf(id, request);
+//
+//        if (filePath == null || filePath.isEmpty()) {
+//            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+//        }
+//
+//        File file = new File(filePath);
+//        if (!file.exists()) {
+//            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+//        }
+//
+//        String clientIp = getClientIp(request);
+//
+//        SolutionSets solutionSets = solutionSetsService.getSolutionSetById(id);
+//        String categoryName = solutionSets.getCategory().getName();
+//
+//        List<String> oldFavorites = user.getFavorites();
+//        List<String> updatedFavorites = new ArrayList<>();
+//        if (oldFavorites == null) {
+//            oldFavorites = new ArrayList<>();
+//        }
+//        if (!oldFavorites.contains(categoryName)) {
+//            updatedFavorites.add(categoryName);
+//        }
+//        updatedFavorites.addAll(oldFavorites);
+//        user.setFavorites(updatedFavorites);
+//
+//        downloadLogService.logPdfDownload(id, user.getId(), clientIp);
+//
+//        UserDataStorage userDataStorage = new UserDataStorage();
+//        userDataStorage.setUser_id(user.getId());
+//        userDataStorage.setIp(clientIp);
+//        userDataStorage.setDownload(1);
+//        userDataStorage.setSolutionSetId(id);
+//        com.contenttree.userdatastorage.IpInfo info = getIpInfo(clientIp);
+//        userDataStorage.setCity(info.getCity() != null ? info.getCity() : "Unknown");
+//        userDataStorage.setCountry(info.getCountry());
+//        userDataStorage.setLocation(info.getLocation());
+//        userDataStorage.setTimezone(info.getTimeZone());
+//        userDataStorage.setRegion(info.getRegion());
+//        userDataStorage.setOrg(info.getOrg());
+//        userDataStorage.setPostal(info.getPostal());
+//        userDataStorageService.addUserDataStorage(userDataStorage);
+//
+//        user.setIpAddress(clientIp);
+//        userService.updateUser(user);
+//
+//        InputStreamResource resource = new InputStreamResource(new FileInputStream(file));
+//        String contentDisposition = "attachment; filename=\"" + file.getName() + "\"";
+//
+//        HttpHeaders headers = new HttpHeaders();
+//        headers.add(HttpHeaders.CONTENT_DISPOSITION, contentDisposition);
+//        headers.setContentType(MediaType.APPLICATION_PDF);
+//        headers.setContentLength(file.length());
+//        headers.set("Access-Control-Allow-Origin", "*");
+//
+//        return ResponseEntity.ok()
+//                .headers(headers)
+//                .body(resource);
+//    }
+
+
+
 
     private String getClientIp(HttpServletRequest request) {
         String ipAddress = request.getHeader("X-Forwarded-For");
@@ -422,11 +650,243 @@ public ResponseEntity<byte[]> downloadSolutionSets(@RequestParam long id,
 
         JwtResponse jwtResponse = JwtResponse.builder()
                 .jwtToken(token)
-                .username(user.getEmail())
+                .username(user.getName()+ " "+user.getLastName())
                 .build();
 
         ApiResponse1<JwtResponse> response = ResponseUtils.createResponse1(jwtResponse, "Login Successful", true);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
+    @PostMapping("/unsubscribe")
+    public ResponseEntity<ApiResponse1<User>> unSubscribe(@AuthenticationPrincipal User user) throws MessagingException, IOException {
+        User user1 = userRepository.findById(user.getId()).orElse(null);
+        user1.setIsSubscriber(0);
+        userService.saveUser(user1);
+        return ResponseEntity.ok().body(ResponseUtils.createResponse1(user1,"SUCCESS",true));
+    }
+
+
+    @PutMapping("/unsave-whitepaper")
+    public ResponseEntity<ApiResponse1<UserDataStorage>> unsaveWhitePaper(@RequestParam long id,@AuthenticationPrincipal User user){
+        UserDataStorage userDataStorage = userDataStorageRepository.findByUserIdAndSaveAndSolutionSetId(user.getId(),id).orElse(null);
+        assert userDataStorage != null;
+        userDataStorage.setSave(0);
+        userDataStorageService.addUserDataStorage(userDataStorage);
+        return ResponseEntity.ok().body(ResponseUtils.createResponse1(userDataStorage,"SUCCESS",true));
+
+    }
+
+
+    @GetMapping("/dashboard")
+        public ResponseEntity<DashboardWidgetsResponse> getWidgets(@AuthenticationPrincipal User user) {
+            List<Widget> ecomWidgets = new ArrayList<>();
+            List<Widget> totalecomWidgets = new ArrayList<>();
+
+            List<UserDataStorage> userDataStorageList = userDataStorageRepository.findAll();
+            List<User> userList = userRepository.findAll();
+            long whitePaperSaved = userDataStorageList.stream()
+                    .filter(u -> u.getUser_id() == user.getId() && u.getSave() == 1)
+                    .count();
+            long whitePaperCategorySubscribed = userList.size();
+//            long newsLetterSubscribed = userList.stream().filter(u-> u.getNewsLetterList().stream().count()).count();
+
+
+
+            ecomWidgets.add(new Widget(1L, "primary", "SAVED", String.valueOf(whitePaperSaved), "View All", "secondary", "bx bx-file", 0));
+            ecomWidgets.add(new Widget(2L, "secondary", "WHITE-PAPERS SET", String.valueOf(whitePaperCategorySubscribed), "View All", "primary", "bx bx-book", 0));
+            ecomWidgets.add(new Widget(3L, "success", "NEWS-LETTER", "Yes", "Update", "success", "bx bx-user-circle", 0));
+
+            DashboardWidgetsResponse response = new DashboardWidgetsResponse();
+            response.setEcomWidgets(ecomWidgets);
+            response.setTotalecomWidgets(totalecomWidgets);
+
+            return ResponseEntity.ok(response);
+        }
+
+
+    @GetMapping("/allwhitepapers-saved")
+    public ResponseEntity<ApiResponse1<List<SolutionSetResponse>>> getAllWhitePapersSaved(
+            @AuthenticationPrincipal User user) {
+
+        List<UserDataStorage> userDataStorages = userDataStorageRepository.findAll();
+
+        List<UserDataStorage> savedWhitepapers = userDataStorages.stream()
+                .filter(u -> u.getUser_id() == user.getId() && u.getSave() == 1)
+                .collect(Collectors.toList());
+
+        List<SolutionSetResponse> responseList = new ArrayList<>();
+
+        for (UserDataStorage savedWhitepaper : savedWhitepapers) {
+            SolutionSets solutionSet = solutionSetsService.getSolutionSetById(savedWhitepaper.getSolutionSetId());
+
+            if (solutionSet != null) {
+                Category category = categoryRepository.findById(solutionSet.getCategory().getId()).orElse(null);
+                String categoryName = category != null ? category.getName() : "Unknown";
+
+                SolutionSetResponse response = new SolutionSetResponse();
+                response.setId(solutionSet.getId());
+                response.setWhitePaperName(solutionSet.getTitle());
+                response.setWhitePaperSetName(categoryName);
+
+                responseList.add(response);
+            }
+        }
+
+        return ResponseEntity.ok().body(ResponseUtils.createResponse1(responseList, "SUCCESS", true));
+    }
+
+    @GetMapping("/allwhitepapers-download")
+    public ResponseEntity<ApiResponse1<List<?>>> getAllWhitePapersDownload(@AuthenticationPrincipal User user){
+        List<UserDataStorage> userDataStorages = userDataStorageRepository.findAll();
+
+        List<UserDataStorage> savedWhitepapers = userDataStorages.stream()
+                .filter(u -> u.getUser_id() == user.getId() && u.getDownload() == 1)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok().body(ResponseUtils.createResponse1(savedWhitepapers, "SUCCESS", true));
+    }
+    @GetMapping("/allwhitepapers-viewd")
+    public ResponseEntity<ApiResponse1<List<?>>> getAllWhitePapersViewed(@AuthenticationPrincipal User user){
+        List<UserDataStorage> userDataStorages = userDataStorageRepository.findAll();
+
+        List<UserDataStorage> savedWhitepapers = userDataStorages.stream()
+                .filter(u -> u.getUser_id() == user.getId() && u.getView() == 1)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok().body(ResponseUtils.createResponse1(savedWhitepapers, "SUCCESS", true));
+    }
+    @Autowired
+    CategoryService categoryService;
+    @Autowired
+    CategoryRepository categoryRepository;
+    @GetMapping("/getall-favortie-category")
+    public ResponseEntity<ApiResponse1<List<?>>> getAllFavoritesCategoryByUser(@AuthenticationPrincipal User user){
+        List<String> favoritesList = user.getFavorites();
+        List<Category> categoryList = new ArrayList<>();
+        for (String category : favoritesList){
+            Category category1 = categoryService.getCategoryByName(category);
+
+            categoryList.add(category1);
+        }
+        return ResponseEntity.ok().body(ResponseUtils.createResponse1(categoryList,"SUCCESS",true));
+    }
+
+    @PutMapping("/remove-favorite")
+    @Transactional
+    public ResponseEntity<ApiResponse1<?>> removeFavoritesCategoryByUser(@AuthenticationPrincipal User user, @RequestParam long id) throws MessagingException, IOException {
+        List<String> favoritesList = user.getFavorites();
+
+        Category category = categoryRepository.findById(id).orElse(null);
+
+        if (category != null && favoritesList.contains(category.getName())) {
+            favoritesList.remove(category.getName());
+
+            System.out.println("Removing category: " + category.getName());
+
+            user.setFavorites(favoritesList);
+
+            userService.saveUser(user);
+
+            userRepository.flush();
+
+            return ResponseEntity.ok().body(ResponseUtils.createResponse1(null, "SUCCESS", true));
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ResponseUtils.createResponse1(null, "Category not found or not in favorites", false));
+        }
+    }
+    @Autowired
+    SolutionSetsRepository solutionSetsRepository;
+    @GetMapping("/solution-sets-homepage")
+    public ResponseEntity<ApiResponse1<List<?>>> getCategoryForHomePage(@AuthenticationPrincipal User user) {
+        List<SolutionSets> solutionSets = solutionSetsRepository.findAll();
+
+        solutionSets.sort((solutionSets1, solutionSets2) -> Long.compare(solutionSets2.getId(), solutionSets1.getId()));
+
+        List<SolutionSets> updatedCategory = solutionSets.stream()
+                .limit(24)
+                .collect(Collectors.toList());
+
+//        List<UserDataStorage> userDataStorageList = userDataStorageRepository.findAll();
+//        Map<Long, UserDataStorage> userDataStorageMap = userDataStorageList.stream()
+//                .filter(userData -> userData.getUser_id() == user.getId())
+//                .collect(Collectors.toMap(UserDataStorage::getSolutionSetId, userData -> userData));
+//        List<Map<String, Object>> maps = updatedCategory.stream().map(category -> {
+//            Map<String, Object> categoryMap = new HashMap<>();
+//            categoryMap.put("title", category.getTitle());
+//            categoryMap.put("id", category.getId());
+//            categoryMap.put("imgSrc", category.getImagePath());
+//            categoryMap.put("description", category.getDescription());
+//            categoryMap.put("category", category.getCategory().getName());
+//            categoryMap.put("category_id",category.getCategory().getId());
+//            UserDataStorage userData = userDataStorageMap.get(category.getId());
+//            categoryMap.put("isSavedByUser", userData != null && userData.getSave() > 0 ? 1 : 0);
+//
+//            return categoryMap;
+//        }).collect(Collectors.toList());
+//
+//        return ResponseEntity.ok().body(ResponseUtils.createResponse1(maps, "SUCCESS", true));
+        if (user != null) {
+            List<UserDataStorage> userDataStorageList = userDataStorageRepository.findAll();
+
+            Map<Long, UserDataStorage> userDataStorageMap = userDataStorageList.stream()
+                    .filter(userData -> userData.getUser_id() == user.getId())
+                    .collect(Collectors.toMap(UserDataStorage::getSolutionSetId, userData -> userData));
+
+            List<Map<String, Object>> maps = updatedCategory.stream().map(category -> {
+                Map<String, Object> categoryMap = new HashMap<>();
+                categoryMap.put("title", category.getTitle());
+                categoryMap.put("id", category.getId());
+                categoryMap.put("imgSrc", category.getImagePath());
+                categoryMap.put("description", category.getDescription());
+                categoryMap.put("category", category.getCategory().getName());
+                categoryMap.put("category_id", category.getCategory().getId());
+
+                UserDataStorage userData = userDataStorageMap.get(category.getId());
+                categoryMap.put("isSavedByUser", userData != null && userData.getSave() > 0 ? 1 : 0);
+
+                return categoryMap;
+            }).collect(Collectors.toList());
+
+            return ResponseEntity.ok().body(ResponseUtils.createResponse1(maps, "SUCCESS", true));
+        } else {
+            List<Map<String, Object>> maps = updatedCategory.stream().map(category -> {
+                Map<String, Object> categoryMap = new HashMap<>();
+                categoryMap.put("title", category.getTitle());
+                categoryMap.put("id", category.getId());
+                categoryMap.put("imgSrc", category.getImagePath());
+                categoryMap.put("description", category.getDescription());
+                categoryMap.put("category", category.getCategory().getName());
+                categoryMap.put("category_id", category.getCategory().getId());
+
+                categoryMap.put("isSavedByUser", 0);
+
+                return categoryMap;
+            }).collect(Collectors.toList());
+
+            return ResponseEntity.ok().body(ResponseUtils.createResponse1(maps, "SUCCESS", true));
+        }
+    }
+
+    @PutMapping("/update/whitepaper-filepath")
+    public ResponseEntity<String> updateFilePath() {
+        List<SolutionSets> solutionSetsList = solutionSetsRepository.findAll();
+
+        solutionSetsList.forEach(solutionSets -> {
+            String updatedImagePath = solutionSets.getImagePath() != null ? solutionSets.getImagePath().replace(" ", "-") : "";
+            solutionSets.setImagePath(updatedImagePath);
+
+            String updatedFilePath = solutionSets.getFilePath() != null ? solutionSets.getFileType().replace(" ", "-") : "";
+            solutionSets.setFilePath(updatedFilePath);
+        });
+        solutionSetsRepository.saveAll(solutionSetsList);
+        return ResponseEntity.ok("File paths updated successfully");
+    }
+
+
+
+
+
+
+
 
 }
+

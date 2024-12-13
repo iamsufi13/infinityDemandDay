@@ -31,7 +31,6 @@ public class Event {
     @ManyToOne
     private Admin admin;
 
-
     @JsonIgnore
     private LocalDateTime dt1;
 

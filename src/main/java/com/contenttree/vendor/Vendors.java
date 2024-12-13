@@ -1,5 +1,7 @@
 package com.contenttree.vendor;
 
+import com.contenttree.Blogs.Blogs;
+import com.contenttree.NewsLetter.NewsLetter;
 import com.contenttree.downloadlog.DownloadLog;
 import com.contenttree.solutionsets.SolutionSets;
 import com.fasterxml.jackson.annotation.JsonBackReference;
@@ -20,10 +22,11 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+@ToString(exclude = "solutionSets")
 public class Vendors implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private Long id;
 
     private String name;
 
@@ -31,6 +34,7 @@ public class Vendors implements UserDetails {
 
     private String companyName;
 
+    private String location;
     @JsonIgnore
     private String password;
 
@@ -50,6 +54,15 @@ public class Vendors implements UserDetails {
     @JsonBackReference
     @OneToMany(mappedBy = "uploadedBy", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<SolutionSets> solutionSets;
+
+//    @JsonBackReference
+//    @OneToMany(mappedBy = "uploadedBy", cascade = CascadeType.ALL, orphanRemoval = true)
+//    private List<Blogs> blogs;
+//
+//    @JsonBackReference
+//    @OneToMany(mappedBy = "uploadedBy", cascade = CascadeType.ALL, orphanRemoval = true)
+//    private List<NewsLetter> newsLetterList;
+
     @JsonBackReference
     @OneToMany(mappedBy = "vendor")
     private List<DownloadLog> downloadLogs;

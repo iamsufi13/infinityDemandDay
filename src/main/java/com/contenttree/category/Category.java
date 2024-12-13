@@ -8,6 +8,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import jakarta.persistence.*;
+import lombok.ToString;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -15,6 +17,7 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@ToString(exclude = "solutionSets")
 public class Category {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -26,6 +29,9 @@ public class Category {
 
     private String bannerPath;
 
+    private String descp;
+
+    @JsonIgnore
     @JsonManagedReference
     @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, orphanRemoval = true,fetch = FetchType.LAZY)
     private List<SolutionSets> solutionSets;
