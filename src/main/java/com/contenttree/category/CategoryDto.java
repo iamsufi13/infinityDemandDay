@@ -10,8 +10,8 @@ import lombok.NoArgsConstructor;
 public class CategoryDto {
     private long id;
     private String name;
-    private String iconImage;
-    private String bannerImage;
+    private String iconPath;
+    private String bannerPath;
     private int isSubscribe;
 
     private long solutionSetCount;

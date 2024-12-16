@@ -12,4 +12,5 @@ public class IpInfo {
     private String postal;
     private String location;
     private String timeZone;
+    private long userId;
 }

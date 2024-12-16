@@ -1,5 +1,6 @@
 package com.contenttree.solutionsets;
 
+import com.contenttree.admin.Admin;
 import com.contenttree.category.Category;
 import com.contenttree.vendor.Vendors;
 import com.fasterxml.jackson.annotation.JsonBackReference;
@@ -46,6 +47,11 @@ private String filePath;
     @ManyToOne
     @JoinColumn(name = "vendor_id")
     private Vendors uploadedBy;
+
+    @JsonBackReference
+    @ManyToOne
+    @JoinColumn(name = "admin_id")
+    private Admin uploadedByAdmin;
 
     @Enumerated(EnumType.STRING)
     private SolutionSetsStatus status;

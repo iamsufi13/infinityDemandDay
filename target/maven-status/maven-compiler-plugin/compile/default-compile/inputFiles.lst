@@ -36,6 +36,7 @@
 /Users/demanday67/Documents/JavaProjects/infinityDemandDay/src/main/java/com/contenttree/admin/AdminService.java
 /Users/demanday67/Documents/JavaProjects/infinityDemandDay/src/main/java/com/contenttree/admin/DashboardWidgetsResponse.java
 /Users/demanday67/Documents/JavaProjects/infinityDemandDay/src/main/java/com/contenttree/admin/Role.java
+/Users/demanday67/Documents/JavaProjects/infinityDemandDay/src/main/java/com/contenttree/admin/Status.java
 /Users/demanday67/Documents/JavaProjects/infinityDemandDay/src/main/java/com/contenttree/admin/Widget.java
 /Users/demanday67/Documents/JavaProjects/infinityDemandDay/src/main/java/com/contenttree/banner/BannerController.java
 /Users/demanday67/Documents/JavaProjects/infinityDemandDay/src/main/java/com/contenttree/banner/BannerEntity.java
@@ -86,6 +87,7 @@
 /Users/demanday67/Documents/JavaProjects/infinityDemandDay/src/main/java/com/contenttree/user/UserMapper.java
 /Users/demanday67/Documents/JavaProjects/infinityDemandDay/src/main/java/com/contenttree/user/UserRepository.java
 /Users/demanday67/Documents/JavaProjects/infinityDemandDay/src/main/java/com/contenttree/user/UserService.java
+/Users/demanday67/Documents/JavaProjects/infinityDemandDay/src/main/java/com/contenttree/user/UserStatus.java
 /Users/demanday67/Documents/JavaProjects/infinityDemandDay/src/main/java/com/contenttree/userdatastorage/IpInfo.java
 /Users/demanday67/Documents/JavaProjects/infinityDemandDay/src/main/java/com/contenttree/userdatastorage/UserDataStorage.java
 /Users/demanday67/Documents/JavaProjects/infinityDemandDay/src/main/java/com/contenttree/userdatastorage/UserDataStorageRepository.java

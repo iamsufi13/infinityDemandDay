@@ -5,6 +5,7 @@ import com.contenttree.CampaignManager.Campaign;
 import com.contenttree.CampaignManager.Event;
 import com.contenttree.CampaignManager.Webinar;
 import com.contenttree.NewsLetter.NewsLetter;
+import com.contenttree.solutionsets.SolutionSets;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -35,6 +36,8 @@ public class Admin implements UserDetails {
 
     private String location;
 
+    @OneToMany(mappedBy = "uploadedByAdmin", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<SolutionSets> solutionSets;
     @JsonIgnore
     private String password;
     @Column(unique = true)
@@ -49,6 +52,9 @@ public class Admin implements UserDetails {
     @JsonIgnore
     @OneToMany(mappedBy = "admin",cascade = CascadeType.ALL)
     private List<Event> events;
+
+    @Enumerated(EnumType.STRING)
+    private Status status;
 
     @JsonIgnore
     @OneToMany(mappedBy = "admin",cascade = CascadeType.ALL)

@@ -25,7 +25,7 @@ public class UserDataStorageService {
 
             existingUserDataStorage.setSave(userDataStorage.getSave());
             existingUserDataStorage.setDownload(userDataStorage.getDownload());
-            existingUserDataStorage.setView(userDataStorage.getView());  // If you're updating 'view', also set it
+            existingUserDataStorage.setView(userDataStorage.getView());
 
             userDataStorageRepository.save(existingUserDataStorage);
         }

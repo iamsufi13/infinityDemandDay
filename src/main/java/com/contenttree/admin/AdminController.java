@@ -22,6 +22,7 @@ import com.contenttree.security.AdminJwtHelper;
 import com.contenttree.solutionsets.*;
 import com.contenttree.user.User;
 import com.contenttree.user.UserService;
+import com.contenttree.user.UserStatus;
 import com.contenttree.userdatastorage.UserDataStorage;
 import com.contenttree.userdatastorage.UserDataStorageRepository;
 import com.contenttree.utils.ApiResponse1;
@@ -31,6 +32,8 @@ import com.contenttree.vendor.VendorRepository;
 import com.contenttree.vendor.VendorStatus;
 import com.contenttree.vendor.Vendors;
 import com.contenttree.vendor.VendorsService;
+import io.swagger.annotations.Api;
+import jakarta.mail.MessagingException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -39,6 +42,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -140,6 +144,7 @@ public ResponseEntity<Map<String, Object>> registerAdmin(
     admin.setEmail(email);
     admin.setLocation(location);
     admin.setPhone(phone);
+    admin.setStatus(Status.Active);
     admin.setPassword(passwordEncoder.encode(password));
 
     List<Role> roles = new ArrayList<>();
@@ -169,6 +174,20 @@ public ResponseEntity<Map<String, Object>> registerAdmin(
     response.put("user", userDetails);
 
     return ResponseEntity.ok(response);
+}
+@PostMapping("/admin/update/status")
+public ResponseEntity<ApiResponse1<Admin>> updateStatus(@RequestParam int status,@RequestParam long id){
+        Admin admin = adminService.adminRepository.findById(id).orElse(null);
+        if (admin!=null){
+            if (status==1){
+                admin.setStatus(Status.Active);
+            }
+            else {
+                admin.setStatus(Status.Inactive);
+            }
+            adminService.adminRepository.save(admin);
+        }
+        return ResponseEntity.ok().body(ResponseUtils.createResponse1(admin,"SUCCESS",true));
 }
 
 
@@ -230,38 +249,66 @@ public ResponseEntity<Map<String, Object>> registerAdmin(
 //    ApiResponseTemplate<Map<String, Object>> response = ResponseUtils.createResponse( "success", token, responseData);
 //    return ResponseEntity.ok().body(response);
 //}
-@PostMapping("/login/admin")
-public ResponseEntity<Map<String, Object>> adminLogin(
-        @RequestParam String email,
-        @RequestParam String password) {
+    @PostMapping("/login/admin")
+    public ResponseEntity<Map<String, Object>> adminLogin(
+            @RequestParam String email,
+            @RequestParam String password) {
 
-    Admin admin = adminService.getAdminByEmailId(email);
-    if (admin == null || !passwordEncoder.matches(password, admin.getPassword())) {
-        Map<String, Object> errorResponse = new HashMap<>();
-        errorResponse.put("message", "Email & Password Do Not Match");
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
+        // Retrieve admin based on email
+        Admin admin = adminService.getAdminByEmailId(email);
+
+        // Check if admin is null or password does not match
+        if (admin == null || !passwordEncoder.matches(password, admin.getPassword())) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("message", "Email & Password Do Not Match");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
+        }
+
+//        if (!"active".equals(admin.getStatus())) {
+//            Map<String, Object> errorResponse = new HashMap<>();
+//            errorResponse.put("message", "Admin account is not active.");
+//            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
+//        }
+        if ("Inactive".equals(admin.getStatus())) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("message", "Admin account is not active.");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
+        }
+
+
+        String token = jwtHelper.generateToken(admin);
+
+        Map<String, Object> userDetails = new HashMap<>();
+        userDetails.put("_id", admin.getId());
+        userDetails.put("email", admin.getEmail());
+        userDetails.put("first_name", admin.getName());
+        List<Role> role = admin.getRole();
+        userDetails.put("role", role.get(0));
+        userDetails.put("password", "********");
+        userDetails.put("confirm_password", "********");
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("message", "success");
+        response.put("token", token);
+        response.put("data", userDetails);
+
+        return ResponseEntity.ok(response);
     }
 
-    String token = jwtHelper.generateToken(admin);
 
-    Map<String, Object> userDetails = new HashMap<>();
-    userDetails.put("_id",admin.getId());
-    userDetails.put("email", admin.getEmail());
-    userDetails.put("first_name", admin.getName());
-    List<Role> role = admin.getRole();
-    userDetails.put("role",role.get(0));
-    userDetails.put("password", "********");
-    userDetails.put("confirm_password", "********");
-
-    Map<String, Object> response = new HashMap<>();
-    response.put("message", "success");
-    response.put("token", token);
-    response.put("data", userDetails);
-
-    return ResponseEntity.ok(response);
-}
-
-
+    @PostMapping("/update-user-status")
+    public ResponseEntity<ApiResponse1<User>> updateStatus(@RequestParam long id, @RequestParam int value) throws MessagingException, IOException {
+        User user = userService.getUserById(id);
+        if (value==1){
+            user.setStatus(UserStatus.ACTIVE);
+        }
+        else
+        {
+            user.setStatus(UserStatus.INACTIVE);
+        }
+        userService.saveUser(user);
+        return ResponseEntity.ok().body(ResponseUtils.createResponse1(user,"SUCCESS",true));
+    }
 
 
 
@@ -271,7 +318,7 @@ public ResponseEntity<Map<String, Object>> adminLogin(
         Vendors vendor = vendorRepository.findById(vendorId).orElseThrow
                 (()-> new RuntimeException("Vendor not Found"));
         System.out.println(vendor);
-        vendor.setStatus(VendorStatus.APPROVED);
+        vendor.setStatus(VendorStatus.ACTIVE);
         vendorRepository.save(vendor);
         return ResponseEntity.ok().body(ResponseUtils.createResponse1(null,"Vendor approved SuccessFully",true));
     }
@@ -717,7 +764,7 @@ public ResponseEntity<ApiResponse2> getMostDownloadedWhitePaperList() {
     public ResponseEntity<ApiResponse1<List<Vendors>>> getAllPendingVendorList(){
     List<Vendors> list = vendorRepository.findAll();
     List<Vendors> updatedList = list.stream()
-            .filter(vendor -> "PENDING".equalsIgnoreCase(String.valueOf(vendor.getStatus())))
+            .filter(vendor -> "INACTIVE".equalsIgnoreCase(String.valueOf(vendor.getStatus())))
             .collect(Collectors.toList());
     return ResponseEntity.ok().body(ResponseUtils.createResponse1(updatedList,"SUCCESS",true));
 }
@@ -725,7 +772,7 @@ public ResponseEntity<ApiResponse2> getMostDownloadedWhitePaperList() {
     public ResponseEntity<ApiResponse1<List<Vendors>>> getAllApprovedVendorList(){
         List<Vendors> list = vendorRepository.findAll();
         List<Vendors> updatedList = list.stream()
-                .filter(vendor -> "APPROVED".equalsIgnoreCase(String.valueOf(vendor.getStatus())))
+                .filter(vendor -> "ACTIVE".equalsIgnoreCase(String.valueOf(vendor.getStatus())))
                 .collect(Collectors.toList());
         return ResponseEntity.ok().body(ResponseUtils.createResponse1(updatedList,"SUCCESS",true));
     }
@@ -863,7 +910,7 @@ public ResponseEntity<ApiResponse1<List<AdminResponseDto>>> getAllCampaignManage
 //        return ResponseEntity.ok().body(ResponseUtils.createResponse1(list,"SUCCESS",true));
             List<Vendors> list = vendorRepository.findAll();
             List<Vendors> updatedList = list.stream()
-                    .filter(vendor -> "APPROVED".equalsIgnoreCase(String.valueOf(vendor.getStatus())))
+                    .filter(vendor -> "ACTIVE".equalsIgnoreCase(String.valueOf(vendor.getStatus())))
                     .collect(Collectors.toList());
             return ResponseEntity.ok().body(ResponseUtils.createResponse1(updatedList,"SUCCESS",true));
         }
@@ -874,7 +921,7 @@ public ResponseEntity<ApiResponse1<List<AdminResponseDto>>> getAllCampaignManage
 
         List<Vendors> filteredList = list.stream()
                 .filter(vendor ->
-                        "REJECTED".equalsIgnoreCase(String.valueOf(vendor.getStatus())) ||
+                        "INACTIVE".equalsIgnoreCase(String.valueOf(vendor.getStatus())) ||
                                 "PENDING".equalsIgnoreCase(String.valueOf(vendor.getStatus()))
                 )
                 .collect(Collectors.toList());
@@ -897,12 +944,40 @@ public ResponseEntity<ApiResponse1<List<AdminResponseDto>>> getAllCampaignManage
 //    }
     @Autowired
     SolutionSetMapper solutionSetMapper;
+//@GetMapping("/admin/get-allwhitepapers")
+//public ResponseEntity<ApiResponse1<List<SolutionSetDto>>> getAllWhitePapersList(@RequestParam int value) {
+//    try {
+//        List<SolutionSets> list = solutionSetsRepository.findAll();
+//        System.out.println("Fetched list: " + list.size());
+//        list.forEach(System.out::println);
+//
+//        List<SolutionSetDto> solutionSetDtos = list.stream()
+//                .map(solutionSetMapper::toSolutionSetDto)
+//                .collect(Collectors.toList());
+//
+//        return ResponseEntity.ok().body(ResponseUtils.createResponse1(solutionSetDtos, "SUCCESS", true));
+//    } catch (Exception e) {
+//        e.printStackTrace();
+//        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+//                .body(ResponseUtils.createResponse1(null, "INTERNAL_SERVER_ERROR", false));
+//    }
+//}
 @GetMapping("/admin/get-allwhitepapers")
-public ResponseEntity<ApiResponse1<List<SolutionSetDto>>> getAllWhitePapersList() {
+public ResponseEntity<ApiResponse1<List<SolutionSetDto>>> getAllWhitePapersList(@RequestParam(required = false) int value) {
     try {
         List<SolutionSets> list = solutionSetsRepository.findAll();
         System.out.println("Fetched list: " + list.size());
         list.forEach(System.out::println);
+
+        if (value == 1) {
+            list = list.stream()
+                    .filter(solutionSet -> solutionSet.getUploadedBy() == null)
+                    .collect(Collectors.toList());
+        } else if (value == 2) {
+            list = list.stream()
+                    .filter(solutionSet -> solutionSet.getUploadedBy() != null)
+                    .collect(Collectors.toList());
+        }
 
         List<SolutionSetDto> solutionSetDtos = list.stream()
                 .map(solutionSetMapper::toSolutionSetDto)
@@ -915,6 +990,7 @@ public ResponseEntity<ApiResponse1<List<SolutionSetDto>>> getAllWhitePapersList(
                 .body(ResponseUtils.createResponse1(null, "INTERNAL_SERVER_ERROR", false));
     }
 }
+
 
 
     @GetMapping("/get-all-blogs-count")

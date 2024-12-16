@@ -4,6 +4,7 @@ import com.contenttree.Jwt.JwtResponse;
 
 import com.contenttree.admin.AdminService;
 import com.contenttree.admin.DashboardWidgetsResponse;
+import com.contenttree.admin.Status;
 import com.contenttree.admin.Widget;
 import com.contenttree.category.Category;
 import com.contenttree.category.CategoryDto;
@@ -30,12 +31,15 @@ import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.annotations.IdGeneratorType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.format.number.AbstractNumberFormatter;
 import org.springframework.http.*;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.util.RedirectUrlBuilder;
 import org.springframework.web.bind.annotation.*;
@@ -101,6 +105,7 @@ public class UserController {
         user.setPassword(hasCode);
         user.setEmail(email);
         user.setCompany(company);
+        user.setStatus(UserStatus.ACTIVE);
         user.setIsSubscriber(1);
         user.setCountry(country);
         user.setLastName(lastName);
@@ -117,12 +122,6 @@ public class UserController {
 
 
         return ResponseEntity.ok().body(ResponseUtils.createResponse1(user,"Account Created SuccessFully",true));
-    }
-    @PutMapping("/update")
-    public ResponseEntity<ApiResponse1<User>> updateUser(@AuthenticationPrincipal User user){
-        User user1 = userService.getUserById(user.getId());
-        return null;
-
     }
 
 //    @GetMapping("/save-pdf")
@@ -207,8 +206,123 @@ public class UserController {
                 .headers(headers)
                 .body(pdfData);
     }
-@GetMapping("/save-pdf")
-public ResponseEntity<ApiResponse1<SolutionSets>> savePdf(@RequestParam long id, @AuthenticationPrincipal User user, HttpServletRequest request) {
+//    @GetMapping("/get-whitepaper/{id}")
+//    public ResponseEntity<ApiResponse1<Map<?,?>>> getWhitePaperById(@PathVariable long id,@AuthenticationPrincipal User user){
+//        SolutionSets solutionSets = solutionSetsRepository.findById(id).orElse(null);
+//        Optional<Category> category = categoryRepository.findById(solutionSets.getCategory().getId());
+//        if (user!=null) {
+//            int isSubscribe = user.getIsSubscriber();
+//            Map map = new HashMap<>();
+//            map.put("category", category);
+//            map.put("whitePaper", solutionSets);
+//            return ResponseEntity.ok().body(ResponseUtils.createResponse1(map, "SUCCESS", true));
+//        }
+//        else {
+//            Map map = new HashMap<>();
+//            map.put("category", category);
+//            map.put("isSubscribe", 0);
+//            map.put("whitePaper", solutionSets);
+//            return ResponseEntity.ok().body(ResponseUtils.createResponse1(map, "SUCCESS", true));
+//        }
+//    }
+@GetMapping("/get-whitepaper/{id}")
+public ResponseEntity<ApiResponse1<Map<?, ?>>> getWhitePaperById(@PathVariable long id, @AuthenticationPrincipal User user) {
+    SolutionSets solutionSets = solutionSetsRepository.findById(id).orElse(null);
+
+    if (solutionSets == null) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(ResponseUtils.createResponse1(null, "Whitepaper not found", false));
+    }
+
+    Optional<Category> category = categoryRepository.findById(solutionSets.getCategory().getId());
+
+    Map<String, Object> map = new HashMap<>();
+
+    map.put("category", category.orElse(null));
+    map.put("whitePaper", solutionSets);
+
+    if (user != null) {
+        Optional<UserDataStorage> userDataStorage = userDataStorageRepository.findByUserIdAndSaveAndSolutionSetId(user.getId(), solutionSets.getId());
+        int isSaved = (userDataStorage.isPresent() && userDataStorage.get().getSave() == 1) ? 1 : 0;
+
+        map.put("isSaved", isSaved);
+        String filePath = "https://infiniteb2b.com" + solutionSets.getFilePath();
+        System.out.println("filepath" +filePath);
+        map.put("whitepaperUrl",filePath);
+
+        int isSubscribe = user.getIsSubscriber();
+        map.put("isSubscribe", isSubscribe);
+    } else {
+        map.put("isSaved", 0);
+        String filePath = "https://infiniteb2b.com" + solutionSets.getFilePath();
+        map.put("whitepaperUrl",filePath);
+    }
+
+    return ResponseEntity.ok().body(ResponseUtils.createResponse1(map, "SUCCESS", true));
+}
+//@GetMapping("/get-whitepaper/{id}")
+//public ResponseEntity<ApiResponse1<Map<?, ?>>> getWhitePaperById(@PathVariable long id, @AuthenticationPrincipal User user) {
+//
+//    // Step 1: Print the current authentication object to debug the user authentication.
+//    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+//    if (authentication != null) {
+//        System.out.println("Authentication object: " + authentication.getPrincipal());
+//    } else {
+//        System.out.println("No Authentication found in the SecurityContext.");
+//    }
+//
+//    // Step 2: Log the user object injected by @AuthenticationPrincipal.
+//    if (user != null) {
+//        System.out.println("Authenticated user: " + user.getUsername());
+//    } else {
+//        System.out.println("User is not authenticated or @AuthenticationPrincipal could not resolve the user.");
+//    }
+//
+//    // Step 3: Retrieve SolutionSets by ID
+//    SolutionSets solutionSets = solutionSetsRepository.findById(id).orElse(null);
+//    if (solutionSets == null) {
+//        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+//                .body(ResponseUtils.createResponse1(null, "Whitepaper not found", false));
+//    }
+//
+//    // Step 4: Retrieve the associated category of the solution set
+//    Optional<Category> category = categoryRepository.findById(solutionSets.getCategory().getId());
+//
+//    // Prepare the response map
+//    Map<String, Object> map = new HashMap<>();
+//    map.put("category", category.orElse(null));
+//    map.put("whitePaper", solutionSets);
+//
+//    // Step 5: Check if the user is authenticated and has saved the whitepaper
+//    if (user != null) {
+//        // Check if the whitepaper is saved by the user
+//        Optional<UserDataStorage> userDataStorage = userDataStorageRepository
+//                .findByUserIdAndSaveAndSolutionSetId(user.getId(), solutionSets.getId());
+//
+//        int isSaved = (userDataStorage.isPresent() && userDataStorage.get().getSave() == 1) ? 1 : 0;
+//        map.put("isSaved", isSaved);
+//
+//        // Prepare the whitepaper URL
+//        String filePath = "https://infiniteb2b.com" + solutionSets.getFilePath();
+//        System.out.println("Whitepaper URL: " + filePath);  // Debugging the file path
+//        map.put("whitepaperUrl", filePath);
+//
+//        // Add subscription status
+//        int isSubscribe = user.getIsSubscriber();
+//        map.put("isSubscribe", isSubscribe);
+//    } else {
+//        // User is not authenticated or `@AuthenticationPrincipal` couldn't resolve the user
+//        map.put("isSaved", 0);
+//        map.put("whitepaperUrl", "not login");
+//    }
+//
+//    // Step 6: Return response with the data
+//    return ResponseEntity.ok().body(ResponseUtils.createResponse1(map, "SUCCESS", true));
+//}
+
+
+    @PostMapping("/save-pdf")
+public ResponseEntity<ApiResponse1<SolutionSets>> savePdf(@RequestParam long id,@RequestParam int save, @AuthenticationPrincipal User user, HttpServletRequest request) {
     SolutionSets solutionSets = solutionSetsService.getSolutionSetById(id);
     List<Long> oldSaved = user.getSavedPdf();
 
@@ -232,7 +346,7 @@ public ResponseEntity<ApiResponse1<SolutionSets>> savePdf(@RequestParam long id,
     userDataStorage.setCountry(info.getCountry());
     userDataStorage.setRegion(info.getRegion());
     userDataStorage.setSolutionSetId(id);
-    userDataStorage.setSave(1);
+    userDataStorage.setSave(save);
     userDataStorage.setOrg(info.getOrg());
     userDataStorage.setLocation(info.getLocation());
     userDataStorage.setTimezone(info.getTimeZone());
@@ -357,7 +471,7 @@ public ResponseEntity<ApiResponse1<SolutionSets>> savePdf(@RequestParam long id,
 //            .contentType(MediaType.APPLICATION_PDF)
 //            .body(pdfData);
 //}
-@GetMapping("/download-pdf")
+@PostMapping("/download-pdf")
 public ResponseEntity<byte[]> downloadSolutionSets(@RequestParam long id,
                                                    @AuthenticationPrincipal User user,
                                                    HttpServletRequest request) throws MessagingException, IOException {
@@ -600,6 +714,7 @@ public ResponseEntity<byte[]> downloadSolutionSets(@RequestParam long id,
         return ResponseEntity.ok().body(ResponseUtils.createResponse1(fav,"SUCCESS",true));
 
     }
+    @GetMapping("")
 
 
 
@@ -611,6 +726,18 @@ public ResponseEntity<byte[]> downloadSolutionSets(@RequestParam long id,
         System.out.println("in the confirm account portal");
 
         return userService.confirmEmail(confirmationToken);
+    }
+    @PostMapping("/upadate-status")
+    public ResponseEntity<ApiResponse1<User>> upadteUserStatus(@AuthenticationPrincipal User loggedInUser,@RequestParam long id){
+
+        if (id==1){
+            loggedInUser.setStatus(UserStatus.ACTIVE);
+        }
+        else {
+            loggedInUser.setStatus(UserStatus.INACTIVE);
+        }
+        return ResponseEntity.ok().body(ResponseUtils.createResponse1(loggedInUser,"SUCCESS",true));
+
     }
     @RequestMapping("/login")
     public ResponseEntity<?> loginUserAccount(@RequestParam String email, @RequestParam String password) {
@@ -635,6 +762,11 @@ public ResponseEntity<byte[]> downloadSolutionSets(@RequestParam long id,
             ApiResponse1<JwtResponse> response = ResponseUtils.createResponse1(null, "Please verify your email first", false);
             return new ResponseEntity<>(response, HttpStatus.FORBIDDEN); // 403 Forbidden
         }
+        if ("INACTIVE".equals(user.getStatus())) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("message", "User account is not active.");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
+        }
 
         if (!passwordEncoder.matches(password, user.getPassword())) {
             log.info("Password mismatch for user: {}", user.getEmail());
@@ -656,10 +788,10 @@ public ResponseEntity<byte[]> downloadSolutionSets(@RequestParam long id,
         ApiResponse1<JwtResponse> response = ResponseUtils.createResponse1(jwtResponse, "Login Successful", true);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
-    @PostMapping("/unsubscribe")
-    public ResponseEntity<ApiResponse1<User>> unSubscribe(@AuthenticationPrincipal User user) throws MessagingException, IOException {
+    @PostMapping("/subscribecategory")
+    public ResponseEntity<ApiResponse1<User>> unSubscribe(@RequestParam int subscribe,@AuthenticationPrincipal User user) throws MessagingException, IOException {
         User user1 = userRepository.findById(user.getId()).orElse(null);
-        user1.setIsSubscriber(0);
+        user1.setIsSubscriber(subscribe);
         userService.saveUser(user1);
         return ResponseEntity.ok().body(ResponseUtils.createResponse1(user1,"SUCCESS",true));
     }
@@ -799,7 +931,7 @@ public ResponseEntity<byte[]> downloadSolutionSets(@RequestParam long id,
     public ResponseEntity<ApiResponse1<List<?>>> getCategoryForHomePage(@AuthenticationPrincipal User user) {
         List<SolutionSets> solutionSets = solutionSetsRepository.findAll();
 
-        solutionSets.sort((solutionSets1, solutionSets2) -> Long.compare(solutionSets2.getId(), solutionSets1.getId()));
+        solutionSets.sort(Comparator.comparingLong(SolutionSets::getId));
 
         List<SolutionSets> updatedCategory = solutionSets.stream()
                 .limit(24)

@@ -21,8 +21,8 @@ public class CategoryMapper {
         CategoryDto categoryDto = new CategoryDto();
         categoryDto.setId(category.getId());
         categoryDto.setName(category.getName());
-        categoryDto.setIconImage(category.getIconPath());
-        categoryDto.setBannerImage(category.getBannerPath());
+        categoryDto.setIconPath(category.getIconPath());
+        categoryDto.setBannerPath(category.getBannerPath());
         categoryDto.setSolutionSetCount(category.getSolutionSets().size());
 
         if (loggedInUser != null) {
@@ -43,8 +43,8 @@ public class CategoryMapper {
         CategoryDto categoryDto = new CategoryDto();
         categoryDto.setId(category.getId());
         categoryDto.setName(category.getName());
-        categoryDto.setIconImage(category.getIconPath());
-        categoryDto.setBannerImage(category.getBannerPath());
+        categoryDto.setIconPath(category.getIconPath());
+        categoryDto.setBannerPath(category.getBannerPath());
         categoryDto.setSolutionSetCount(category.getSolutionSets().size());
 
         categoryDto.setIsSubscribe(0);

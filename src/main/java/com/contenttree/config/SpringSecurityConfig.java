@@ -199,10 +199,11 @@ public class SpringSecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(withDefaults())  // Use global CORS config
                 .authorizeRequests(authorizeRequests -> authorizeRequests
-                        .requestMatchers("/api/country","/uploads/**","/uploads/**","/api/user/view-pdf","/api/login", "/api/register","/api/category/**","/api/user/solution-sets-homepage", "/api/vendor/login","/login/admin","/register/admin","/api/user/register","/api/user/login","/user/register","/api/user/confirm-account","/api/home","/api/vendor/login","/api/vendor/register","/api/vendor/register123","/error/**","/api/category","/api/user/download-pdf").permitAll()
-                        .requestMatchers("/var/***").permitAll()
+                        .requestMatchers("/api/user/get-whitepaper","/api/user/get-whitepaper/**","/api/country","/uploads/**","/uploads/**","/api/user/view-pdf","/api/login", "/api/register","/api/category/**","/api/user/solution-sets-homepage", "/api/vendor/login","/login/admin","/register/admin","/api/user/register","/api/user/login","/user/register","/api/user/confirm-account","/api/home","/api/vendor/login","/api/vendor/register","/api/vendor/register123","/error/**","/api/category","/api/user/download-pdf").permitAll()
+                        .requestMatchers("/var/***","/uploads/**").permitAll()
+                        .requestMatchers("/api/vendor/get-allwhitepapers","/uploads/**").permitAll()
                         .requestMatchers("/admin/**").hasAnyAuthority("SUPERADMIN", "EDITOR", "ADMIN")
-                        .requestMatchers(HttpMethod.OPTIONS).permitAll()  // Allow OPTIONS
+                        .requestMatchers(HttpMethod.OPTIONS).permitAll()
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(ex -> ex

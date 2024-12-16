@@ -28,6 +28,7 @@ com/contenttree/banner/BannerEntity$BannerEntityBuilder.class
 com/contenttree/config/WebConfig.class
 com/contenttree/StaticCount/RegionRepository.class
 com/contenttree/security/UserJwtHelper.class
+com/contenttree/admin/Status.class
 com/contenttree/vendor/Vendors$VendorsBuilder.class
 com/contenttree/ContenttreeApplication.class
 com/contenttree/security/AdminJwtHelper.class
@@ -49,6 +50,7 @@ com/contenttree/Blogs/BlogsController.class
 com/contenttree/config/CustomUserDetailsService.class
 com/contenttree/security/JwtHelper.class
 com/contenttree/NewsLetter/NewsLetterRepository.class
+com/contenttree/user/UserStatus.class
 com/contenttree/downloadlog/DownloadLogService.class
 com/contenttree/Websocket/NotificationService.class
 com/contenttree/category/CategoryMapper.class

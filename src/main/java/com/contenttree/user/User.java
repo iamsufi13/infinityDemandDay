@@ -1,6 +1,7 @@
 package com.contenttree.user;
 
 import com.contenttree.NewsLetter.NewsLetter;
+import com.contenttree.admin.Status;
 import com.contenttree.confirmationtoken.ConfirmationToken;
 import com.contenttree.downloadlog.DownloadLog;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -38,6 +39,9 @@ public class User implements UserDetails {
     @Column(unique = true)
     @Email
     private String email;
+
+    @Enumerated(EnumType.STRING)
+    private UserStatus status;
 
     @JsonIgnore
     private String ipAddress;
