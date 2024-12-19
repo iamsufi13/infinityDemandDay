@@ -270,6 +270,6 @@ public class SpringSecurityConfig {
     public JwtAuthenticationFilter jwtAuthenticationFilter() {
         return new JwtAuthenticationFilter(jwtHelper, userDetailsService);
     }
-    
+
 }
 
