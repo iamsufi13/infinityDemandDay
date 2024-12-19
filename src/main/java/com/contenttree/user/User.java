@@ -5,6 +5,7 @@ import com.contenttree.admin.Status;
 import com.contenttree.confirmationtoken.ConfirmationToken;
 import com.contenttree.downloadlog.DownloadLog;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import lombok.*;
@@ -51,6 +52,7 @@ public class User implements UserDetails {
 
     @OneToMany
     @JoinColumn(name = "user_id")
+    @JsonManagedReference
     private List<NewsLetter> newsLetterList;
 
     @JsonIgnore
@@ -71,7 +73,7 @@ public class User implements UserDetails {
         this.dt1 = LocalDateTime.now();
     }
 
-    @JsonIgnore
+    @JsonManagedReference
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<ConfirmationToken> confirmationTokens;
 

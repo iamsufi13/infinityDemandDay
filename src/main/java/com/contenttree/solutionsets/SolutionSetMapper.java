@@ -31,11 +31,11 @@ public class SolutionSetMapper {
         }
 
         long views = userDataStorage.stream()
-                .filter(userDataStorage1 -> userDataStorage1.getView() > 0)
+                .filter(userDataStorage1 -> userDataStorage1.getView() > 0&& userDataStorage1.getSolutionSetId()==(solutionSets.getId()))
                 .count();
 
         long downloads = userDataStorage.stream()
-                .filter(userDataStorage1 -> userDataStorage1.getDownload() > 0)
+                .filter(userDataStorage1 -> userDataStorage1.getDownload() > 0&& userDataStorage1.getSolutionSetId()==(solutionSets.getId()))
                 .count();
 
         return new SolutionSetDto(

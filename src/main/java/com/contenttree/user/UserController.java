@@ -48,6 +48,7 @@ import org.springframework.web.client.RestTemplate;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.StringReader;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -192,6 +193,7 @@ public class UserController {
         userDataStorage.setCity(info.getCity() != null ? info.getCity() : "Unknown");
         userDataStorage.setCountry(info.getCountry());
         userDataStorage.setRegion(info.getRegion());
+        userDataStorage.setView(1);
         userDataStorage.setOrg(info.getOrg());
         userDataStorage.setPostal(info.getPostal());
         userDataStorageService.addUserDataStorage(userDataStorage);
@@ -471,6 +473,7 @@ public ResponseEntity<ApiResponse1<SolutionSets>> savePdf(@RequestParam long id,
 //            .contentType(MediaType.APPLICATION_PDF)
 //            .body(pdfData);
 //}
+//    if we want this in byte
 @PostMapping("/download-pdf")
 public ResponseEntity<byte[]> downloadSolutionSets(@RequestParam long id,
                                                    @AuthenticationPrincipal User user,
@@ -535,6 +538,137 @@ public ResponseEntity<byte[]> downloadSolutionSets(@RequestParam long id,
             .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"solution-set-" + id + ".pdf\"")
             .body(pdfData);
 }
+//    @Transactional
+//    @PostMapping("/category/subscribe")
+//    public ResponseEntity<ApiResponse1<User>> subscribeCategory(@AuthenticationPrincipal User user, @RequestParam long categoryId) {
+//        if (user == null) {
+//            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ResponseUtils.createResponse1(null, "User not authenticated", false));
+//        }
+//
+//        Category category = categoryRepository.findById(categoryId).orElse(null);
+//        if (category == null) {
+//            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ResponseUtils.createResponse1(null, "Category not found", false));
+//        }
+//
+//        List<String> favo = new ArrayList<>(user.getFavorites());
+//        System.out.println("FAVORITE LIST " + favo);
+//
+//        if (!favo.contains(category.getName())) {
+//            System.out.println("ADDING FAVO" + category.getName());
+//            favo.add(category.getName());
+//        } else {
+//            System.out.println("REMOVING FAVO" + category.getName());
+//            favo.remove(category.getName());
+//        }
+//
+//        user.setFavorites(favo);
+//        System.out.println("Setting FAVO " + category);
+//        userRepository.save(user);
+//        System.out.println("Saving FAVO" + category);
+//
+//        return ResponseEntity.ok().body(ResponseUtils.createResponse1(user, "SUCCESS", true));
+//    }
+@PostMapping("/category/subscribe")
+public ResponseEntity<ApiResponse1<?>> toggleFavorite(@AuthenticationPrincipal User user, @RequestParam long categoryId) {
+    User user1 = userRepository.findById(user.getId())
+            .orElseThrow(() -> new RuntimeException("User not found"));
+
+    Category category = categoryRepository.findById(categoryId).orElse(null);
+    System.out.println("category " + category);
+
+    if (category == null) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                ResponseUtils.createResponse1(null, "Category not found", false)
+        );
+    }
+
+    if (user1.getFavorites().contains(category.getName())) {
+        System.out.println("contains " + category.getName());
+        user1.getFavorites().remove(category.getName());
+        System.out.println("removing " + category.getName());
+    } else {
+        user1.getFavorites().add(category.getName());
+        System.out.println("adding " + category.getName());
+    }
+
+    userRepository.save(user1);
+    System.out.println();
+
+    System.out.println("Favorites " + user1.getFavorites());
+
+    return ResponseEntity.ok().body(ResponseUtils.createResponse1(user1.getFavorites(), "SUCCESS", true));
+}
+
+
+
+
+
+//    @PostMapping("/download-pdf")
+//    public ResponseEntity<String> downloadSolutionSetsString(@RequestParam long id,
+//                                                       @AuthenticationPrincipal User user,
+//                                                       HttpServletRequest request) throws MessagingException, IOException {
+//
+//        byte[] pdfData = solutionSetsService.downloadPdf(id);
+//
+//        if (pdfData == null || pdfData.length == 0) {
+//            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+//        }
+//
+//        String clientIp = getClientIp(request);
+//
+//        SolutionSets solutionSets = solutionSetsService.getSolutionSetById(id);
+//        String categoryName = solutionSets.getCategory().getName();
+//
+//        List<String> oldFavorites = user.getFavorites();
+//        List<String> updatedFavorites = new ArrayList<>();
+//
+//        com.contenttree.userdatastorage.IpInfo info = getIpInfo(clientIp);
+//
+//        if (oldFavorites == null) {
+//            oldFavorites = new ArrayList<>();
+//        }
+//
+//        if (!oldFavorites.contains(categoryName)) {
+//            updatedFavorites.add(categoryName);
+//        }
+//
+//        updatedFavorites.addAll(oldFavorites);
+//
+//        user.setFavorites(updatedFavorites);
+//
+//        downloadLogService.logPdfDownload(id, user.getId(), clientIp);
+//        System.out.println("Downloading Done " + id + " " + user.getName());
+//        System.out.println(updatedFavorites);
+//        System.out.println("IP: " + clientIp);
+//
+//        UserDataStorage userDataStorage = new UserDataStorage();
+//        userDataStorage.setUser_id(user.getId());
+//        userDataStorage.setIp(clientIp);
+//        userDataStorage.setDownload(1);
+//        userDataStorage.setSolutionSetId(id);
+//        System.out.println("City name " + info.getCity());
+//        userDataStorage.setCity(info.getCity() != null ? info.getCity() : "Unknown");
+//        userDataStorage.setCountry(info.getCountry());
+//        userDataStorage.setLocation(info.getLocation());
+//        userDataStorage.setTimezone(info.getTimeZone());
+//        userDataStorage.setRegion(info.getRegion());
+//        userDataStorage.setOrg(info.getOrg());
+//        userDataStorage.setPostal(info.getPostal());
+//
+//        System.out.println("UserDataStorage " + userDataStorage);
+//
+//        userDataStorageService.addUserDataStorage(userDataStorage);
+//
+//        user.setIpAddress(clientIp);
+//        userService.updateUser(user);
+//
+//        String base64Pdf = Base64.getEncoder().encodeToString(pdfData);
+//
+//        return ResponseEntity.ok()
+//                .contentType(MediaType.APPLICATION_PDF)
+//                .body("{\"pdfData\": \"" + base64Pdf + "\"}");
+//    }
+
 
 //@GetMapping("/download-pdf")
 //public ResponseEntity<String> downloadSolutionSets(@RequestParam long id,
@@ -783,6 +917,7 @@ public ResponseEntity<byte[]> downloadSolutionSets(@RequestParam long id,
         JwtResponse jwtResponse = JwtResponse.builder()
                 .jwtToken(token)
                 .username(user.getName()+ " "+user.getLastName())
+                .id(user.getId())
                 .build();
 
         ApiResponse1<JwtResponse> response = ResponseUtils.createResponse1(jwtResponse, "Login Successful", true);
@@ -819,11 +954,15 @@ public ResponseEntity<byte[]> downloadSolutionSets(@RequestParam long id,
                     .filter(u -> u.getUser_id() == user.getId() && u.getSave() == 1)
                     .count();
             long whitePaperCategorySubscribed = userList.size();
+            long whitePapersDownloaded= userDataStorageList.stream()
+                    .filter(u -> u.getUser_id() == user.getId() && u.getDownload() == 1)
+                    .count();
 //            long newsLetterSubscribed = userList.stream().filter(u-> u.getNewsLetterList().stream().count()).count();
 
 
 
             ecomWidgets.add(new Widget(1L, "primary", "SAVED", String.valueOf(whitePaperSaved), "View All", "secondary", "bx bx-file", 0));
+            ecomWidgets.add(new Widget(1L, "primary", "DOWNLOADED", String.valueOf(whitePapersDownloaded), "View All", "secondary", "bx bx-file", 0));
             ecomWidgets.add(new Widget(2L, "secondary", "WHITE-PAPERS SET", String.valueOf(whitePaperCategorySubscribed), "View All", "primary", "bx bx-book", 0));
             ecomWidgets.add(new Widget(3L, "success", "NEWS-LETTER", "Yes", "Update", "success", "bx bx-user-circle", 0));
 
@@ -928,34 +1067,17 @@ public ResponseEntity<byte[]> downloadSolutionSets(@RequestParam long id,
     @Autowired
     SolutionSetsRepository solutionSetsRepository;
     @GetMapping("/solution-sets-homepage")
-    public ResponseEntity<ApiResponse1<List<?>>> getCategoryForHomePage(@AuthenticationPrincipal User user) {
+    public ResponseEntity<ApiResponse1<Map<?,?>>> getCategoryForHomePage(@AuthenticationPrincipal User user) {
         List<SolutionSets> solutionSets = solutionSetsRepository.findAll();
 
-        solutionSets.sort(Comparator.comparingLong(SolutionSets::getId));
+        solutionSets.sort((set1, set2) -> Long.compare(set2.getId(), set1.getId()));
 
         List<SolutionSets> updatedCategory = solutionSets.stream()
                 .limit(24)
-                .collect(Collectors.toList());
+                .toList();
 
-//        List<UserDataStorage> userDataStorageList = userDataStorageRepository.findAll();
-//        Map<Long, UserDataStorage> userDataStorageMap = userDataStorageList.stream()
-//                .filter(userData -> userData.getUser_id() == user.getId())
-//                .collect(Collectors.toMap(UserDataStorage::getSolutionSetId, userData -> userData));
-//        List<Map<String, Object>> maps = updatedCategory.stream().map(category -> {
-//            Map<String, Object> categoryMap = new HashMap<>();
-//            categoryMap.put("title", category.getTitle());
-//            categoryMap.put("id", category.getId());
-//            categoryMap.put("imgSrc", category.getImagePath());
-//            categoryMap.put("description", category.getDescription());
-//            categoryMap.put("category", category.getCategory().getName());
-//            categoryMap.put("category_id",category.getCategory().getId());
-//            UserDataStorage userData = userDataStorageMap.get(category.getId());
-//            categoryMap.put("isSavedByUser", userData != null && userData.getSave() > 0 ? 1 : 0);
-//
-//            return categoryMap;
-//        }).collect(Collectors.toList());
-//
-//        return ResponseEntity.ok().body(ResponseUtils.createResponse1(maps, "SUCCESS", true));
+
+
         if (user != null) {
             List<UserDataStorage> userDataStorageList = userDataStorageRepository.findAll();
 
@@ -978,7 +1100,33 @@ public ResponseEntity<byte[]> downloadSolutionSets(@RequestParam long id,
                 return categoryMap;
             }).collect(Collectors.toList());
 
-            return ResponseEntity.ok().body(ResponseUtils.createResponse1(maps, "SUCCESS", true));
+            Map<String,Long> statsCount = new HashMap<>();
+            long userCount = userService.getAllUsers().stream().count();
+            long whitePaperCount = solutionSets.stream().count();
+            long categoryCount = categoryRepository.findAll().stream().count();
+            long vendorCount = vendorsService.getAllVendors().stream().count();
+            statsCount.put("userCount",userCount);
+            statsCount.put("whitePaperCount",whitePaperCount);
+            statsCount.put("categoryCount",categoryCount);
+            statsCount.put("vendorCount",vendorCount);
+
+            List<SolutionSets> curatedWhitePapers = solutionSetsRepository.findAll()
+                    .stream()
+                    .limit(9)
+                    .collect(Collectors.toList());
+
+            List<Category> topicsThatMatterYou = categoryRepository.findAll()
+                    .stream()
+                    .limit(14)
+                    .collect(Collectors.toList());
+            Map<String,Object> map = new HashMap<>();
+            map.put("poweringYourBusiness",maps);
+            map.put("curatedWhitePapers",curatedWhitePapers);
+            map.put("topicsThatMatterYou",topicsThatMatterYou);
+            map.put("STATISTICS",statsCount);
+
+
+            return ResponseEntity.ok().body(ResponseUtils.createResponse1(map, "SUCCESS", true));
         } else {
             List<Map<String, Object>> maps = updatedCategory.stream().map(category -> {
                 Map<String, Object> categoryMap = new HashMap<>();
@@ -993,8 +1141,31 @@ public ResponseEntity<byte[]> downloadSolutionSets(@RequestParam long id,
 
                 return categoryMap;
             }).collect(Collectors.toList());
+            Map<String,Long> statsCount = new HashMap<>();
+            long userCount = userService.getAllUsers().stream().count();
+            long whitePaperCount = solutionSets.stream().count();
+            long categoryCount = categoryRepository.findAll().stream().count();
+            long vendorCount = vendorsService.getAllVendors().stream().count();
+            statsCount.put("userCount",userCount);
+            statsCount.put("whitePaperCount",whitePaperCount);
+            statsCount.put("categoryCount",categoryCount);
+            statsCount.put("vendorCount",vendorCount);
+            List<SolutionSets> curatedWhitePapers = solutionSetsRepository.findAll()
+                    .stream()
+                    .limit(9)
+                    .collect(Collectors.toList());
 
-            return ResponseEntity.ok().body(ResponseUtils.createResponse1(maps, "SUCCESS", true));
+            List<Category> topicsThatMatterYou = categoryRepository.findAll()
+                    .stream()
+                    .limit(14)
+                    .collect(Collectors.toList());
+            Map<String,Object> map = new HashMap<>();
+            map.put("poweringYourBusiness",maps);
+            map.put("curatedWhitePapers",curatedWhitePapers);
+            map.put("topicsThatMatterYou",topicsThatMatterYou);
+            map.put("STATISTICS",statsCount);
+
+            return ResponseEntity.ok().body(ResponseUtils.createResponse1(map, "SUCCESS", true));
         }
     }
 
@@ -1012,6 +1183,88 @@ public ResponseEntity<byte[]> downloadSolutionSets(@RequestParam long id,
         solutionSetsRepository.saveAll(solutionSetsList);
         return ResponseEntity.ok("File paths updated successfully");
     }
+    @PostMapping("/update-details")
+    public ResponseEntity<ApiResponse1<String>> updateUserDetails(
+            @AuthenticationPrincipal User user,
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) String lastName,
+            @RequestParam(required = false) String country,
+            @RequestParam(required = false) Long phone,
+            @RequestParam(required = false) String jobTitle,
+            @RequestParam(required = false) String company,
+            @RequestParam(required = false) String password) {
+
+        User updatedUser = userService.updateUserDetails(user.getId(), name, lastName, country, phone, jobTitle, company, password);
+
+        return ResponseEntity.ok().body(ResponseUtils.createResponse1(null, "Details updated successfully", true));
+    }
+    @GetMapping("/view-all-saved")
+    public ResponseEntity<ApiResponse1<Map<?,?>>> getAllViewSaved(@AuthenticationPrincipal User user){
+        List<UserDataStorage> userDataStorage = userDataStorageRepository.findByUserIdList(user.getId());
+        List<UserDataStorage> filteredData=userDataStorage.stream().filter(userDataStorage1 -> userDataStorage1.getSave()==1&&userDataStorage1.getUser_id()==user.getId()).toList();
+
+        int count=filteredData.size();
+        List<SolutionSets> solutionSets = new ArrayList<>();
+        for (UserDataStorage userData : filteredData) {
+            Long solutionSetId = userData.getSolutionSetId();
+
+            Optional<SolutionSets> solutionSetOptional = solutionSetsRepository.findById(solutionSetId);
+
+            solutionSetOptional.ifPresent(solutionSets::add);
+        }
+        Map<String,Object> map = new HashMap<>();
+        map.put("totalSavedCout", (long) filteredData.size());
+        System.out.println("filterdata"+count);
+        map.put("allSaved",solutionSets);
+        return ResponseEntity.ok().body(ResponseUtils.createResponse1(map,"SUCCESS",true));
+
+
+    }
+    @GetMapping("/view-all-downloaded")
+    public ResponseEntity<ApiResponse1<Map<?,?>>> getAllViewDownloaded(@AuthenticationPrincipal User user){
+        List<UserDataStorage> userDataStorage = userDataStorageRepository.findByUserIdList(user.getId());
+        List<UserDataStorage> filteredData=userDataStorage.stream().filter(userDataStorage1 -> userDataStorage1.getDownload()==1&&userDataStorage1.getUser_id()==user.getId()).toList();
+
+        int count=filteredData.size();
+        List<SolutionSets> solutionSets = new ArrayList<>();
+        for (UserDataStorage userData : filteredData) {
+            Long solutionSetId = userData.getSolutionSetId();
+
+            Optional<SolutionSets> solutionSetOptional = solutionSetsRepository.findById(solutionSetId);
+
+            solutionSetOptional.ifPresent(solutionSets::add);
+        }
+        Map<String,Object> map = new HashMap<>();
+        map.put("totalDownloadsCount", (long) filteredData.size());
+        System.out.println("filterdata"+count);
+        map.put("allDownloaded",solutionSets);
+        return ResponseEntity.ok().body(ResponseUtils.createResponse1(map,"SUCCESS",true));
+
+
+    }
+    @GetMapping("/view-all-viewed")
+    public ResponseEntity<ApiResponse1<Map<?,?>>> getAllViewViewed(@AuthenticationPrincipal User user){
+        List<UserDataStorage> userDataStorage = userDataStorageRepository.findByUserIdList(user.getId());
+        List<UserDataStorage> filteredData=userDataStorage.stream().filter(userDataStorage1 -> userDataStorage1.getView()==1&&userDataStorage1.getUser_id()==user.getId()).toList();
+
+        int count=filteredData.size();
+        List<SolutionSets> solutionSets = new ArrayList<>();
+        for (UserDataStorage userData : filteredData) {
+            Long solutionSetId = userData.getSolutionSetId();
+
+            Optional<SolutionSets> solutionSetOptional = solutionSetsRepository.findById(solutionSetId);
+
+            solutionSetOptional.ifPresent(solutionSets::add);
+        }
+        Map<String,Object> map = new HashMap<>();
+        map.put("totalViewedCount", (long) filteredData.size());
+        System.out.println("filterdata"+count);
+        map.put("allViewed",solutionSets);
+        return ResponseEntity.ok().body(ResponseUtils.createResponse1(map,"SUCCESS",true));
+
+
+    }
+
 
 
 

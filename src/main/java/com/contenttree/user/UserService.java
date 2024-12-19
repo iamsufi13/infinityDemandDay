@@ -60,7 +60,7 @@ public class UserService {
         ConfirmationToken confirmationToken = new ConfirmationToken(user);
         confirmationTokenRepository.save(confirmationToken);
 
-        String logoUrl = "https://infinitydemand.com/wp-content/uploads/2024/01/cropped-Logo-22.png";
+        String logoUrl = "https://infiniteb2b.com/static/media/Infinite-b2b-1-scaled.f42a6998e6eac74721e6.png";
 
 //        String confirmationUrl = "http://141.136.35.203:8080/api/user/confirm-account?token=" + confirmationToken.getConfirmationToken();
 //        String confirmationUrl = "https://141.136.35.203:8443/api/user/confirm-account?token=" + confirmationToken.getConfirmationToken();
@@ -132,4 +132,33 @@ public ResponseEntity<?> confirmEmail(String confirmationToken) {
     }
     return ResponseEntity.badRequest().body("Error: Couldn't verify email");
 }
+    public User updateUserDetails(long userId, String name, String lastName, String country, Long phone,
+                                  String jobTitle, String company, String password) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (name != null) {
+            user.setName(name);
+        }
+        if (lastName != null) {
+            user.setLastName(lastName);
+        }
+        if (country != null) {
+            user.setCountry(country);
+        }
+        if (phone != null) {
+            user.setPhone(phone);
+        }
+        if (jobTitle != null) {
+            user.setJobTitle(jobTitle);
+        }
+        if (company != null) {
+            user.setCompany(company);
+        }
+        if (password != null) {
+            user.setPassword(password);
+        }
+
+        return userRepository.save(user);
+    }
 }

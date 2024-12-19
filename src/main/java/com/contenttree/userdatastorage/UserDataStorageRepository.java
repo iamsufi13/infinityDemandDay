@@ -5,12 +5,15 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
 public interface UserDataStorageRepository extends JpaRepository<UserDataStorage, Long> {
     @Query("SELECT u FROM UserDataStorage u WHERE u.user_id = :id")
     UserDataStorage findByUserId(@Param("id") long id);
+    @Query("SELECT u FROM UserDataStorage u WHERE u.user_id = :id")
+    List<UserDataStorage> findByUserIdList(@Param("id") long id);
 
     @Query("SELECT u FROM UserDataStorage u WHERE u.user_id = :userId AND u.save = 1 AND u.solutionSetId = :solutionSetId")
     Optional<UserDataStorage> findByUserIdAndSaveAndSolutionSetId(@Param("userId") Long userId, @Param("solutionSetId") Long solutionSetId);

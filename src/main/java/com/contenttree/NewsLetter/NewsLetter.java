@@ -28,18 +28,15 @@ public class NewsLetter {
     private String filePath;
     @ManyToOne
     @JoinColumn(name = "user_id")
+    @JsonBackReference
     private User user;
 
-//    @JsonBackReference
-//    @ManyToOne
-//    @JoinColumn(name = "vendor_id")
-//    private Vendors uploadedBy;
 
     @ManyToOne
     @JoinColumn(name = "admin_id")
     private Admin admin;
 
-//    @JsonIgnore
+    @JsonIgnore
     private LocalDateTime dt1;
 
     @PrePersist

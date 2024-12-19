@@ -5,6 +5,7 @@ import com.contenttree.Blogs.BlogsRepository;
 import com.contenttree.Jwt.JwtResponse;
 import com.contenttree.NewsLetter.NewsLetter;
 import com.contenttree.NewsLetter.NewsLetterRepository;
+import com.contenttree.admin.Admin;
 import com.contenttree.admin.AdminService;
 import com.contenttree.admin.DashboardWidgetsResponse;
 import com.contenttree.admin.Widget;
@@ -30,6 +31,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -72,7 +77,7 @@ public class VendorController {
     @Autowired
     CategoryService categoryService;
 
-    private static final String logoUrl = "https://infinitydemand.com/wp-content/uploads/2024/01/cropped-Logo-22.png";
+    private static final String logoUrl = "https://infiniteb2b.com/static/media/Infinite-b2b-1-scaled.f42a6998e6eac74721e6.png";
 
     private static final String whitepaperUrl = "https://infiniteb2b.com/";
 
@@ -275,8 +280,16 @@ public class VendorController {
 
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         Vendors vendors = vendorsService.getVendorsByEmail(userDetails.getUsername());
+        Admin admin = adminService.getAdminByEmailId(userDetails.getUsername());
         if (vendors == null) {
-            return ResponseEntity.notFound().build();
+            vendors = vendorsService.getVendorsById(1);
+            if (vendors == null) {
+                return ResponseEntity.notFound().build();
+            }
+        }
+
+        if (admin != null) {
+            vendors = vendorsService.getVendorsById(1);
         }
 
         Category categoryEntity = categoryService.getCategoryByName(category);
@@ -289,7 +302,7 @@ public class VendorController {
                 file, image, vendors.getId(), categoryEntity.getId(), desc, title);
 
         String baseUrl = "https://infiniteb2b.com";
-        String whitepaperUrl = baseUrl + "/category/" + categoryEntity.getName();
+        String whitepaperUrl = baseUrl + "/category/" + categoryEntity.getId();
 
         List<User> userList = userService.getAllUsers();
         userList = userList.stream().filter(a -> a.getIsSubscriber() == 1).toList();
@@ -456,5 +469,101 @@ public class VendorController {
                 throw new IllegalArgumentException("Invalid status value: " + status);
         }
     }
+    @PostMapping("/update-details")
+    public ResponseEntity<ApiResponse1<Vendors>> updateVendorDetails(
+            @AuthenticationPrincipal Vendors vendor,
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) String phone,
+            @RequestParam(required = false) String companyName,
+            @RequestParam(required = false) String location,
+            @RequestParam(required = false) String password) {
+
+        Vendors updatedVendor = vendorsService.updateVendorDetails(vendor.getId(), name, phone, companyName, location, password);
+
+        return ResponseEntity.ok().body(ResponseUtils.createResponse1(updatedVendor, "Details updated successfully", true));
+    }
+    @PostMapping("/update-solutionset")
+    public ResponseEntity<ApiResponse1<SolutionSets>> updateSolutionSet(
+            @RequestParam(required = false) MultipartFile file,
+            @RequestParam(required = false) MultipartFile image,
+            @RequestParam(required = false) String desc,
+            @RequestParam(required = false) String title,
+            @RequestParam long solutionSetId) {
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !(authentication.getPrincipal() instanceof UserDetails)) {
+            return ResponseEntity.status(401).body(null);
+        }
+
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        Vendors vendors = vendorsService.getVendorsByEmail(userDetails.getUsername());
+        Admin admin = adminService.getAdminByEmailId(userDetails.getUsername());
+        if (vendors == null) {
+            vendors = vendorsService.getVendorsById(1);
+            if (vendors == null) {
+                return ResponseEntity.notFound().build();
+            }
+        }
+
+        if (admin != null) {
+            vendors = vendorsService.getVendorsById(1);
+        }
+
+
+
+        SolutionSets existingSolutionSet = solutionSetsRepository.findById(solutionSetId).orElse(null);
+        if (existingSolutionSet == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(ResponseUtils.createResponse1(null, "Solution set not found", false));
+        }
+        Category categoryEntity = categoryService.getCategoryByName(existingSolutionSet.getCategory().getName());
+        if (categoryEntity == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(ResponseUtils.createResponse1(null, "Invalid category name", false));
+        }
+
+        if (file != null) {
+            String updatedFileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
+            String filePath = "/var/www/infiniteb2b/springboot/whitePapers" + File.separator + updatedFileName;
+            try {
+                Files.write(Paths.get(filePath), file.getBytes());
+                existingSolutionSet.setFilePath(filePath);
+                existingSolutionSet.setFileType(file.getContentType());
+                existingSolutionSet.setName(updatedFileName);
+            } catch (IOException e) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(ResponseUtils.createResponse1(null, "PDF Upload failed: " + e.getMessage(), false));
+            }
+        }
+
+        if (image != null) {
+            String updatedImageName = image.getOriginalFilename();
+            String imagePath = "/var/www/infiniteb2b/springboot/whitepapersImages" + File.separator + updatedImageName;
+//            imagePath = imagePath.replace(" ", "-");
+            try {
+                Files.write(Paths.get(imagePath), image.getBytes());
+                existingSolutionSet.setImagePath(imagePath);
+            } catch (IOException e) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(ResponseUtils.createResponse1(null, "Image upload failed: " + e.getMessage(), false));
+            }
+        }
+
+        if (desc != null) {
+            existingSolutionSet.setDescription(desc);
+        }
+        if (title != null) {
+            existingSolutionSet.setTitle(title);
+        }
+        if (categoryEntity != null) {
+            existingSolutionSet.setCategory(categoryEntity);
+        }
+
+        solutionSetsRepository.save(existingSolutionSet);
+
+        return ResponseEntity.ok().body(ResponseUtils.createResponse1(existingSolutionSet, "Solution set updated successfully", true));
+    }
+
+
 }
 

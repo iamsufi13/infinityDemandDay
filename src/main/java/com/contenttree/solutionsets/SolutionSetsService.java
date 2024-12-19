@@ -104,7 +104,7 @@ public String uploadSolutionSets(MultipartFile file, MultipartFile imageFile, lo
 
     String imageName = imageFile.getOriginalFilename();
     String imagePath = imageUploadDir + File.separator + imageName;
-    imagePath =imagePath.replace(" ","-");
+//    imagePath =imagePath.replace(" ","-");
     try {
         Files.write(Paths.get(imagePath), imageFile.getBytes());
     } catch (IOException e) {

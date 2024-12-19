@@ -37,9 +37,10 @@ public class SolutionSets {
 //    private byte[] filePath;
 private String filePath;
 
-@JsonBackReference
+
     @ManyToOne
     @JoinColumn(name = "category_id")
+    @JsonBackReference
     private Category category;
 
 

@@ -30,7 +30,7 @@ public class BlogsCategory {
     @OneToMany(mappedBy = "blogsCategory", cascade = CascadeType.ALL, orphanRemoval = true,fetch = FetchType.LAZY)
     private List<Blogs> blogs;
 
-//    @JsonIgnore
+    @JsonIgnore
     private LocalDateTime dt1;
     @jakarta.persistence.PrePersist
     public void prePersist() {

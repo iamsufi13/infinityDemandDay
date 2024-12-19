@@ -36,6 +36,29 @@ public class VendorsService {
     public Vendors getVendorsById(long id){
         return vendorsRepository.findById(id).orElse(null);
     }
+    public Vendors updateVendorDetails(Long vendorId, String name, String phone, String companyName,
+                                       String location, String password) {
+        Vendors vendor = vendorsRepository.findById(vendorId)
+                .orElseThrow(() -> new RuntimeException("Vendor not found"));
+
+        if (name != null) {
+            vendor.setName(name);
+        }
+        if (phone != null) {
+            vendor.setPhone(phone);
+        }
+        if (companyName != null) {
+            vendor.setCompanyName(companyName);
+        }
+        if (location != null) {
+            vendor.setLocation(location);
+        }
+        if (password != null) {
+            vendor.setPassword(password);
+        }
+
+        return vendorsRepository.save(vendor);
+    }
 
 
     public Vendors getVendorsByEmail(String email) {

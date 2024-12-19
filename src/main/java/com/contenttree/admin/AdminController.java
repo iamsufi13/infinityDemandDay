@@ -38,6 +38,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
@@ -650,10 +651,8 @@ public ResponseEntity<ApiResponse2> getUsersByRegion2() {
             if (blog.getDt1() != null) {
                 String formattedDate = null;
                 try {
-                    if (blog.getDt1() instanceof LocalDateTime) {
-                        LocalDateTime dateTime = blog.getDt1();
-                        formattedDate = dateTime.format(dateFormatter);
-                    }
+                    LocalDateTime dateTime = blog.getDt1();
+                    formattedDate = dateTime.format(dateFormatter);
                 } catch (Exception e) {
                     formattedDate = "Invalid Date";
                 }
@@ -824,7 +823,7 @@ public ResponseEntity<ApiResponse1<List<AdminResponseDto>>> getAllCampaignManage
     List<UserDataStorage> userDataStorages = userDataStorageRepository.findAll();
     long userDatacount = userDataStorages.stream()
             .map(UserDataStorage::getDownload)
-            .filter(Objects::nonNull)
+            .filter(obj -> true)
             .count();
 
     List<AdminResponseDto> updatedList = list.stream()
@@ -841,7 +840,7 @@ public ResponseEntity<ApiResponse1<List<AdminResponseDto>>> getAllCampaignManage
                 dto.setEnabled(admin.isEnabled());
                 dto.setUsername(admin.getUsername());
                 dto.setAuthorities(admin.getAuthorities().stream()
-                        .map(authority -> authority.getAuthority())
+                        .map(GrantedAuthority::getAuthority)
                         .collect(Collectors.toList()));
                 dto.setAccountNonLocked(admin.isAccountNonLocked());
                 dto.setAccountNonExpired(admin.isAccountNonExpired());
@@ -884,7 +883,7 @@ public ResponseEntity<ApiResponse1<List<AdminResponseDto>>> getAllCampaignManage
                     dto.setEnabled(admin.isEnabled());
                     dto.setUsername(admin.getUsername());
                     dto.setAuthorities(admin.getAuthorities().stream()
-                            .map(authority -> authority.getAuthority())
+                            .map(GrantedAuthority::getAuthority)
                             .collect(Collectors.toList()));
                     dto.setAccountNonLocked(admin.isAccountNonLocked());
                     dto.setAccountNonExpired(admin.isAccountNonExpired());

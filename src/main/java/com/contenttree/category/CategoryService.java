@@ -76,11 +76,52 @@ public class CategoryService {
         category.setDescp(desc);
         String updatedIconPath = iconName != null ? iconName.replace(" ", "-") : "";
         category.setIconPath(updatedIconPath);
-        String updatedBannerPath = bannerName != null ? bannerName.replace(" ", "-") : "";
+//        String updatedBannerPath = bannerName != null ? bannerName.replace(" ", "-") : "";
+        String updatedBannerPath = bannerName;
         category.setBannerPath(updatedBannerPath);
 
         categoryRepository.save(category);
         return category;
+    }
+    public Category updateCategory(Long id, String name, MultipartFile icon, MultipartFile banner, String desc) {
+
+        Category category = categoryRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Category not found"));
+
+        if (name != null && !name.isEmpty()) {
+//            String updatedName = name.replace(" ", "-");
+            category.setName(name);
+        }
+
+        if (desc != null && !desc.isEmpty()) {
+            category.setDescp(desc);
+        }
+
+        String iconName = null;
+        String bannerName = null;
+
+        try {
+            if (icon != null && !icon.isEmpty()) {
+                iconName = icon.getOriginalFilename();
+                Path iconPath = Paths.get("/var/www/infiniteb2b/springboot/whitepapersSet" + File.separator + iconName);
+                Files.write(iconPath, icon.getBytes());
+//                category.setIconPath(iconName.replace(" ", "-"));
+                category.setIconPath(iconName);
+            }
+
+            if (banner != null && !banner.isEmpty()) {
+                bannerName = banner.getOriginalFilename();
+                Path bannerPath = Paths.get("/var/www/infiniteb2b/springboot/whitepapersSet" + File.separator + bannerName);
+                Files.write(bannerPath, banner.getBytes());
+//                category.setBannerPath(bannerName.replace(" ", "-"));
+                category.setDescp(bannerName);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+
+        return categoryRepository.save(category);
     }
 
 

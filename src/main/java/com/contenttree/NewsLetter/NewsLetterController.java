@@ -37,7 +37,7 @@ public class NewsLetterController {
             @RequestParam String desc,
             @RequestParam(required = false) MultipartFile file) {
 
-        String uploadDir = "src/main/resources/uploads/newsletters/";
+        String uploadDir = "/var/www/infiniteb2b/springboot/newsletters";
         File directory = new File(uploadDir);
 
         if (!directory.exists()) {

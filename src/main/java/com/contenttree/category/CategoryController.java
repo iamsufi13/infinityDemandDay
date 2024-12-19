@@ -215,33 +215,43 @@ public ResponseEntity<ApiResponse1<List<Map<String, Object>>>> getAllCategory(
         User user = userRepository.findById(loggedInUser.getId()).orElse(null);
         assert user != null;
         List<String> favList = user.getFavorites();
+        List<SolutionSets> list = solutionSetsRepository.findAll();
+
 
         for (Category category : categories) {
             Map<String, Object> categoryMap = new HashMap<>();
             int isSub = favList.contains(category.getName()) ? 1 : 0;
+           long count= list.stream().filter(solutionSets -> solutionSets.getCategory().getId()== category.getId()).count();
             categoryMap.put("id", category.getId());
             categoryMap.put("name", category.getName());
-            categoryMap.put("iconPath", category.getIconPath());
-            categoryMap.put("bannerPath", category.getBannerPath());
+            categoryMap.put("iconPath", "https://infiniteb2b.com/var/www/infiniteb2b/springboot/whitepapers/"+category.getIconPath());
+            categoryMap.put("bannerPath", "https://infiniteb2b.com/var/www/infiniteb2b/springboot/whitepapers/"+category.getBannerPath());
             categoryMap.put("descp", category.getDescp());
             categoryMap.put("isSubscribe", isSub);
+            categoryMap.put("whitePapersCount", count);
 
-            String categoryUrl = "https://infiniteb2b.com/category/" + category.getName().toLowerCase();
+
+//            String categoryUrl = "https://infiniteb2b.com/category/" + category.getName().toLowerCase();
+            String categoryUrl = "https://infiniteb2b.com/category/" + category.getId();
             categoryMap.put("url", categoryUrl);
 
             categoriesWithUrls.add(categoryMap);
         }
     } else {
+        List<SolutionSets> list = solutionSetsRepository.findAll();
         for (Category category : categories) {
+            long count= list.stream().filter(solutionSets -> solutionSets.getCategory().getId()== category.getId()).count();
             Map<String, Object> categoryMap = new HashMap<>();
             categoryMap.put("id", category.getId());
             categoryMap.put("name", category.getName());
-            categoryMap.put("iconPath", category.getIconPath());
-            categoryMap.put("bannerPath", category.getBannerPath());
+            categoryMap.put("iconPath", "https://infiniteb2b.com/var/www/infiniteb2b/springboot/whitepapers/"+category.getIconPath());
+            categoryMap.put("bannerPath", "https://infiniteb2b.com/var/www/infiniteb2b/springboot/whitepapers/"+category.getBannerPath());
             categoryMap.put("descp", category.getDescp());
             categoryMap.put("isSubscribe", 0);
+            categoryMap.put("whitePaperCount", count);
 
-            String categoryUrl = "https://infiniteb2b.com/category/" + category.getName().toLowerCase();
+//            String categoryUrl = "https://infiniteb2b.com/category/" + category.getName().toLowerCase();
+            String categoryUrl = "https://infiniteb2b.com/category/" + category.getId();
             categoryMap.put("url", categoryUrl);
 
             categoriesWithUrls.add(categoryMap);
@@ -270,12 +280,32 @@ public ResponseEntity<ApiResponse1<List<Map<String, Object>>>> getAllCategory(
             return ResponseEntity.ok().body(ResponseUtils.createResponse1(category, "Success", true));
         }
     }
+    @PostMapping("/update")
+    public ResponseEntity<ApiResponse1<Category>> updateCategory(@RequestParam Long id,
+                                                                 @RequestParam(required = false) String name,
+                                                                 @RequestParam(required = false) MultipartFile icon,
+                                                                 @RequestParam(required = false) MultipartFile banner,
+                                                                 @RequestParam(required = false) String desc) {
+
+        boolean categoryExists = categoryService.categoryRepository.existsById(id);
+        if (!categoryExists) {
+            return ResponseEntity.ok().body(ResponseUtils.createResponse1(null, "Category Not Found", false));
+        }
+
+        Category updatedCategory = categoryService.updateCategory(id, name, icon, banner, desc);
+        if (updatedCategory == null) {
+            return ResponseEntity.ok().body(ResponseUtils.createResponse1(null, "Error updating category", false));
+        }
+
+        return ResponseEntity.ok().body(ResponseUtils.createResponse1(updatedCategory, "Category Updated Successfully", true));
+    }
     @PutMapping("/update/category-name")
     public ResponseEntity<String> updateCategoryName() {
         List<Category> categoryDtos = categoryService.categoryRepository.findAll();
 
         categoryDtos.forEach(category -> {
-            String updatedName = category.getName().replace("\"", "").replace(" ", "-");
+//            String updatedName = category.getName().replace("\"", "").replace(" ", "-");
+           String updatedName = category.getName();
             category.setName(updatedName);
             System.out.println("Updated Category Name: " + updatedName);});
 
@@ -316,6 +346,10 @@ public ResponseEntity<ApiResponse1<List<Map<String, Object>>>> getAllCategory(
         }
 
         Category category = categoryService.categoryRepository.findById(id).orElse(null);
+        String iconPath ="https://infiniteb2b.com/var/www/infiniteb2b/springboot/whitepapers/"+category.getIconPath();
+        String bannerPath = "https://infiniteb2b.com/var/www/infiniteb2b/springboot/whitepapers/"+category.getBannerPath();
+        category.setIconPath(iconPath);
+        category.setBannerPath(bannerPath);
 
         if (category == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
@@ -329,11 +363,14 @@ public ResponseEntity<ApiResponse1<List<Map<String, Object>>>> getAllCategory(
                 isSub = 1;
             }
         }
+        List<SolutionSets> list1 = solutionSetsRepository.findAll();
+        long count = list1.stream().filter(solutionSets -> solutionSets.getCategory().getId()== category.getId()).count();
 
         Map<String, Object> map = new HashMap<>();
         map.put("category", category);
         map.put("isSubscribe", isSub);
         map.put("solutionSets", solutionSetWithStatusList);
+        map.put("whitePapersCount", count);
 
         return ResponseEntity.ok()
                 .body(ResponseUtils.createResponse1(map, "SUCCESS", true));
