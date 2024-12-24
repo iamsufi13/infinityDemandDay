@@ -224,8 +224,8 @@ public ResponseEntity<ApiResponse1<List<Map<String, Object>>>> getAllCategory(
            long count= list.stream().filter(solutionSets -> solutionSets.getCategory().getId()== category.getId()).count();
             categoryMap.put("id", category.getId());
             categoryMap.put("name", category.getName());
-            categoryMap.put("iconPath", "https://infiniteb2b.com/var/www/infiniteb2b/springboot/whitepapers/"+category.getIconPath());
-            categoryMap.put("bannerPath", "https://infiniteb2b.com/var/www/infiniteb2b/springboot/whitepapers/"+category.getBannerPath());
+            categoryMap.put("iconPath", "https://infiniteb2b.com/var/www/infiniteb2b/springboot/whitepapersSet/"+category.getIconPath());
+            categoryMap.put("bannerPath", "https://infiniteb2b.com/var/www/infiniteb2b/springboot/whitepapersSet/"+category.getBannerPath());
             categoryMap.put("descp", category.getDescp());
             categoryMap.put("isSubscribe", isSub);
             categoryMap.put("whitePapersCount", count);
@@ -244,8 +244,8 @@ public ResponseEntity<ApiResponse1<List<Map<String, Object>>>> getAllCategory(
             Map<String, Object> categoryMap = new HashMap<>();
             categoryMap.put("id", category.getId());
             categoryMap.put("name", category.getName());
-            categoryMap.put("iconPath", "https://infiniteb2b.com/var/www/infiniteb2b/springboot/whitepapers/"+category.getIconPath());
-            categoryMap.put("bannerPath", "https://infiniteb2b.com/var/www/infiniteb2b/springboot/whitepapers/"+category.getBannerPath());
+            categoryMap.put("iconPath", "https://infiniteb2b.com/var/www/infiniteb2b/springboot/whitepapersSet/"+category.getIconPath());
+            categoryMap.put("bannerPath", "https://infiniteb2b.com/var/www/infiniteb2b/springboot/whitepapersSet/"+category.getBannerPath());
             categoryMap.put("descp", category.getDescp());
             categoryMap.put("isSubscribe", 0);
             categoryMap.put("whitePaperCount", count);
@@ -264,14 +264,11 @@ public ResponseEntity<ApiResponse1<List<Map<String, Object>>>> getAllCategory(
 
     return ResponseEntity.ok().body(ResponseUtils.createResponse1(categoriesWithUrls, "SUCCESS", true));
 }
-
-
-    @PostMapping("/add")
+@PostMapping("/add")
     public ResponseEntity<ApiResponse1<Category>> addCategory(@RequestParam String name,
                                                               @RequestParam(required = false) MultipartFile icon,
                                                               @RequestParam(required = false) String desc,@RequestParam(required = false) MultipartFile banner){
-    String updatedName = name.replace(" ","-");
-    boolean categoryExists =  categoryService.categoryRepository.existsByName(updatedName);
+    boolean categoryExists =  categoryService.categoryRepository.existsByName(name);
         if (categoryExists){
             return ResponseEntity.ok().body(ResponseUtils.createResponse1(null,"Category Already Existed",true));
         }
@@ -280,7 +277,7 @@ public ResponseEntity<ApiResponse1<List<Map<String, Object>>>> getAllCategory(
             return ResponseEntity.ok().body(ResponseUtils.createResponse1(category, "Success", true));
         }
     }
-    @PostMapping("/update")
+@PostMapping("/update")
     public ResponseEntity<ApiResponse1<Category>> updateCategory(@RequestParam Long id,
                                                                  @RequestParam(required = false) String name,
                                                                  @RequestParam(required = false) MultipartFile icon,
@@ -346,8 +343,8 @@ public ResponseEntity<ApiResponse1<List<Map<String, Object>>>> getAllCategory(
         }
 
         Category category = categoryService.categoryRepository.findById(id).orElse(null);
-        String iconPath ="https://infiniteb2b.com/var/www/infiniteb2b/springboot/whitepapers/"+category.getIconPath();
-        String bannerPath = "https://infiniteb2b.com/var/www/infiniteb2b/springboot/whitepapers/"+category.getBannerPath();
+        String iconPath ="https://infiniteb2b.com/var/www/infiniteb2b/springboot/whitepapersSet/"+category.getIconPath();
+        String bannerPath = "https://infiniteb2b.com/var/www/infiniteb2b/springboot/whitepapersSet/"+category.getBannerPath();
         category.setIconPath(iconPath);
         category.setBannerPath(bannerPath);
 
@@ -396,10 +393,10 @@ public ResponseEntity<ApiResponse1<List<Map<String, Object>>>> getAllCategory(
         List<Category> categoryList = categoryService.categoryRepository.findAll();
 
         categoryList.forEach(category -> {
-            String updatedIconPath = category.getIconPath() != null ? category.getIconPath().replace(" ", "-") : "";
+            String updatedIconPath = category.getIconPath() != null ? category.getIconPath().replace("-", " ") : "";
             category.setIconPath(updatedIconPath);
 
-            String updatedBannerPath = category.getBannerPath() != null ? category.getBannerPath().replace(" ", "-") : "";
+            String updatedBannerPath = category.getBannerPath() != null ? category.getBannerPath().replace(" ", " ") : "";
             category.setBannerPath(updatedBannerPath);
         });
 

@@ -22,7 +22,6 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@ToString
 public class User implements UserDetails {
 
     @Id
@@ -47,8 +46,11 @@ public class User implements UserDetails {
     @JsonIgnore
     private String ipAddress;
 
-    @JsonIgnore
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "user_favorites", joinColumns = @JoinColumn(name = "user_id"))
+    @Column(name = "favorite_item")
     private List<String> favorites;
+
 
     @OneToMany
     @JoinColumn(name = "user_id")
@@ -74,6 +76,7 @@ public class User implements UserDetails {
     }
 
     @JsonManagedReference
+    @JsonIgnore
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<ConfirmationToken> confirmationTokens;
 

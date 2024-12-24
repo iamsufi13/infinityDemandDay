@@ -300,7 +300,6 @@ public class VendorController {
 
         String solutionSet = solutionSetsService.uploadSolutionSets(
                 file, image, vendors.getId(), categoryEntity.getId(), desc, title);
-
         String baseUrl = "https://infiniteb2b.com";
         String whitepaperUrl = baseUrl + "/category/" + categoryEntity.getId();
 
@@ -439,22 +438,37 @@ public class VendorController {
 //    }
 
 
-    @GetMapping("/get-allwhitepapers")
-    public ResponseEntity<ApiResponse1<List<SolutionSetDto>>> getAllWhitePapersList(
-            @AuthenticationPrincipal Vendors vendors,
-            @RequestParam(required = false) Integer status) { // Adding status as query parameter
-        // Get the list of all solution sets
-        List<SolutionSets> list = solutionSetsRepository.findAll();
+//    @GetMapping("/get-allwhitepapers")
+//    public ResponseEntity<ApiResponse1<List<SolutionSetDto>>> getAllWhitePapersList(
+//            @AuthenticationPrincipal Vendors vendors,
+//            @RequestParam(required = false) Integer status) { // Adding status as query parameter
+//        // Get the list of all solution sets
+//        List<SolutionSets> list = solutionSetsRepository.findAll();
+//
+//        // Filter based on the vendor's ID and optionally by status
+//        List<SolutionSetDto> solutionSetDtos = list.stream()
+//                .filter(s -> s.getUploadedBy().getId() == vendors.getId()) // Filter by vendor
+//                .filter(s -> (status == null || mapStatus(status) == s.getStatus())) // Filter by status if status is provided
+//                .map(solutionSetMapper::toSolutionSetDto)
+//                .collect(Collectors.toList());
+//
+//        return ResponseEntity.ok().body(ResponseUtils.createResponse1(solutionSetDtos, "SUCCESS", true));
+//    }
+@GetMapping("/get-allwhitepapers")
+public ResponseEntity<ApiResponse1<List<SolutionSets>>> getAllWhitePapersList(
+        @AuthenticationPrincipal Vendors vendors,
+        @RequestParam(required = false) Integer status) {
 
-        // Filter based on the vendor's ID and optionally by status
-        List<SolutionSetDto> solutionSetDtos = list.stream()
-                .filter(s -> s.getUploadedBy().getId() == vendors.getId()) // Filter by vendor
-                .filter(s -> (status == null || mapStatus(status) == s.getStatus())) // Filter by status if status is provided
-                .map(solutionSetMapper::toSolutionSetDto)
-                .collect(Collectors.toList());
+    List<SolutionSets> list = solutionSetsRepository.findAll();
 
-        return ResponseEntity.ok().body(ResponseUtils.createResponse1(solutionSetDtos, "SUCCESS", true));
-    }
+    List<SolutionSets> filteredSolutionSets = list.stream()
+            .filter(s -> s.getUploadedBy().getId() == vendors.getId())
+            .filter(s -> (status == null || mapStatus(status) == s.getStatus()))
+            .collect(Collectors.toList());
+
+    return ResponseEntity.ok().body(ResponseUtils.createResponse1(filteredSolutionSets, "SUCCESS", true));
+}
+
 
     // Helper method to map integer to enum
     private SolutionSetsStatus mapStatus(int status) {

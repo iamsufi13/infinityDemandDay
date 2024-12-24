@@ -164,7 +164,7 @@ public class UserController {
 //        userService.updateUser(user);
 //        return ResponseEntity.ok().body(ResponseUtils.createResponse1(solutionSets,"SUCCESS",true));
 //    }
-    @GetMapping("/view-pdf")
+    @PostMapping("/view-pdf")
     public ResponseEntity<byte[]> viewPdf(@RequestParam long id, @AuthenticationPrincipal User user, HttpServletRequest request) throws IOException {
         SolutionSets solutionSets = solutionSetsService.getSolutionSetById(id);
 
@@ -243,14 +243,15 @@ public ResponseEntity<ApiResponse1<Map<?, ?>>> getWhitePaperById(@PathVariable l
     map.put("category", category.orElse(null));
     map.put("whitePaper", solutionSets);
 
+    String whitePaperPath = "https://infiniteb2b.com/whitepaper";
     if (user != null) {
         Optional<UserDataStorage> userDataStorage = userDataStorageRepository.findByUserIdAndSaveAndSolutionSetId(user.getId(), solutionSets.getId());
         int isSaved = (userDataStorage.isPresent() && userDataStorage.get().getSave() == 1) ? 1 : 0;
 
         map.put("isSaved", isSaved);
         String filePath = "https://infiniteb2b.com" + solutionSets.getFilePath();
-        System.out.println("filepath" +filePath);
         map.put("whitepaperUrl",filePath);
+        map.put("whitePaperPathForRedirection",whitePaperPath + "/" + solutionSets.getId());
 
         int isSubscribe = user.getIsSubscriber();
         map.put("isSubscribe", isSubscribe);

@@ -15,6 +15,8 @@ public interface UserDataStorageRepository extends JpaRepository<UserDataStorage
     @Query("SELECT u FROM UserDataStorage u WHERE u.user_id = :id")
     List<UserDataStorage> findByUserIdList(@Param("id") long id);
 
+    @Query("SELECT u FROM UserDataStorage u WHERE u.solutionSetId = :id")
+    List<UserDataStorage> findBySolutionSetIdList(@Param("id") long id);
     @Query("SELECT u FROM UserDataStorage u WHERE u.user_id = :userId AND u.save = 1 AND u.solutionSetId = :solutionSetId")
     Optional<UserDataStorage> findByUserIdAndSaveAndSolutionSetId(@Param("userId") Long userId, @Param("solutionSetId") Long solutionSetId);
 

@@ -46,7 +46,7 @@ public class CategoryService {
     public Category addCategory(String name, MultipartFile icon, MultipartFile banner,String desc) {
 
 //        String uploadDir = "src/main/resources/uploads/category/";
-        String uploadDir = "/var/www/infiniteb2b/springboot/whitepapersSet";
+        String uploadDir = "/var/www/infiniteb2b/springboot/whitepapersSet/";
         File directory = new File(uploadDir);
         if (!directory.exists()) {
             directory.mkdirs();
@@ -71,11 +71,13 @@ public class CategoryService {
             return null;
         }
         Category category = new Category();
-        String updatedName = name.replace(" ", "-");
+        String updatedName = name;
         category.setName(updatedName);
         category.setDescp(desc);
-        String updatedIconPath = iconName != null ? iconName.replace(" ", "-") : "";
-        category.setIconPath(updatedIconPath);
+        category.setIs_Subscribe(0);
+//        String updatedIconPath = iconName != null ? iconName.replace(" ", "-") : "";
+        category.setIconPath(iconName);
+
 //        String updatedBannerPath = bannerName != null ? bannerName.replace(" ", "-") : "";
         String updatedBannerPath = bannerName;
         category.setBannerPath(updatedBannerPath);

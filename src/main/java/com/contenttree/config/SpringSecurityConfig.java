@@ -203,6 +203,7 @@ public class SpringSecurityConfig {
                 .authorizeRequests(authorizeRequests -> authorizeRequests
                         .requestMatchers("/api/user/get-whitepaper","/api/user/get-whitepaper/**","/api/country","/uploads/**","/uploads/**","/api/user/view-pdf","/api/login", "/api/register","/api/category/**","/api/user/solution-sets-homepage", "/api/vendor/login","/login/admin","/register/admin","/api/user/register","/api/user/login","/user/register","/api/user/confirm-account","/api/home","/api/vendor/login","/api/vendor/register","/api/vendor/register123","/error/**","/api/category","/api/user/download-pdf").permitAll()
                         .requestMatchers("/var/***","/uploads/**").permitAll()
+                        .requestMatchers("/api/category/add", "/api/category/update").permitAll()
                         .requestMatchers("/api/vendor/get-allwhitepapers","/uploads/**").permitAll()
                         .requestMatchers("/admin/**").hasAnyAuthority("SUPERADMIN", "EDITOR", "ADMIN")
                         .requestMatchers(HttpMethod.OPTIONS).permitAll()
@@ -271,5 +272,15 @@ public class SpringSecurityConfig {
         return new JwtAuthenticationFilter(jwtHelper, userDetailsService);
     }
 
+    @Bean
+    public HttpFirewall allowUrlEncodedDotHttpFirewall() {
+        StrictHttpFirewall firewall = new StrictHttpFirewall();
+        firewall.setAllowUrlEncodedSlash(true);
+        firewall.setAllowUrlEncodedPercent(true);
+        firewall.setAllowUrlEncodedDoubleSlash(true);
+        firewall.setAllowSemicolon(true);
+        firewall.setAllowUrlEncodedPeriod(true);
+        return firewall;
+    }
 }
 

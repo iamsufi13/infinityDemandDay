@@ -41,11 +41,13 @@ public class SolutionSetMapper {
         return new SolutionSetDto(
                 solutionSets.getFileType(),
                 solutionSets.getName(),
+                solutionSets.getTitle(),
                 categoryName,
                 solutionSets.getStatus(),
                 views,
                 downloads,
-                formattedDate
+                formattedDate,
+                solutionSets.getId()
         );
     }
 

@@ -31,6 +31,8 @@ public class Category {
 
     private String descp;
 
+    private long is_Subscribe;
+
     @JsonIgnore
     @JsonManagedReference
     @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, orphanRemoval = true,fetch = FetchType.LAZY)

@@ -14,11 +14,13 @@ import java.time.LocalDateTime;
 public class SolutionSetDto {
     private String fileType;
     private String name;
+    private String title;
     private String category;
     private SolutionSetsStatus status;
     private long views;
     private long downloads;
     private String date;
+    private long id;
 
 
 }

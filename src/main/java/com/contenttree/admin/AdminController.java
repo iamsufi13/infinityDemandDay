@@ -21,6 +21,7 @@ import com.contenttree.downloadlog.DownloadLogRepository;
 import com.contenttree.security.AdminJwtHelper;
 import com.contenttree.solutionsets.*;
 import com.contenttree.user.User;
+import com.contenttree.user.UserRepository;
 import com.contenttree.user.UserService;
 import com.contenttree.user.UserStatus;
 import com.contenttree.userdatastorage.UserDataStorage;
@@ -295,7 +296,8 @@ public ResponseEntity<ApiResponse1<Admin>> updateStatus(@RequestParam int status
 
         return ResponseEntity.ok(response);
     }
-
+@Autowired
+    UserRepository userRepository;
 
     @PostMapping("/update-user-status")
     public ResponseEntity<ApiResponse1<User>> updateStatus(@RequestParam long id, @RequestParam int value) throws MessagingException, IOException {
@@ -306,8 +308,11 @@ public ResponseEntity<ApiResponse1<Admin>> updateStatus(@RequestParam int status
         else
         {
             user.setStatus(UserStatus.INACTIVE);
+            System.out.println("setting status as inactive");
         }
-        userService.saveUser(user);
+//        userService.saveUser(user);
+        userRepository.save(user);
+        System.out.println("saving user"+ user.getName());
         return ResponseEntity.ok().body(ResponseUtils.createResponse1(user,"SUCCESS",true));
     }
 
@@ -359,7 +364,7 @@ public ResponseEntity<ApiResponse1<Admin>> updateStatus(@RequestParam int status
     public ResponseEntity<ApiResponse1<String>> rejectSolution(@RequestParam Long solutionId) {
         SolutionSets solutionSet = solutionSetsRepository.findById(solutionId)
                 .orElseThrow(() -> new RuntimeException("Solution Set not found"));
-        solutionSet.setStatus(SolutionSetsStatus.REJECTED); // Reject PDF
+        solutionSet.setStatus(SolutionSetsStatus.REJECTED);
         solutionSetsRepository.save(solutionSet);
         return ResponseEntity.ok().body(ResponseUtils.createResponse1(null,"Solution set rejected successfully",true));
     }
@@ -929,11 +934,50 @@ public ResponseEntity<ApiResponse1<List<AdminResponseDto>>> getAllCampaignManage
     }
 
     @GetMapping("/admin/get-alluser")
-    public ResponseEntity<ApiResponse1<List<User>>> getAllUserList(){
+    public ResponseEntity<ApiResponse1<List<Map<String, Object>>>> getAllUserList() {
         List<User> list = userService.getAllUsers();
-        return ResponseEntity.ok().body(ResponseUtils.createResponse1(list,"SUCCESS",true));
+        List<Map<String, Object>> result = new ArrayList<>();
+
+
+        for (User user : list) {
+            List<UserDataStorage> userData = userDataStorageRepository.findByUserIdList(user.getId());
+            List<String> userSubscribeCount = user.getFavorites()!= null ? user.getFavorites() : new ArrayList<>();
+            int totalCount=0;
+            for (String favorites : userSubscribeCount) {
+                if (favorites != null && !favorites.isEmpty()) {
+                    String[] splitFavorites = favorites.split(",");
+                    totalCount += splitFavorites.length;
+                }
+            }
+
+            long totalSaveCount = userData.stream().filter(count-> count.getSave()==1).count();
+            long totalDownloadCount = userData.stream().filter(count-> count.getDownload()==1).count();
+            long totalViewCount = userData.stream().filter(count-> count.getView()==1).count();
+
+            Map<String, Object> userMap = new HashMap<>();
+            userMap.put("user", user);
+
+            if (userData != null) {
+                userMap.put("totalSaveCount", totalSaveCount);
+                userMap.put("totalDownloadCount", totalDownloadCount);
+                userMap.put("totalViewCount", totalViewCount);
+                userMap.put("totalCategorySubscribedCount",totalCount);
+                userMap.put("newsLetterSubscribed",0);
+            } else {
+                userMap.put("userData", "No data available for this user");
+            }
+
+            result.add(userMap);
+        }
+
+        Map<String, Object> responseMap = new HashMap<>();
+        responseMap.put("users", result);
+
+        ApiResponse1<List<Map<String, Object>>> apiResponse = ResponseUtils.createResponse1(result, "SUCCESS", true);
+        return ResponseEntity.ok().body(apiResponse);
     }
-//    @GetMapping("/admin/get-allwhitepapers")
+
+    //    @GetMapping("/admin/get-allwhitepapers")
 //    public ResponseEntity<ApiResponse1<List<SolutionSetDto>>> getAllWhitePapersList(){
 //        List<SolutionSets> list = solutionSetsRepository.findAll();
 //        List<SolutionSetDto> solutionSetDtos = list.stream()
@@ -961,34 +1005,100 @@ public ResponseEntity<ApiResponse1<List<AdminResponseDto>>> getAllCampaignManage
 //                .body(ResponseUtils.createResponse1(null, "INTERNAL_SERVER_ERROR", false));
 //    }
 //}
+//@GetMapping("/admin/get-allwhitepapers")
+//public ResponseEntity<ApiResponse1<Map<?,?>>> getAllWhitePapersList(@RequestParam(required = false) Integer value) {
+//    try {
+//        String whitePaperPath = "https://infiniteb2b.com/whitepaper";
+//        List<SolutionSets> list = solutionSetsRepository.findAll();
+//        System.out.println("Fetched list: " + list.size());
+//        list.forEach(System.out::println);
+//
+//        if (value == 1) {
+//            list = list.stream()
+//                    .filter(solutionSet -> solutionSet.getUploadedBy() == null)
+//                    .collect(Collectors.toList());
+//        } else if (value == 3) {
+//            list = list.stream()
+//                    .filter(solutionSet -> solutionSet.getUploadedBy() != null)
+//                    .collect(Collectors.toList());
+//        }
+//        else if (value == 2) {
+//            list = list.stream()
+//                    .filter(solutionSet -> "PENDING".equalsIgnoreCase(String.valueOf(solutionSet.getStatus())))
+//                    .collect(Collectors.toList());
+//        }
+//        else if (value == 4) {
+//            list = list.stream()
+//                    .filter(solutionSet -> "APPROVED".equalsIgnoreCase(String.valueOf(solutionSet.getStatus())))
+//                    .collect(Collectors.toList());
+//        }
+//        Map<String, Object> map = new HashMap<>();
+//        map.put("whitePaperPath", whitePaperPath);
+//        map.put("whitepapers", list);
+//
+//        return ResponseEntity.ok().body(ResponseUtils.createResponse1(map, "SUCCESS", true));
+//    } catch (Exception e) {
+//        e.printStackTrace();
+//        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+//                .body(ResponseUtils.createResponse1(null, "INTERNAL_SERVER_ERROR", false));
+//    }
+//}
 @GetMapping("/admin/get-allwhitepapers")
-public ResponseEntity<ApiResponse1<List<SolutionSetDto>>> getAllWhitePapersList(@RequestParam(required = false) int value) {
+public ResponseEntity<ApiResponse1<Map<?, ?>>> getAllWhitePapersList(@RequestParam(required = false) Integer value) {
     try {
+        String baseWhitePaperPath = "https://infiniteb2b.com/whitepaper";
         List<SolutionSets> list = solutionSetsRepository.findAll();
         System.out.println("Fetched list: " + list.size());
         list.forEach(System.out::println);
+
 
         if (value == 1) {
             list = list.stream()
                     .filter(solutionSet -> solutionSet.getUploadedBy() == null)
                     .collect(Collectors.toList());
-        } else if (value == 2) {
+        } else if (value == 3) {
             list = list.stream()
                     .filter(solutionSet -> solutionSet.getUploadedBy() != null)
                     .collect(Collectors.toList());
+        } else if (value == 2) {
+            list = list.stream()
+                    .filter(solutionSet -> "PENDING".equalsIgnoreCase(String.valueOf(solutionSet.getStatus())))
+                    .collect(Collectors.toList());
+        } else if (value == 4) {
+            list = list.stream()
+                    .filter(solutionSet -> "APPROVED".equalsIgnoreCase(String.valueOf(solutionSet.getStatus())))
+                    .collect(Collectors.toList());
         }
 
-        List<SolutionSetDto> solutionSetDtos = list.stream()
-                .map(solutionSetMapper::toSolutionSetDto)
-                .collect(Collectors.toList());
+        List<Map<String, Object>> responseData = new ArrayList<>();
+        for (SolutionSets solutionSet : list) {
+            Map<String, Object> whitepaperData = new HashMap<>();
+            List<UserDataStorage> userDataStorageList = userDataStorageRepository.findBySolutionSetIdList(solutionSet.getId());
+            long totalViews=userDataStorageList.stream().filter(userDataStorage -> userDataStorage.getView()==1).count();
+            long totalDownloads=userDataStorageList.stream().filter(userDataStorage -> userDataStorage.getDownload()==1).count();
+            String whitePaperUrl = baseWhitePaperPath + "/" + solutionSet.getId();
+            whitepaperData.put("whitePaperUrl", whitePaperUrl);
+            whitepaperData.put("solutionSet", solutionSet);
+            whitepaperData.put("categoryName", solutionSet.getCategory().getName());
+            whitepaperData.put("publishedDate", solutionSet.getDt1());
+            whitepaperData.put("totalDownloads", totalDownloads);
+            whitepaperData.put("totalViews", totalViews);
 
-        return ResponseEntity.ok().body(ResponseUtils.createResponse1(solutionSetDtos, "SUCCESS", true));
+
+            responseData.add(whitepaperData);
+        }
+
+        Map<String, Object> map = new HashMap<>();
+        map.put("whitepapers", responseData);
+
+        return ResponseEntity.ok().body(ResponseUtils.createResponse1(map, "SUCCESS", true));
     } catch (Exception e) {
         e.printStackTrace();
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ResponseUtils.createResponse1(null, "INTERNAL_SERVER_ERROR", false));
     }
 }
+
 
 
 
