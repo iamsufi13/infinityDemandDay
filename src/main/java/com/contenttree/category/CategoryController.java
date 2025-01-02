@@ -215,7 +215,7 @@ public ResponseEntity<ApiResponse1<List<Map<String, Object>>>> getAllCategory(
         User user = userRepository.findById(loggedInUser.getId()).orElse(null);
         assert user != null;
         List<String> favList = user.getFavorites();
-        List<SolutionSets> list = solutionSetsRepository.findAll();
+        List<SolutionSets> list = solutionSetsRepository.findAll().stream().filter(solutionSets -> "APPROVED".equalsIgnoreCase(String.valueOf(solutionSets.getStatus()))).toList();
 
 
         for (Category category : categories) {
@@ -238,7 +238,7 @@ public ResponseEntity<ApiResponse1<List<Map<String, Object>>>> getAllCategory(
             categoriesWithUrls.add(categoryMap);
         }
     } else {
-        List<SolutionSets> list = solutionSetsRepository.findAll();
+        List<SolutionSets> list = solutionSetsRepository.findAll().stream().filter(solutionSets -> "APPROVED".equalsIgnoreCase(String.valueOf(solutionSets.getStatus()))).toList();
         for (Category category : categories) {
             long count= list.stream().filter(solutionSets -> solutionSets.getCategory().getId()== category.getId()).count();
             Map<String, Object> categoryMap = new HashMap<>();
@@ -277,7 +277,20 @@ public ResponseEntity<ApiResponse1<List<Map<String, Object>>>> getAllCategory(
             return ResponseEntity.ok().body(ResponseUtils.createResponse1(category, "Success", true));
         }
     }
-@PostMapping("/update")
+    @Autowired
+    CategoryMapper categoryMapper;
+
+    @GetMapping("/dashboard-admin")
+    public ResponseEntity<ApiResponse1<List<CategoryCountDto>>> getAllCategoryAdminDashboard() {
+        List<CategoryCountDto> categoryList = categoryService.categoryRepository.findAll()
+                .stream()
+                .map(category -> categoryMapper.toCategoryCountDto(category))
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok().body(ResponseUtils.createResponse1(categoryList, "SUCCESS", true));
+    }
+
+    @PostMapping("/update")
     public ResponseEntity<ApiResponse1<Category>> updateCategory(@RequestParam Long id,
                                                                  @RequestParam(required = false) String name,
                                                                  @RequestParam(required = false) MultipartFile icon,
@@ -321,7 +334,7 @@ public ResponseEntity<ApiResponse1<List<Map<String, Object>>>> getAllCategory(
 
     @GetMapping("/getsolution-setsbycategory/{id}")
     public ResponseEntity<ApiResponse1<Map<String, Object>>> getSolutionSets(@PathVariable long id, @AuthenticationPrincipal User user) {
-        List<SolutionSets> list = solutionSetsService.getByCategoryId(id);
+        List<SolutionSets> list = solutionSetsService.getByCategoryId(id).stream().filter(solutionSets -> "APPROVED".equalsIgnoreCase(String.valueOf(solutionSets.getStatus()))).toList();
 
         List<Map<String, Object>> solutionSetWithStatusList = new ArrayList<>();
 
@@ -360,7 +373,7 @@ public ResponseEntity<ApiResponse1<List<Map<String, Object>>>> getAllCategory(
                 isSub = 1;
             }
         }
-        List<SolutionSets> list1 = solutionSetsRepository.findAll();
+        List<SolutionSets> list1 = solutionSetsRepository.findAll().stream().filter(solutionSets -> "APPROVED".equalsIgnoreCase(String.valueOf(solutionSets.getStatus()))).toList();
         long count = list1.stream().filter(solutionSets -> solutionSets.getCategory().getId()== category.getId()).count();
 
         Map<String, Object> map = new HashMap<>();
@@ -377,7 +390,7 @@ public ResponseEntity<ApiResponse1<List<Map<String, Object>>>> getAllCategory(
 
     @GetMapping("/getall-solutionset")
     public ResponseEntity<ApiResponse1<List<SolutionSets>>> getAllSolutionSets(){
-        List<SolutionSets> list = solutionSetsRepository.findAll();
+        List<SolutionSets> list = solutionSetsRepository.findAll().stream().filter(solutionSets -> "APPROVED".equalsIgnoreCase(String.valueOf(solutionSets.getStatus()))).toList();
         return ResponseEntity.ok().body(ResponseUtils.createResponse1(list,"SUCCESS",true));
     }
     @PostMapping("/upload-categories")

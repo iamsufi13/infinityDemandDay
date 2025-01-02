@@ -90,42 +90,105 @@ public class UserController {
         this.passwordEncoder = passwordEncoder;
     }
 
-    @PostMapping("/register")
-    public ResponseEntity<?> registerUser(@RequestParam String name,
-                                          @RequestParam String password,
-                                          @RequestParam String email,
-                                          @RequestParam String lastName,
-                                          @RequestParam String country,
-                                          @RequestParam String jobTitle,
-                                          @RequestParam String company,
-                                          @RequestParam long phone) throws MessagingException, IOException {
+//    @PostMapping("/register")
+//    public ResponseEntity<?> registerUser(@RequestParam String name,
+//                                          @RequestParam String password,
+//                                          @RequestParam String email,
+//                                          @RequestParam String lastName,
+//                                          @RequestParam String country,
+//                                          @RequestParam String jobTitle,
+//                                          @RequestParam String company,
+//                                          @RequestParam long phone) throws MessagingException, IOException {
+//
+//        User user = new User();
+//        user.setName(name);
+//        String hasCode = passwordEncoder.encode(password);
+//        user.setPassword(hasCode);
+//        user.setEmail(email);
+//        user.setCompany(company);
+//        user.setStatus(UserStatus.ACTIVE);
+//        user.setIsSubscriber(1);
+//        user.setCountry(country);
+//        user.setLastName(lastName);
+//        user.setPhone(phone);
+//        user.setJobTitle(jobTitle);
+//        if (adminService.getAdminByEmailId(email)==null){
+//            if (vendorsService.getVendorsByEmail(email)==null){
+//                return userService.saveUser(user);
+//            }
+//        }
+//        else {
+//            return ResponseEntity.ok().body(ResponseUtils.createResponse1(null,"Cannot Create Account With This Email Id Already Registered",false));
+//        }
+//
+//
+//        return ResponseEntity.ok().body(ResponseUtils.createResponse1(user,"Account Created SuccessFully",true));
+//    }
+@PostMapping("/register")
+public ResponseEntity<?> registerUser(@RequestParam(required = false) String name,
+                                      @RequestParam(required = false) String password,
+                                      @RequestParam(required = false) String email,
+                                      @RequestParam(required = false) String lastName,
+                                      @RequestParam(required = false) String country,
+                                      @RequestParam(required = false) String jobTitle,
+                                      @RequestParam(required = false) String company,
+                                      @RequestParam(required = false) Long phone) throws MessagingException, IOException {
 
-        User user = new User();
-        user.setName(name);
-        String hasCode = passwordEncoder.encode(password);
-        user.setPassword(hasCode);
-        user.setEmail(email);
-        user.setCompany(company);
-        user.setStatus(UserStatus.ACTIVE);
-        user.setIsSubscriber(1);
-        user.setCountry(country);
-        user.setLastName(lastName);
-        user.setPhone(phone);
-        user.setJobTitle(jobTitle);
-        if (adminService.getAdminByEmailId(email)==null){
-            if (vendorsService.getVendorsByEmail(email)==null){
-                return userService.saveUser(user);
-            }
-        }
-        else {
-            return ResponseEntity.ok().body(ResponseUtils.createResponse1(null,"Cannot Create Account With This Email Id Already Registered",false));
-        }
-
-
-        return ResponseEntity.ok().body(ResponseUtils.createResponse1(user,"Account Created SuccessFully",true));
+    if (name == null || name.isEmpty()) {
+        return ResponseEntity.badRequest().body(ResponseUtils.createResponse1(null, "Name is required", false));
+    }
+    if (password == null || password.isEmpty()) {
+        return ResponseEntity.badRequest().body(ResponseUtils.createResponse1(null, "Password is required", false));
+    }
+    if (email == null || email.isEmpty()) {
+        return ResponseEntity.badRequest().body(ResponseUtils.createResponse1(null, "Email is required", false));
+    }
+    if (lastName == null || lastName.isEmpty()) {
+        return ResponseEntity.badRequest().body(ResponseUtils.createResponse1(null, "Last name is required", false));
+    }
+    if (country == null || country.isEmpty()) {
+        return ResponseEntity.badRequest().body(ResponseUtils.createResponse1(null, "Country is required", false));
+    }
+    if (jobTitle == null || jobTitle.isEmpty()) {
+        return ResponseEntity.badRequest().body(ResponseUtils.createResponse1(null, "Job title is required", false));
+    }
+    if (company == null || company.isEmpty()) {
+        return ResponseEntity.badRequest().body(ResponseUtils.createResponse1(null, "Company is required", false));
+    }
+    if (phone == null || phone <= 0) {
+        return ResponseEntity.badRequest().body(ResponseUtils.createResponse1(null, "Phone number is required and must be valid", false));
     }
 
-//    @GetMapping("/save-pdf")
+    User user = new User();
+    user.setName(name);
+    String hashCode = passwordEncoder.encode(password);
+    user.setPassword(hashCode);
+    user.setEmail(email);
+    user.setCompany(company);
+    user.setStatus(UserStatus.ACTIVE);
+    user.setIsSubscriber(1);
+    user.setCountry(country);
+    user.setLastName(lastName);
+    user.setPhone(phone);
+    user.setJobTitle(jobTitle);
+
+    if (adminService.getAdminByEmailId(email) != null) {
+        return ResponseEntity.badRequest().body(ResponseUtils.createResponse1(null, "Cannot create account. Email is already registered.", false));
+    }
+    if (vendorsService.getVendorsByEmail(email) != null) {
+        return ResponseEntity.badRequest().body(ResponseUtils.createResponse1(null, "Cannot create account. Email is already registered as a vendor.", false));
+    }
+
+    ResponseEntity<?> response = userService.saveUser(user);
+    if (response.getStatusCode() == HttpStatus.CREATED) {
+        return ResponseEntity.ok().body(ResponseUtils.createResponse1(user, "Account created successfully", true));
+    } else {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ResponseUtils.createResponse1(null, "Failed to create account", false));
+    }
+}
+
+
+    //    @GetMapping("/save-pdf")
 //    public ResponseEntity<ApiResponse1<SolutionSets>> savePdf(@RequestParam long id,@AuthenticationPrincipal User user,HttpServletRequest request){
 //        SolutionSets solutionSets = solutionSetsService.getSolutionSetById(id);
 //        List<Long> oldSaved = user.getSavedPdf();
@@ -198,6 +261,7 @@ public class UserController {
         userDataStorage.setPostal(info.getPostal());
         userDataStorageService.addUserDataStorage(userDataStorage);
         user.setIpAddress(clientIp);
+        userDataStorage.setCategoryId(solutionSets.getCategory().getId());
         userService.updateUser(user);
 
         HttpHeaders headers = new HttpHeaders();
@@ -354,6 +418,7 @@ public ResponseEntity<ApiResponse1<SolutionSets>> savePdf(@RequestParam long id,
     userDataStorage.setLocation(info.getLocation());
     userDataStorage.setTimezone(info.getTimeZone());
     userDataStorage.setPostal(info.getPostal());
+        userDataStorage.setCategoryId(solutionSets.getCategory().getId());
 
     userDataStorageService.addUserDataStorage(userDataStorage);
 
@@ -526,6 +591,7 @@ public ResponseEntity<byte[]> downloadSolutionSets(@RequestParam long id,
     userDataStorage.setRegion(info.getRegion());
     userDataStorage.setOrg(info.getOrg());
     userDataStorage.setPostal(info.getPostal());
+    userDataStorage.setCategoryId(solutionSets.getCategory().getId());
 
     System.out.println("UserDataStorage " + userDataStorage);
 
@@ -950,11 +1016,12 @@ public ResponseEntity<ApiResponse1<?>> toggleFavorite(@AuthenticationPrincipal U
             List<Widget> totalecomWidgets = new ArrayList<>();
 
             List<UserDataStorage> userDataStorageList = userDataStorageRepository.findAll();
-            List<User> userList = userRepository.findAll();
+           User user1 = userRepository.findById(user.getId()).orElse(null);
             long whitePaperSaved = userDataStorageList.stream()
                     .filter(u -> u.getUser_id() == user.getId() && u.getSave() == 1)
                     .count();
-            long whitePaperCategorySubscribed = userList.size();
+        assert user1 != null;
+        long whitePaperCategorySubscribed = user1.getFavorites().size();
             long whitePapersDownloaded= userDataStorageList.stream()
                     .filter(u -> u.getUser_id() == user.getId() && u.getDownload() == 1)
                     .count();
@@ -1065,6 +1132,11 @@ public ResponseEntity<ApiResponse1<?>> toggleFavorite(@AuthenticationPrincipal U
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ResponseUtils.createResponse1(null, "Category not found or not in favorites", false));
         }
     }
+    @GetMapping("/solutionset-search")
+    public ResponseEntity<ApiResponse1<List<SolutionSets>>> searchHomePage(@RequestParam(required = false) String name){
+        List<SolutionSets> solutionSets = solutionSetsRepository.findAll().stream().filter(solutionSets1 -> solutionSets1.getTitle().toLowerCase().startsWith(name.toLowerCase())).toList();
+        return ResponseEntity.ok().body(ResponseUtils.createResponse1(solutionSets,"SUCCESS",true));
+    }
     @Autowired
     SolutionSetsRepository solutionSetsRepository;
     @GetMapping("/solution-sets-homepage")
@@ -1073,7 +1145,7 @@ public ResponseEntity<ApiResponse1<?>> toggleFavorite(@AuthenticationPrincipal U
 
         solutionSets.sort((set1, set2) -> Long.compare(set2.getId(), set1.getId()));
 
-        List<SolutionSets> updatedCategory = solutionSets.stream()
+        List<SolutionSets> updatedCategory = solutionSets.stream().filter(solutionSets1 -> "APPROVED".equalsIgnoreCase(String.valueOf(solutionSets1.getStatus())))
                 .limit(24)
                 .toList();
 
@@ -1111,10 +1183,24 @@ public ResponseEntity<ApiResponse1<?>> toggleFavorite(@AuthenticationPrincipal U
             statsCount.put("categoryCount",categoryCount);
             statsCount.put("vendorCount",vendorCount);
 
-            List<SolutionSets> curatedWhitePapers = solutionSetsRepository.findAll()
-                    .stream()
-                    .limit(9)
-                    .collect(Collectors.toList());
+//            List<SolutionSets> curatedWhitePapers = solutionSetsRepository.findAll().stream().limit(9).toList();
+
+            List<String> searchNames = List.of(
+                    "robotic", "abm", "healthcare", "Server Virtualization",
+                    "DevOps","Augmented Reality (AR) and Virtual Reality (VR)", "Big Data", "Cloud Security",
+                    "Customer Experience (CX)"
+            );
+
+            List<Category> curatedWhitePapers = new ArrayList<>();
+            for (String searchName : searchNames) {
+                categoryRepository.findAll()
+                        .stream()
+                        .filter(solution -> solution.getName().toLowerCase().contains(searchName.toLowerCase()))
+                        .findFirst()
+                        .ifPresent(curatedWhitePapers::add);
+            }
+
+
 
             List<Category> topicsThatMatterYou = categoryRepository.findAll()
                     .stream()
@@ -1151,10 +1237,33 @@ public ResponseEntity<ApiResponse1<?>> toggleFavorite(@AuthenticationPrincipal U
             statsCount.put("whitePaperCount",whitePaperCount);
             statsCount.put("categoryCount",categoryCount);
             statsCount.put("vendorCount",vendorCount);
-            List<SolutionSets> curatedWhitePapers = solutionSetsRepository.findAll()
-                    .stream()
-                    .limit(9)
-                    .collect(Collectors.toList());
+//            List<SolutionSets> curatedWhitePapers = solutionSetsRepository.findAll()
+//                    .stream()
+//                    .limit(9)
+//                    .collect(Collectors.toList());
+            List<String> searchNames = List.of(
+                    "robotic", "abm", "healthcare", "Server Virtualization",
+                    "DevOps","Augmented Reality (AR) and Virtual Reality (VR)", "Big Data", "Cloud Security",
+                    "Customer Experience (CX)"
+            );
+
+//            Map<String, Object> curatedWhitePapers = new HashMap<>();
+//
+//            for (String searchName : searchNames) {
+//                categoryRepository.findAll()
+//                        .stream()
+//                        .filter(solution -> solution.getName().toLowerCase().contains(searchName.toLowerCase()))
+//                        .findFirst()
+//                        .ifPresent(solution -> curatedWhitePapers.put(searchName.toLowerCase(), solution));
+//            }
+            List<Category> curatedWhitePapers = new ArrayList<>();
+            for (String searchName : searchNames) {
+                categoryRepository.findAll()
+                        .stream()
+                        .filter(solution -> solution.getName().toLowerCase().contains(searchName.toLowerCase()))
+                        .findFirst()
+                        .ifPresent(curatedWhitePapers::add);
+            }
 
             List<Category> topicsThatMatterYou = categoryRepository.findAll()
                     .stream()

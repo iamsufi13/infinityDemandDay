@@ -27,6 +27,7 @@ public class UserDataStorage {
     private String timezone;
     private String location;
     private long solutionSetId;
+    private long categoryId;
     private int download;
     private int view;
     private int save;

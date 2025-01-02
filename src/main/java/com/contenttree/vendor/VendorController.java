@@ -265,6 +265,85 @@ public class VendorController {
 //
 //        return ResponseEntity.ok().body(ResponseUtils.createResponse1(null, "SUCCESS", true));
 //    }
+//    @PostMapping("/add-solutionset")
+//    public ResponseEntity<ApiResponse1<SolutionSets>> addSolutionSet(
+//            @RequestParam MultipartFile file,
+//            @RequestParam(required = false) MultipartFile image,
+//            @RequestParam String category,
+//            @RequestParam String desc,
+//            @RequestParam String title) throws MessagingException {
+//
+//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+//        if (authentication == null || !(authentication.getPrincipal() instanceof UserDetails)) {
+//            return ResponseEntity.status(401).body(null);
+//        }
+//
+//        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+//        Vendors vendors = vendorsService.getVendorsByEmail(userDetails.getUsername());
+//        Admin admin = adminService.getAdminByEmailId(userDetails.getUsername());
+//        if (vendors == null) {
+//            vendors = vendorsService.getVendorsById(1);
+//            if (vendors == null) {
+//                return ResponseEntity.notFound().build();
+//            }
+//        }
+//
+//        if (admin != null) {
+//            vendors = vendorsService.getVendorsById(1);
+//        }
+//
+//        Category categoryEntity = categoryService.getCategoryByName(category);
+//        if (categoryEntity == null) {
+//            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+//                    .body(ResponseUtils.createResponse1(null, "Invalid category name", false));
+//        }
+//        int value =0;
+//        if (vendors!=null){
+//            value=1;
+//        } else if (admin!=null) {
+//            value=2;
+//        }
+//
+//        String solutionSet = solutionSetsService.uploadSolutionSets(
+//                file, image, vendors.getId(), categoryEntity.getId(), desc, title,value);
+//        String baseUrl = "https://infiniteb2b.com";
+//        String whitepaperUrl = baseUrl + "/category/" + categoryEntity.getId();
+//
+//        List<User> userList = userService.getAllUsers();
+//        userList = userList.stream().filter(a -> a.getIsSubscriber() == 1).toList();
+//
+//        String htmlMessage = "<div style=\"font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px; background-color: #f9f9f9;\">" +
+//                "<div style=\"text-align: center; margin-bottom: 30px;\">" +
+//                "<img src=\"" + logoUrl + "\" alt=\"Company Logo\" style=\"max-width: 150px;\">" +
+//                "</div>" +
+//                "<h2 style=\"text-align: center; color: #007bff; font-size: 24px;\">Latest Whitepapers Released! " + title + "</h2>" +
+//                "<p style=\"font-size: 16px; line-height: 1.5; text-align: center;\">" +
+//                "We are excited to share the latest updates from <strong>InfiniteB2B</strong>! Our new whitepapers on <strong>" + categoryEntity.getName() + "</strong> are now available. Explore the latest insights and trends to stay ahead in your field." +
+//                "</p>" +
+//                "<div style=\"text-align: center; margin: 30px 0;\">" +
+//                "<a href=\"" + whitepaperUrl + "\" style=\"font-size: 18px; padding: 12px 24px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px;\">Explore Now</a>" +
+//                "</div>" +
+//                "<p style=\"font-size: 14px; line-height: 1.5; text-align: center;\">" +
+//                "If the button above doesn’t work, copy and paste the following URL into your browser:" +
+//                "</p>" +
+//                "<p style=\"font-size: 14px; line-height: 1.5; text-align: center;\">" +
+//                "<a href=\"" + whitepaperUrl + "\" style=\"color: #007bff; word-wrap: break-word;\">" + whitepaperUrl + "</a>" +
+//                "</p>" +
+//                "<hr style=\"border: 0; border-top: 1px solid #e0e0e0; margin: 40px 0;\">" +
+//                "<footer style=\"text-align: center; font-size: 12px; color: #999;\">" +
+//                "<p>&copy; 2024 InfiniteB2B. All rights reserved.</p>" +
+//                "<p><a href=\"#\" style=\"color: #999; text-decoration: none;\">Unsubscribe</a> | <a href=\"#\" style=\"color: #999; text-decoration: none;\">Contact Us</a></p>" +
+//                "</footer>" +
+//                "</div>";
+//
+//        for (User user : userList) {
+//            emailService.sendHtmlEmail(user.getEmail(),
+//                    "New WhitePaper Added in your Favorite Category " + categoryEntity.getName(),
+//                    htmlMessage);
+//        }
+//
+//        return ResponseEntity.ok().body(ResponseUtils.createResponse1(null, "SUCCESS", true));
+//    }
     @PostMapping("/add-solutionset")
     public ResponseEntity<ApiResponse1<SolutionSets>> addSolutionSet(
             @RequestParam MultipartFile file,
@@ -281,11 +360,9 @@ public class VendorController {
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         Vendors vendors = vendorsService.getVendorsByEmail(userDetails.getUsername());
         Admin admin = adminService.getAdminByEmailId(userDetails.getUsername());
-        if (vendors == null) {
-            vendors = vendorsService.getVendorsById(1);
-            if (vendors == null) {
-                return ResponseEntity.notFound().build();
-            }
+
+        if (vendors == null && admin == null) {
+            return ResponseEntity.notFound().build();
         }
 
         if (admin != null) {
@@ -298,46 +375,32 @@ public class VendorController {
                     .body(ResponseUtils.createResponse1(null, "Invalid category name", false));
         }
 
-        String solutionSet = solutionSetsService.uploadSolutionSets(
-                file, image, vendors.getId(), categoryEntity.getId(), desc, title);
-        String baseUrl = "https://infiniteb2b.com";
-        String whitepaperUrl = baseUrl + "/category/" + categoryEntity.getId();
+        int value;
+        Vendors vendor = null;
 
-        List<User> userList = userService.getAllUsers();
-        userList = userList.stream().filter(a -> a.getIsSubscriber() == 1).toList();
-
-        String htmlMessage = "<div style=\"font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px; background-color: #f9f9f9;\">" +
-                "<div style=\"text-align: center; margin-bottom: 30px;\">" +
-                "<img src=\"" + logoUrl + "\" alt=\"Company Logo\" style=\"max-width: 150px;\">" +
-                "</div>" +
-                "<h2 style=\"text-align: center; color: #007bff; font-size: 24px;\">Latest Whitepapers Released! " + title + "</h2>" +
-                "<p style=\"font-size: 16px; line-height: 1.5; text-align: center;\">" +
-                "We are excited to share the latest updates from <strong>InfiniteB2B</strong>! Our new whitepapers on <strong>" + categoryEntity.getName() + "</strong> are now available. Explore the latest insights and trends to stay ahead in your field." +
-                "</p>" +
-                "<div style=\"text-align: center; margin: 30px 0;\">" +
-                "<a href=\"" + whitepaperUrl + "\" style=\"font-size: 18px; padding: 12px 24px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px;\">Explore Now</a>" +
-                "</div>" +
-                "<p style=\"font-size: 14px; line-height: 1.5; text-align: center;\">" +
-                "If the button above doesn’t work, copy and paste the following URL into your browser:" +
-                "</p>" +
-                "<p style=\"font-size: 14px; line-height: 1.5; text-align: center;\">" +
-                "<a href=\"" + whitepaperUrl + "\" style=\"color: #007bff; word-wrap: break-word;\">" + whitepaperUrl + "</a>" +
-                "</p>" +
-                "<hr style=\"border: 0; border-top: 1px solid #e0e0e0; margin: 40px 0;\">" +
-                "<footer style=\"text-align: center; font-size: 12px; color: #999;\">" +
-                "<p>&copy; 2024 InfiniteB2B. All rights reserved.</p>" +
-                "<p><a href=\"#\" style=\"color: #999; text-decoration: none;\">Unsubscribe</a> | <a href=\"#\" style=\"color: #999; text-decoration: none;\">Contact Us</a></p>" +
-                "</footer>" +
-                "</div>";
-
-        for (User user : userList) {
-            emailService.sendHtmlEmail(user.getEmail(),
-                    "New WhitePaper Added in your Favorite Category " + categoryEntity.getName(),
-                    htmlMessage);
+        if (admin != null) {
+            value = 1;
+        } else {
+            value = 2;
+            vendor = vendors;
         }
+
+        if (vendor != null) {
+            String solutionSetResponse = solutionSetsService.uploadSolutionSets(
+                    file, image, vendor.getId(), categoryEntity.getId(), desc, title, 2);
+        } else {
+            String solutionSetResponse = solutionSetsService.uploadSolutionSets(
+                    file, image, 1, categoryEntity.getId(), desc, title, 1);
+        }
+
+
+//        String solutionSetResponse = solutionSetsService.uploadSolutionSets(
+//                file, image, vendors.getId(), categoryEntity.getId(), desc, title, value);
+
 
         return ResponseEntity.ok().body(ResponseUtils.createResponse1(null, "SUCCESS", true));
     }
+
 
     @Autowired
     SolutionSetMapper solutionSetMapper;

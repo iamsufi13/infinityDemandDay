@@ -75,7 +75,85 @@ public class SolutionSetsService {
 //
 //        return "File Uploaded Successfully: " + fileName;
 //    }
-public String uploadSolutionSets(MultipartFile file, MultipartFile imageFile, long vendorId, long categoryId, String desc, String title) {
+//public String uploadSolutionSets(MultipartFile file, MultipartFile imageFile, long vendorId, long categoryId, String desc, String title,int value) {
+//    String uploadDir = "/var/www/infiniteb2b/springboot/whitePapers";
+//    String imageUploadDir = "/var/www/infiniteb2b/springboot/whitepapersImages";
+//
+//    File solutionSetDirectory = new File(uploadDir);
+//    File imageDirectory = new File(imageUploadDir);
+//
+//    if (!solutionSetDirectory.exists() && !solutionSetDirectory.mkdirs()) {
+//        return "Failed to create upload directory.";
+//    }
+//
+//    if (!imageDirectory.exists() && !imageDirectory.mkdirs()) {
+//        return "Failed to create image directory.";
+//    }
+//
+//    String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
+//    String filePath = uploadDir + File.separator + fileName;
+//
+//    try {
+//        Files.write(Paths.get(filePath), file.getBytes());
+//        System.out.println("PDF File uploaded successfully at: " + filePath);
+//    } catch (IOException e) {
+//        e.printStackTrace();
+//        return "PDF Upload failed: " + e.getMessage();
+//    }
+//
+//
+//    String imageName = imageFile.getOriginalFilename();
+//    String imagePath = imageUploadDir + File.separator + imageName;
+////    imagePath =imagePath.replace(" ","-");
+//    try {
+//        Files.write(Paths.get(imagePath), imageFile.getBytes());
+//    } catch (IOException e) {
+//        e.printStackTrace();
+//        return "Image upload failed: " + e.getMessage();
+//    }
+//
+//    Vendors vendor = vendorsService.getVendorsById(vendorId);
+//    if (vendor == null) {
+//        return "Vendor not found";
+//    }
+//
+//    Category category = categoryRepository.findById(categoryId).orElse(null);
+//    if (category == null) {
+//        return "Category not found";
+//    }
+//    SolutionSets solutionSets = new SolutionSets();
+//
+//    if (value == 1){SolutionSets.builder()
+//            .name(fileName)
+//            .title(title)
+//            .fileType(file.getContentType())
+//            .uploadedBy(vendor)
+//            .status(SolutionSetsStatus.APPROVED)
+//            .category(category)
+//            .description(desc)
+//            .filePath(filePath)
+//            .imagePath(imagePath)
+//            .build();} else if (value==2) {
+//        SolutionSets.builder()
+//                .name(fileName)
+//                .title(title)
+//                .fileType(file.getContentType())
+//                .uploadedBy(vendor)
+//                .status(SolutionSetsStatus.PENDING)
+//                .category(category)
+//                .description(desc)
+//                .filePath(filePath)
+//                .imagePath(imagePath)
+//                .build();
+//    }
+//
+//
+//
+//    solutionSetsRepository.save(solutionSets);
+//
+//    return "File and Image Uploaded Successfully: " + fileName + ", " + imageName;
+//}
+public String uploadSolutionSets(MultipartFile file, MultipartFile imageFile, long vendorId, long categoryId, String desc, String title, int value) {
     String uploadDir = "/var/www/infiniteb2b/springboot/whitePapers";
     String imageUploadDir = "/var/www/infiniteb2b/springboot/whitepapersImages";
 
@@ -101,10 +179,9 @@ public String uploadSolutionSets(MultipartFile file, MultipartFile imageFile, lo
         return "PDF Upload failed: " + e.getMessage();
     }
 
-
     String imageName = imageFile.getOriginalFilename();
     String imagePath = imageUploadDir + File.separator + imageName;
-//    imagePath =imagePath.replace(" ","-");
+
     try {
         Files.write(Paths.get(imagePath), imageFile.getBytes());
     } catch (IOException e) {
@@ -122,18 +199,33 @@ public String uploadSolutionSets(MultipartFile file, MultipartFile imageFile, lo
         return "Category not found";
     }
 
+    SolutionSets solutionSets = new SolutionSets();
 
-    SolutionSets solutionSets = SolutionSets.builder()
-            .name(fileName)
-            .title(title)
-            .fileType(file.getContentType())
-            .uploadedBy(vendor)
-            .status(SolutionSetsStatus.PENDING)
-            .category(category)
-            .description(desc)
-            .filePath(filePath)
-            .imagePath(imagePath)
-            .build();
+    if (value == 1) {
+        solutionSets = SolutionSets.builder()
+                .name(fileName)
+                .title(title)
+                .fileType(file.getContentType())
+                .uploadedBy(vendor)
+                .status(SolutionSetsStatus.APPROVED)
+                .category(category)
+                .description(desc)
+                .filePath(filePath)
+                .imagePath(imagePath)
+                .build();
+    } else if (value == 2) {
+        solutionSets = SolutionSets.builder()
+                .name(fileName)
+                .title(title)
+                .fileType(file.getContentType())
+                .uploadedBy(vendor)
+                .status(SolutionSetsStatus.PENDING)
+                .category(category)
+                .description(desc)
+                .filePath(filePath)
+                .imagePath(imagePath)
+                .build();
+    }
 
     solutionSetsRepository.save(solutionSets);
 
@@ -142,7 +234,8 @@ public String uploadSolutionSets(MultipartFile file, MultipartFile imageFile, lo
 
 
 
-//    public byte[] downloadPdf1(long name){
+
+    //    public byte[] downloadPdf1(long name){
 //        Optional<SolutionSets> dbPdfData = solutionSetsRepository.findById(name);
 //
 //        return Objects.requireNonNull(dbPdfData.map(SolutionSets::getFilePath).orElse(null)).getBytes();

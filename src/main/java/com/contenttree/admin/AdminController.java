@@ -14,16 +14,14 @@ import com.contenttree.StaticCount.StaticCount;
 import com.contenttree.StaticCount.StaticCountRepository;
 import com.contenttree.category.Category;
 import com.contenttree.category.CategoryRepository;
+import com.contenttree.category.CategoryService;
 import com.contenttree.downloadlog.DownloadLog;
 import com.contenttree.downloadlog.DownloadLogDto;
 import com.contenttree.downloadlog.DownloadLogMapper;
 import com.contenttree.downloadlog.DownloadLogRepository;
 import com.contenttree.security.AdminJwtHelper;
 import com.contenttree.solutionsets.*;
-import com.contenttree.user.User;
-import com.contenttree.user.UserRepository;
-import com.contenttree.user.UserService;
-import com.contenttree.user.UserStatus;
+import com.contenttree.user.*;
 import com.contenttree.userdatastorage.UserDataStorage;
 import com.contenttree.userdatastorage.UserDataStorageRepository;
 import com.contenttree.utils.ApiResponse1;
@@ -350,13 +348,56 @@ public ResponseEntity<ApiResponse1<Admin>> updateStatus(@RequestParam int status
         vendorRepository.save(vendor);
         return ResponseEntity.ok().body(ResponseUtils.createResponse1(null,"Vendor inactive SuccessFully", true));
     }
+    private static final String logoUrl = "https://infiniteb2b.com/static/media/Infinite-b2b-1-scaled.f42a6998e6eac74721e6.png";
+
+    private static final String whitepaperUrl = "https://infiniteb2b.com/";
+    @Autowired
+    CategoryService categoryService;
+    @Autowired
+    EmailService emailService;
     @PutMapping("/admin/approve-solutionset")
-    public ResponseEntity<ApiResponse1<String>> approveSolution(@RequestParam Long solutionId) {
+    public ResponseEntity<ApiResponse1<String>> approveSolution(@RequestParam Long solutionId) throws MessagingException {
         log.info("inside the Admin controller");
         SolutionSets solutionSet = solutionSetsRepository.findById(solutionId)
                 .orElseThrow(() -> new RuntimeException("Solution Set not found"));
         solutionSet.setStatus(SolutionSetsStatus.APPROVED);
         solutionSetsRepository.save(solutionSet);
+        Optional<Category> categoryEntity = categoryService.getCategoryBySolutionSet(solutionId);
+        String baseUrl = "https://infiniteb2b.com";
+        String whitepaperUrl = baseUrl + "/category/" + categoryEntity.get().getId();
+
+        List<User> userList = userService.getAllUsers();
+        userList = userList.stream().filter(a -> a.getIsSubscriber() == 1&&a.getFavorites().contains(categoryEntity.get().getName())).toList();
+
+        String htmlMessage = "<div style=\"font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px; background-color: #f9f9f9;\">" +
+                "<div style=\"text-align: center; margin-bottom: 30px;\">" +
+                "<img src=\"" + logoUrl + "\" alt=\"Company Logo\" style=\"max-width: 150px;\">" +
+                "</div>" +
+                "<h2 style=\"text-align: center; color: #007bff; font-size: 24px;\">Latest Whitepapers Released! " + solutionSet.getTitle() + "</h2>" +
+                "<p style=\"font-size: 16px; line-height: 1.5; text-align: center;\">" +
+                "We are excited to share the latest updates from <strong>InfiniteB2B</strong>! Our new whitepapers on <strong>" + categoryEntity.get().getName() + "</strong> are now available. Explore the latest insights and trends to stay ahead in your field." +
+                "</p>" +
+                "<div style=\"text-align: center; margin: 30px 0;\">" +
+                "<a href=\"" + whitepaperUrl + "\" style=\"font-size: 18px; padding: 12px 24px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px;\">Explore Now</a>" +
+                "</div>" +
+                "<p style=\"font-size: 14px; line-height: 1.5; text-align: center;\">" +
+                "If the button above doesn’t work, copy and paste the following URL into your browser:" +
+                "</p>" +
+                "<p style=\"font-size: 14px; line-height: 1.5; text-align: center;\">" +
+                "<a href=\"" + whitepaperUrl + "\" style=\"color: #007bff; word-wrap: break-word;\">" + whitepaperUrl + "</a>" +
+                "</p>" +
+                "<hr style=\"border: 0; border-top: 1px solid #e0e0e0; margin: 40px 0;\">" +
+                "<footer style=\"text-align: center; font-size: 12px; color: #999;\">" +
+                "<p>&copy; 2024 InfiniteB2B. All rights reserved.</p>" +
+                "<p><a href=\"#\" style=\"color: #999; text-decoration: none;\">Unsubscribe</a> | <a href=\"#\" style=\"color: #999; text-decoration: none;\">Contact Us</a></p>" +
+                "</footer>" +
+                "</div>";
+
+        for (User user : userList) {
+            emailService.sendHtmlEmail(user.getEmail(),
+                    "New WhitePaper Added in your Favorite Category " + categoryEntity.get().getName(),
+                    htmlMessage);
+        }
         return ResponseEntity.ok().body(ResponseUtils.createResponse1(null,"Solution set approved successfully",true));
     }
 
@@ -785,7 +826,6 @@ public ResponseEntity<ApiResponse1<List<Admin>>> getAllAdminList() {
     // Fetch all admins from the repository
     List<Admin> list = adminService.adminRepository.findAll();
 
-    // Filter for SUPERADMIN role and sort by name (or any desired field)
     List<Admin> updatedList = list.stream()
             .filter(admin -> admin.getAuthorities().stream()
                     .anyMatch(auth -> "SUPERADMIN".equalsIgnoreCase(auth.getAuthority())))
@@ -908,10 +948,6 @@ public ResponseEntity<ApiResponse1<List<AdminResponseDto>>> getAllCampaignManage
 
     @GetMapping("/admin/get-allvendor")
     public ResponseEntity<ApiResponse1<List<Vendors>>> getAllVendorList(){
-//        List<Vendors> list = vendorRepository.findAll();
-//        list.stream().filter(vendors -> "APPROVED".equalsIgnoreCase(String.valueOf(vendors.getStatus()))).collect(Collectors.toList());;
-//
-//        return ResponseEntity.ok().body(ResponseUtils.createResponse1(list,"SUCCESS",true));
             List<Vendors> list = vendorRepository.findAll();
             List<Vendors> updatedList = list.stream()
                     .filter(vendor -> "ACTIVE".equalsIgnoreCase(String.valueOf(vendor.getStatus())))
@@ -925,7 +961,7 @@ public ResponseEntity<ApiResponse1<List<AdminResponseDto>>> getAllCampaignManage
 
         List<Vendors> filteredList = list.stream()
                 .filter(vendor ->
-                        "INACTIVE".equalsIgnoreCase(String.valueOf(vendor.getStatus())) ||
+                        "REJECTED".equalsIgnoreCase(String.valueOf(vendor.getStatus())) ||
                                 "PENDING".equalsIgnoreCase(String.valueOf(vendor.getStatus()))
                 )
                 .collect(Collectors.toList());

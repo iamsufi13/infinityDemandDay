@@ -44,6 +44,7 @@
 /Users/demanday67/Documents/JavaProjects/infinityDemandDay/src/main/java/com/contenttree/banner/BannerService.java
 /Users/demanday67/Documents/JavaProjects/infinityDemandDay/src/main/java/com/contenttree/category/Category.java
 /Users/demanday67/Documents/JavaProjects/infinityDemandDay/src/main/java/com/contenttree/category/CategoryController.java
+/Users/demanday67/Documents/JavaProjects/infinityDemandDay/src/main/java/com/contenttree/category/CategoryCountDto.java
 /Users/demanday67/Documents/JavaProjects/infinityDemandDay/src/main/java/com/contenttree/category/CategoryDto.java
 /Users/demanday67/Documents/JavaProjects/infinityDemandDay/src/main/java/com/contenttree/category/CategoryMapper.java
 /Users/demanday67/Documents/JavaProjects/infinityDemandDay/src/main/java/com/contenttree/category/CategoryRepository.java

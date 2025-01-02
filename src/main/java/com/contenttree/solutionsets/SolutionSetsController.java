@@ -62,7 +62,7 @@ public class SolutionSetsController {
         if (vendors==null) {
             return ResponseEntity.notFound().build();
         }
-        String uploadResponse = solutionSetsService.uploadSolutionSets(file,image, vendors.getId(),category,desc,title);
+        String uploadResponse = solutionSetsService.uploadSolutionSets(file,image, vendors.getId(),category,desc,title,1);
         return ResponseEntity.ok(new ApiResponse1<>(true,"SUCCESS",null));
     }
 }

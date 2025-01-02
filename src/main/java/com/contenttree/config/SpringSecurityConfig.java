@@ -201,7 +201,7 @@ public class SpringSecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(withDefaults())  // Use global CORS config
                 .authorizeRequests(authorizeRequests -> authorizeRequests
-                        .requestMatchers("/api/user/get-whitepaper","/api/user/get-whitepaper/**","/api/country","/uploads/**","/uploads/**","/api/user/view-pdf","/api/login", "/api/register","/api/category/**","/api/user/solution-sets-homepage", "/api/vendor/login","/login/admin","/register/admin","/api/user/register","/api/user/login","/user/register","/api/user/confirm-account","/api/home","/api/vendor/login","/api/vendor/register","/api/vendor/register123","/error/**","/api/category","/api/user/download-pdf").permitAll()
+                        .requestMatchers("/api/newsletter","/api/user/get-whitepaper","/api/user/solutionset-search","/api/user/get-whitepaper/**","/api/country","/uploads/**","/uploads/**","/api/user/view-pdf","/api/login", "/api/register","/api/category/**","/api/user/solution-sets-homepage", "/api/vendor/login","/login/admin","/register/admin","/api/user/register","/api/user/login","/user/register","/api/user/confirm-account","/api/home","/api/vendor/login","/api/vendor/register","/api/vendor/register123","/error/**","/api/category","/api/user/download-pdf").permitAll()
                         .requestMatchers("/var/***","/uploads/**").permitAll()
                         .requestMatchers("/api/category/add", "/api/category/update").permitAll()
                         .requestMatchers("/api/vendor/get-allwhitepapers","/uploads/**").permitAll()

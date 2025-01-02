@@ -1,5 +1,6 @@
 package com.contenttree.category;
 
+import com.contenttree.NewsLetter.NewsLetter;
 import com.contenttree.solutionsets.SolutionSets;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
@@ -37,14 +38,17 @@ public class Category {
     @JsonManagedReference
     @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, orphanRemoval = true,fetch = FetchType.LAZY)
     private List<SolutionSets> solutionSets;
+    @JsonIgnore
+    @JsonManagedReference
+    @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, orphanRemoval = true,fetch = FetchType.LAZY)
+    private List<NewsLetter> newsLetters;
+
 
     @JsonIgnore
     private LocalDateTime dt1;
 
     public Category(String line, Object o, Object o1, Object o2, Object o3) {
     }
-
-
 
     @jakarta.persistence.PrePersist
     public void prePersist() {

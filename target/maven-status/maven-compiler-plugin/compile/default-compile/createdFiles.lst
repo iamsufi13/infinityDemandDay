@@ -107,6 +107,7 @@ com/contenttree/Websocket/UserSessionManager.class
 com/contenttree/banner/BannerService.class
 com/contenttree/NewsLetter/NewsLetterController.class
 com/contenttree/home/HomePageController.class
+com/contenttree/category/CategoryCountDto.class
 com/contenttree/userdatastorage/UserDataStorageRepository.class
 com/contenttree/downloadlog/DownloadLog.class
 com/contenttree/NewsLetter/NewsLetterService.class

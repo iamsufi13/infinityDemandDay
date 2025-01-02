@@ -1,6 +1,7 @@
 package com.contenttree.NewsLetter;
 
 import com.contenttree.admin.Admin;
+import com.contenttree.category.Category;
 import com.contenttree.user.User;
 import com.contenttree.vendor.Vendors;
 import com.fasterxml.jackson.annotation.JsonBackReference;
@@ -25,11 +26,18 @@ public class NewsLetter {
 
     private String content;
 
+    private String imagePath;
+
     private String filePath;
     @ManyToOne
     @JoinColumn(name = "user_id")
     @JsonBackReference
     private User user;
+
+    @ManyToOne
+    @JoinColumn(name = "category_id")
+    @JsonBackReference
+    private Category category;
 
 
     @ManyToOne

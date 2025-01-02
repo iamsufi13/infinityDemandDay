@@ -54,7 +54,7 @@ public class BlogsController {
             @RequestParam String name,
             @RequestParam MultipartFile file,@RequestParam long blogsCategoryId) {
 
-        String uploadDir = "src/main/resources/uploads/blogs/";
+        String uploadDir = "/var/www/infiniteb2b/springboot/blogs/";
         File directory = new File(uploadDir);
 
         if (!directory.exists()) {
