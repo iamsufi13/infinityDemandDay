@@ -26,6 +26,8 @@ public class Blogs {
 
     private String blogName;
 
+    private String blogImage;
+
     private String blogPath;
 
 //    @JsonBackReference
