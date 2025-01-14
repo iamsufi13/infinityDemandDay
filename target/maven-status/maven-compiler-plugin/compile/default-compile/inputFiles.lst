@@ -1,3 +1,4 @@
+/Users/demanday67/Documents/JavaProjects/infinityDemandDay/src/main/java/com/contenttree/AidyanmoController/AiDynamoController.java
 /Users/demanday67/Documents/JavaProjects/infinityDemandDay/src/main/java/com/contenttree/Blogs/Blogs.java
 /Users/demanday67/Documents/JavaProjects/infinityDemandDay/src/main/java/com/contenttree/Blogs/BlogsCategory.java
 /Users/demanday67/Documents/JavaProjects/infinityDemandDay/src/main/java/com/contenttree/Blogs/BlogsCategoryRepository.java
@@ -21,6 +22,8 @@
 /Users/demanday67/Documents/JavaProjects/infinityDemandDay/src/main/java/com/contenttree/NewsLetter/NewsLetterController.java
 /Users/demanday67/Documents/JavaProjects/infinityDemandDay/src/main/java/com/contenttree/NewsLetter/NewsLetterRepository.java
 /Users/demanday67/Documents/JavaProjects/infinityDemandDay/src/main/java/com/contenttree/NewsLetter/NewsLetterService.java
+/Users/demanday67/Documents/JavaProjects/infinityDemandDay/src/main/java/com/contenttree/PreviewImage/PreviewImage.java
+/Users/demanday67/Documents/JavaProjects/infinityDemandDay/src/main/java/com/contenttree/PreviewImage/PreviewImageRepository.java
 /Users/demanday67/Documents/JavaProjects/infinityDemandDay/src/main/java/com/contenttree/StaticCount/Region.java
 /Users/demanday67/Documents/JavaProjects/infinityDemandDay/src/main/java/com/contenttree/StaticCount/RegionRepository.java
 /Users/demanday67/Documents/JavaProjects/infinityDemandDay/src/main/java/com/contenttree/StaticCount/StaticCount.java
@@ -53,6 +56,7 @@
 /Users/demanday67/Documents/JavaProjects/infinityDemandDay/src/main/java/com/contenttree/config/CustomUserDetailsService.java
 /Users/demanday67/Documents/JavaProjects/infinityDemandDay/src/main/java/com/contenttree/config/SpringSecurityConfig.java
 /Users/demanday67/Documents/JavaProjects/infinityDemandDay/src/main/java/com/contenttree/config/SwaggerConfig.java
+/Users/demanday67/Documents/JavaProjects/infinityDemandDay/src/main/java/com/contenttree/config/ValidationConfig.java
 /Users/demanday67/Documents/JavaProjects/infinityDemandDay/src/main/java/com/contenttree/config/WebConfig.java
 /Users/demanday67/Documents/JavaProjects/infinityDemandDay/src/main/java/com/contenttree/config/XFrameOptionsFilter.java
 /Users/demanday67/Documents/JavaProjects/infinityDemandDay/src/main/java/com/contenttree/confirmationtoken/ConfirmationToken.java

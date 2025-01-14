@@ -29,12 +29,18 @@ public class Vendors implements UserDetails {
     private Long id;
 
     private String name;
+    private String lastName;
 
-    private String phone;
+    private String phoneNo;
 
     private String companyName;
 
-    private String location;
+    private String designation;
+
+    private String country;
+    private String state;
+
+    private String zipCode;
     @JsonIgnore
     private String password;
 
@@ -54,14 +60,6 @@ public class Vendors implements UserDetails {
     @JsonBackReference
     @OneToMany(mappedBy = "uploadedBy", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<SolutionSets> solutionSets;
-
-//    @JsonBackReference
-//    @OneToMany(mappedBy = "uploadedBy", cascade = CascadeType.ALL, orphanRemoval = true)
-//    private List<Blogs> blogs;
-//
-//    @JsonBackReference
-//    @OneToMany(mappedBy = "uploadedBy", cascade = CascadeType.ALL, orphanRemoval = true)
-//    private List<NewsLetter> newsLetterList;
 
     @JsonBackReference
     @OneToMany(mappedBy = "vendor")

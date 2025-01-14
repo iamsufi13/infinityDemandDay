@@ -43,7 +43,7 @@ public class Admin implements UserDetails {
     private String email;
 
     @JsonIgnore
-    @OneToMany(mappedBy = "admin", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "admin", cascade = CascadeType.ALL,fetch = FetchType.LAZY)
     private List<Webinar> webinars;
     @JsonIgnore
     @OneToMany(mappedBy = "admin",cascade = CascadeType.ALL)

@@ -28,20 +28,15 @@ public class NewsLetter {
 
     private String imagePath;
 
-    private String filePath;
+    private String previewLink;
     @ManyToOne
     @JoinColumn(name = "user_id")
     @JsonBackReference
     private User user;
 
     @ManyToOne
-    @JoinColumn(name = "category_id")
-    @JsonBackReference
-    private Category category;
-
-
-    @ManyToOne
     @JoinColumn(name = "admin_id")
+    @JsonIgnore
     private Admin admin;
 
     @JsonIgnore

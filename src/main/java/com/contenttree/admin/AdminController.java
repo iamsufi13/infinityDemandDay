@@ -35,14 +35,20 @@ import io.swagger.annotations.Api;
 import jakarta.mail.MessagingException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -70,6 +76,8 @@ public class AdminController
     @Autowired
     BlogsRepository blogsRepository;
     @Autowired
+    AdminRepository adminRepository;
+    @Autowired
     BlogsCategoryRepository blogsCategoryRepository;
     @Autowired
     NewsLetterRepository newsLetterRepository;
@@ -91,39 +99,6 @@ public class AdminController
     public ResponseEntity<String> helloWorld(){
         return ResponseEntity.ok("Hello World in Admin Controller");}
 
-//    @PostMapping("/register/admin")
-//    public ResponseEntity<ApiResponse1<String>> registerAdmin(@RequestParam String email,
-//                                                              @RequestParam String password,
-//                                                              @RequestParam String name,
-//                                                              @RequestParam int isSuperAdmin) {
-//        Admin admin = new Admin();
-//        admin.setName(name);
-//        admin.setEmail(email);
-//        String hashcode = passwordEncoder.encode(password);
-//        admin.setPassword(hashcode);
-//        List<Role> roles = new ArrayList<>();
-//
-//        if (isSuperAdmin == 1) {
-//            roles.add(Role.SUPERADMIN);
-//        } else if (isSuperAdmin == 2) {
-//            roles.add(Role.CAMPAIGNMANAGER);
-//        } else if (isSuperAdmin == 3) {
-//            roles.add(Role.ADMIN);
-//        } else {
-//            roles.add(Role.ADMIN);
-//        }
-//
-//        admin.setRole(roles);
-//
-//        if (vendorsService.getVendorsByEmail(email) == null && userService.getUserByEmail(email) == null) {
-//            adminService.registerAdmin(admin);
-//            ApiResponse1<String> response = ResponseUtils.createResponse1("Admin Registered Successfully", "Success", true);
-//            return ResponseEntity.ok(response);
-//        }
-//
-//        ApiResponse1<String> response = ResponseUtils.createResponse1("Email Already Registered. Please Try With Another Email", "Failure", false);
-//        return ResponseEntity.ok(response);
-//    }
 @PostMapping("/register/admin")
 public ResponseEntity<Map<String, Object>> registerAdmin(
         @RequestParam String email,
@@ -175,6 +150,79 @@ public ResponseEntity<Map<String, Object>> registerAdmin(
 
     return ResponseEntity.ok(response);
 }
+    @PutMapping("/update/admin/{id}")
+    public ResponseEntity<Map<String, Object>> updateAdmin(
+            @PathVariable Long id,
+            @RequestParam(required = false) String email,
+            @RequestParam(required = false) String password,
+            @RequestParam(required = false) String location,
+            @RequestParam(required = false) Long phone,
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) Integer isSuperAdmin) {
+
+        Admin admin = adminRepository.findById(id).orElse(null);
+        if (admin == null) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("message", "Admin not found");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+        }
+
+        if (email != null && !email.equals(admin.getEmail())) {
+            if (vendorsService.getVendorsByEmail(email) != null || userService.getUserByEmail(email) != null) {
+                Map<String, Object> errorResponse = new HashMap<>();
+                errorResponse.put("message", "Email already registered. Please try with another email.");
+                return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
+            }
+            admin.setEmail(email);
+        }
+
+        if (password != null && !password.isEmpty()) {
+            admin.setPassword(passwordEncoder.encode(password));
+        }
+
+        if (location != null && !location.isEmpty()) {
+            admin.setLocation(location);
+        }
+
+        if (phone != null) {
+            admin.setPhone(phone);
+        }
+
+        if (name != null && !name.isEmpty()) {
+            admin.setName(name);
+        }
+
+        if (isSuperAdmin != null) {
+            List<Role> roles = new ArrayList<>();
+            if (isSuperAdmin == 1) {
+                roles.add(Role.SUPERADMIN);
+            } else if (isSuperAdmin == 2) {
+                roles.add(Role.CAMPAIGNMANAGER);
+            } else {
+                roles.add(Role.ADMIN);
+            }
+            admin.setRole(roles);
+        }
+
+        adminRepository.save(admin);
+
+        String token = jwtHelper.generateToken(admin);
+
+        Map<String, Object> userDetails = new HashMap<>();
+        userDetails.put("_id", admin.getId());
+        userDetails.put("email", admin.getEmail());
+        userDetails.put("first_name", admin.getName());
+        userDetails.put("password", "********");
+        userDetails.put("confirm_password", "********");
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("message", "Admin updated successfully");
+        response.put("token", token);
+        response.put("user", userDetails);
+
+        return ResponseEntity.ok(response);
+    }
+
 @PostMapping("/admin/update/status")
 public ResponseEntity<ApiResponse1<Admin>> updateStatus(@RequestParam int status,@RequestParam long id){
         Admin admin = adminService.adminRepository.findById(id).orElse(null);
@@ -190,65 +238,6 @@ public ResponseEntity<ApiResponse1<Admin>> updateStatus(@RequestParam int status
         return ResponseEntity.ok().body(ResponseUtils.createResponse1(admin,"SUCCESS",true));
 }
 
-
-    //    @PostMapping("/login/admin")
-//    public ResponseEntity<ApiResponse1<HashMap<String, Object>>> adminLogin(@RequestParam String email,
-//                                                                            @RequestParam String password) {
-//
-//        Admin admin = adminService.getAdminByEmailId(email);
-//        log.info("ADMIN LOADED {}", admin);
-//        log.info("ADMIN Authority {}", admin.getAuthorities());
-//
-//        if (!passwordEncoder.matches(password, admin.getPassword())) {
-//            ApiResponse1<HashMap<String, Object>> response = ResponseUtils.createResponse1(
-//                    null,
-//                    "Email & Password Does Not Match",
-//                    false
-//            );
-//            return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
-//        }
-//
-//        String token = this.jwtHelper.generateToken(admin);
-//        JwtResponse jwtResponse = JwtResponse.builder()
-//                .jwtToken(token)
-//                .username(admin.getEmail())
-//                .build();
-//
-//        HashMap<String, Object> responseMap = new HashMap<>();
-//        responseMap.put("jwtToken", jwtResponse);
-//
-//        ApiResponse1<HashMap<String, Object>> response = ResponseUtils.createResponse1(
-//                responseMap,
-//                "Admin Logged in Successfully",
-//                true
-//        );
-//
-//        return new ResponseEntity<>(response, HttpStatus.OK);
-//    }
-//@PostMapping("/login/admin")
-//public ResponseEntity<ApiResponseTemplate<Map<String, Object>>> adminLogin(
-//        @RequestParam String email,
-//        @RequestParam String password) {
-//
-//    Admin admin = adminService.getAdminByEmailId(email);
-//    if (admin == null || !passwordEncoder.matches(password, admin.getPassword())) {
-//        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-//                .body(ResponseUtils.createResponse( "Email & Password Do Not Match", null, null));
-//    }
-//
-//    String token = jwtHelper.generateToken(admin);
-//
-//    Map<String, Object> responseData = new HashMap<>();
-//    Map<String, Object> userDetails = new HashMap<>();
-//    userDetails.put("id", admin.getId());
-//    userDetails.put("name", admin.getName());
-//    userDetails.put("email", admin.getEmail());
-//
-//    responseData.put("user", userDetails);
-//
-//    ApiResponseTemplate<Map<String, Object>> response = ResponseUtils.createResponse( "success", token, responseData);
-//    return ResponseEntity.ok().body(response);
-//}
     @PostMapping("/login/admin")
     public ResponseEntity<Map<String, Object>> adminLogin(
             @RequestParam String email,
@@ -318,12 +307,23 @@ public ResponseEntity<ApiResponse1<Admin>> updateStatus(@RequestParam int status
 
 
     @PutMapping("/admin/approve-vendor")
-    public ResponseEntity<ApiResponse1<String>> approveVendor(@RequestParam long vendorId){
+    public ResponseEntity<ApiResponse1<String>> approveVendor(@RequestParam long vendorId) throws MessagingException {
         Vendors vendor = vendorRepository.findById(vendorId).orElseThrow
                 (()-> new RuntimeException("Vendor not Found"));
         System.out.println(vendor);
         vendor.setStatus(VendorStatus.ACTIVE);
         vendorRepository.save(vendor);
+        String emailContent = "<html>"
+                + "<body>"
+                + "<h2>Vendor Signup Approved</h2>"
+                + "<p>Dear " + vendor.getName() + ",</p>"
+                + "<p>We regret to inform you that your request for signup as a vendor has been approved. Please feel free to reach out to us if you have any questions or need further clarification.</p>"
+                + "<p>Best regards,</p>"
+                + "<p>The Vendor Management Team</p>"
+                + "</body>"
+                + "</html>";
+
+        emailService.sendHtmlEmail(vendor.getEmail(),"Your req for signup as vendor is approved",emailContent);
         return ResponseEntity.ok().body(ResponseUtils.createResponse1(null,"Vendor approved SuccessFully",true));
     }
     @PutMapping("/admin/active-vendor")
@@ -335,10 +335,21 @@ public ResponseEntity<ApiResponse1<Admin>> updateStatus(@RequestParam int status
         return ResponseEntity.ok().body(ResponseUtils.createResponse1(null,"Vendor active SuccessFully",true));
     }
     @PutMapping("/admin/reject-vendor")
-    public ResponseEntity<ApiResponse1<String>> rejectVendor(@RequestParam long vendorId){
+    public ResponseEntity<ApiResponse1<String>> rejectVendor(@RequestParam long vendorId) throws MessagingException {
         Vendors vendor = vendorRepository.findById(vendorId).orElseThrow(()-> new RuntimeException("Vendor Not Found"));
         vendor.setStatus(VendorStatus.REJECTED);
         vendorRepository.save(vendor);
+        String emailContent = "<html>"
+                + "<body>"
+                + "<h2>Vendor Signup Rejected</h2>"
+                + "<p>Dear " + vendor.getName() + ",</p>"
+                + "<p>We regret to inform you that your request for signup as a vendor has been rejected. Please feel free to reach out to us if you have any questions or need further clarification.</p>"
+                + "<p>Best regards,</p>"
+                + "<p>The Vendor Management Team</p>"
+                + "</body>"
+                + "</html>";
+
+        emailService.sendHtmlEmail(vendor.getEmail(),"Your req for signup as vendor is rejected",emailContent);
         return ResponseEntity.ok().body(ResponseUtils.createResponse1(null,"Vendor Rejected SuccessFully", true));
     }
     @PutMapping("/admin/inactive-vendor")
@@ -642,16 +653,19 @@ public ResponseEntity<ApiResponse2> getUsersByRegion2() {
 
         DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
 
+
         for (Blogs blog : list) {
             Map<String, Object> map = new LinkedHashMap<>();
 
             map.put("name", blog.getBlogName());
-
+            map.put("id",blog.getId());
+            map.put("blogCategoryId",blog.getBlogsCategory().getId());
             String categoryName = (blog.getBlogsCategory() != null) ? blog.getBlogsCategory().getBlogCategoryName() : "Unknown";
             map.put("category", categoryName);
+            map.put("content",blog.getBlogContent());
+            map.put("imageContent","https://infiniteb2b.com/var/www/infiniteb2b/springboot/blogs/"+blog.getBlogImage());
 
-//            map.put("totalViews", blog.getViews() != null ? blog.getViews() : 0);
-            map.put("totalViews",  0);
+            map.put("totalViews", 0);
 
             if (blog.getDt1() != null) {
                 String formattedDate = null;
@@ -676,8 +690,13 @@ public ResponseEntity<ApiResponse2> getUsersByRegion2() {
         return ResponseEntity.ok(response);
     }
     @GetMapping("/admin/allBlogsCategory")
-    public ResponseEntity<ApiResponse1> getAllBlogsCategory() {
+    public ResponseEntity<ApiResponse1> getAllBlogsCategory(@RequestParam(required = false)String name) {
         List<BlogsCategory> list = blogsCategoryRepository.findAll();
+        if (name != null && !name.isEmpty()) {
+            list = list.stream()
+                    .filter(blog -> blog.getBlogCategoryName() != null && blog.getBlogCategoryName().startsWith(name))
+                    .toList();
+        }
 
         List<Map<String, Object>> responseData = new ArrayList<>();
 
@@ -687,6 +706,7 @@ public ResponseEntity<ApiResponse2> getUsersByRegion2() {
             Map<String, Object> map = new LinkedHashMap<>();
 
             map.put("name", blog.getBlogCategoryName());
+            map.put("blogCategoryId",blog.getId());
 
             String categoryName = (blog.getBlogCategoryDescp() != null) ? blog.getBlogCategoryDescp(): "Unknown";
             map.put("description", categoryName);
@@ -774,12 +794,16 @@ public ResponseEntity<ApiResponse2> getMostDownloadedWhitePaperList() {
             Map<String, Object> map = new LinkedHashMap<>();
 
             map.put("name", newsletter.getTitle());
+            map.put("id",newsletter.getId());
 
-//            String categoryName = (newsletter.get() != null) ? newsletter.getCategory().getName() : "Unknown";
-            map.put("category", "Name");
+            List<User> userList = userService.getAllUsers();
 
-//            map.put("totalViews", newsletter.getViews() != null ? newsletter.getViews() : 0);
+
             map.put("totalViews", 0);
+            map.put("content",newsletter.getContent());
+            map.put("previewLink",newsletter.getPreviewLink());
+            map.put("image","https://infiniteb2b.com/var/www/infiniteb2b/springboot/newsletters/"+newsletter.getImagePath());
+            map.put("viewPath","https://infiniteb2b.com/newsletters");
 
             if (newsletter.getDt1() != null) {
                 String formattedDate = null;
@@ -810,6 +834,7 @@ public ResponseEntity<ApiResponse2> getMostDownloadedWhitePaperList() {
     List<Vendors> list = vendorRepository.findAll();
     List<Vendors> updatedList = list.stream()
             .filter(vendor -> "INACTIVE".equalsIgnoreCase(String.valueOf(vendor.getStatus())))
+            .filter(vendors -> vendors.getId()!=1)
             .collect(Collectors.toList());
     return ResponseEntity.ok().body(ResponseUtils.createResponse1(updatedList,"SUCCESS",true));
 }
@@ -818,21 +843,20 @@ public ResponseEntity<ApiResponse2> getMostDownloadedWhitePaperList() {
         List<Vendors> list = vendorRepository.findAll();
         List<Vendors> updatedList = list.stream()
                 .filter(vendor -> "ACTIVE".equalsIgnoreCase(String.valueOf(vendor.getStatus())))
+                .filter(vendors -> vendors.getId()!=1)
                 .collect(Collectors.toList());
         return ResponseEntity.ok().body(ResponseUtils.createResponse1(updatedList,"SUCCESS",true));
     }
     @GetMapping("/admin/getadmin")
 public ResponseEntity<ApiResponse1<List<Admin>>> getAllAdminList() {
-    // Fetch all admins from the repository
     List<Admin> list = adminService.adminRepository.findAll();
 
     List<Admin> updatedList = list.stream()
             .filter(admin -> admin.getAuthorities().stream()
                     .anyMatch(auth -> "SUPERADMIN".equalsIgnoreCase(auth.getAuthority())))
-            .sorted(Comparator.comparing(Admin::getName)) // Sort by name (or change field as needed)
+            .sorted(Comparator.comparing(Admin::getName))
             .collect(Collectors.toList());
 
-    // Create the response
     return ResponseEntity.ok().body(ResponseUtils.createResponse1(updatedList, "SUCCESS", true));
 }
 
@@ -1119,6 +1143,7 @@ public ResponseEntity<ApiResponse1<Map<?, ?>>> getAllWhitePapersList(@RequestPar
             whitepaperData.put("publishedDate", solutionSet.getDt1());
             whitepaperData.put("totalDownloads", totalDownloads);
             whitepaperData.put("totalViews", totalViews);
+            whitepaperData.put("publishedBy",solutionSet.getUploadedBy().getName());
 
 
             responseData.add(whitepaperData);
@@ -1208,6 +1233,673 @@ public ResponseEntity<ApiResponse1<Map<?, ?>>> getAllWhitePapersList(@RequestPar
         }
         return ResponseEntity.ok().body(ResponseUtils.createResponse1(campaignResponseList, "SUCCESS", true));
     }
+
+    @GetMapping("/admin/user-download-csv")
+    public ResponseEntity<ByteArrayResource> downloadUserCV() {
+        List<User> userList = userService.getAllUsers();
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+
+        try (OutputStreamWriter writer = new OutputStreamWriter(byteArrayOutputStream, StandardCharsets.UTF_8)) {
+            writer.write("User ID,First Name,Last Name,Email,Job Title,Organisation,Total Save Count,Total Download Count,Total View Count,IP Address,Registered At\n");
+
+            for (User user : userList) {
+                List<UserDataStorage> userData = userDataStorageRepository.findByUserIdList(user.getId());
+                List<String> userSubscribeCount = user.getFavorites() != null ? user.getFavorites() : new ArrayList<>();
+                int totalCategorySubscribedCount = 0;
+
+                for (String favorites : userSubscribeCount) {
+                    if (favorites != null && !favorites.isEmpty()) {
+                        String[] splitFavorites = favorites.split(",");
+                        totalCategorySubscribedCount += splitFavorites.length;
+                    }
+                }
+
+                long totalSaveCount = userData.stream().filter(count -> count.getSave() == 1).count();
+                long totalDownloadCount = userData.stream().filter(count -> count.getDownload() == 1).count();
+                long totalViewCount = userData.stream().filter(count -> count.getView() == 1).count();
+
+                String ipAddress = user.getIpAddress() != null ? user.getIpAddress() : "null";
+                DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+                String formattedDate = null;
+                LocalDateTime dateTime = null;
+                if (user.getDt1() != null) {
+                    try {
+                        if (user.getDt1() instanceof LocalDateTime) {
+                            dateTime = user.getDt1();
+                            formattedDate = dateTime.format(dateFormatter);
+                            System.out.println("Formated Date" + formattedDate);
+                            System.out.println("Formated Date" + dateFormatter);
+                        }
+                    } catch (Exception e) {
+                        formattedDate = "Invalid Date";
+                    }
+
+                }
+
+                writer.write(user.getId() + "," +
+                        user.getName() + "," +
+                        user.getLastName() + "," +
+                        user.getEmail() + "," +
+                        user.getJobTitle() + "," +
+                        user.getCompany() + "," +
+                        totalSaveCount + "," +
+                        totalDownloadCount + "," +
+                        totalViewCount + "," +
+                        ipAddress + "," +
+                        dateTime.format(dateFormatter) + "," +
+                        "0\n");
+            }
+
+            writer.flush();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(null);
+        }
+
+        ByteArrayResource resource = new ByteArrayResource(byteArrayOutputStream.toByteArray());
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=users_cv.csv");
+        headers.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM_VALUE);
+
+        return ResponseEntity.ok()
+                .headers(headers)
+                .body(resource);
+    }
+    @GetMapping("/admin/user-report")
+    public ResponseEntity<Map<String, Object>> getUserReport() {
+        List<User> userList = userService.getAllUsers();
+        Map<String, Object> responseData = new HashMap<>();
+        List<Map<String, Object>> userDataList = new ArrayList<>();
+
+        for (User user : userList) {
+            List<UserDataStorage> userData = userDataStorageRepository.findByUserIdList(user.getId());
+            List<String> userSubscribeCount = user.getFavorites() != null ? user.getFavorites() : new ArrayList<>();
+            int totalCategorySubscribedCount = 0;
+
+            for (String favorites : userSubscribeCount) {
+                if (favorites != null && !favorites.isEmpty()) {
+                    String[] splitFavorites = favorites.split(",");
+                    totalCategorySubscribedCount += splitFavorites.length;
+                }
+            }
+
+            long totalSaveCount = userData.stream().filter(count -> count.getSave() == 1).count();
+            long totalDownloadCount = userData.stream().filter(count -> count.getDownload() == 1).count();
+            long totalViewCount = userData.stream().filter(count -> count.getView() == 1).count();
+
+            String ipAddress = user.getIpAddress() != null ? user.getIpAddress() : "null";
+            DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+            String formattedDate = null;
+            LocalDateTime dateTime = null;
+
+            if (user.getDt1() != null) {
+                try {
+                    if (user.getDt1() instanceof LocalDateTime) {
+                        dateTime = user.getDt1();
+                        formattedDate = dateTime.format(dateFormatter);
+                    }
+                } catch (Exception e) {
+                    formattedDate = "Invalid Date";
+                }
+            }
+
+            Map<String, Object> userMap = new HashMap<>();
+            userMap.put("userId", user.getId());
+            userMap.put("firstName", user.getName());
+            userMap.put("lastName", user.getLastName());
+            userMap.put("email", user.getEmail());
+            userMap.put("jobTitle", user.getJobTitle());
+            userMap.put("organisation", user.getCompany());
+            userMap.put("totalSaveCount", totalSaveCount);
+            userMap.put("totalDownloadCount", totalDownloadCount);
+            userMap.put("totalViewCount", totalViewCount);
+            userMap.put("ipAddress", ipAddress);
+            userMap.put("registeredAt", formattedDate);
+
+            userDataList.add(userMap);
+        }
+
+        responseData.put("users", userDataList);
+
+        return ResponseEntity.ok(responseData);
+    }
+
+    @GetMapping("/admin/category-download-csv")
+    public ResponseEntity<ByteArrayResource> downloadCategoryCV() {
+        List<Category> categoryList = categoryRepo.findAll();
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+
+        try (OutputStreamWriter writer = new OutputStreamWriter(byteArrayOutputStream, StandardCharsets.UTF_8)) {
+            writer.write("Category ID,Category Name,WhitePaper Count,Total Download,Total Views,Total Save,Registered At\n");
+
+            for (Category category : categoryList) {
+                DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+                List<UserDataStorage> userDataStorageList = userDataStorageRepository.findByCategoryIdList(category.getId()) ;
+                long downloadCount=userDataStorageList.stream().filter(s->s.getDownload()==1).count();
+                long viewCount=userDataStorageList.stream().filter(s->s.getView()==1).count();
+                long saveCount=userDataStorageList.stream().filter(s->s.getSave()==1).count();
+                String formattedDate = null;
+                LocalDateTime dateTime = null;
+                if (category.getDt1() != null) {
+                    try {
+                        if (category.getDt1() instanceof LocalDateTime) {
+                            dateTime = category.getDt1();
+                            formattedDate = dateTime.format(dateFormatter);
+                            System.out.println("Formated Date" + formattedDate);
+                            System.out.println("Formated Date" + dateFormatter);
+                        }
+                    } catch (Exception e) {
+                        formattedDate = "Invalid Date";
+                    }
+
+                }
+
+                writer.write(category.getId() + "," +
+                        category.getName() + "," +
+                        category.getSolutionSets().size() + "," +
+                        downloadCount + "," +
+                        viewCount + "," +
+                        saveCount + ","+
+                        dateTime.format(dateFormatter) + "," +
+                        "0\n");
+            }
+
+            writer.flush();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(null);
+        }
+
+        ByteArrayResource resource = new ByteArrayResource(byteArrayOutputStream.toByteArray());
+
+        String fileName = "whitepaperSet_.csv";
+        String headerValue = "attachment; filename=" + fileName;
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.CONTENT_DISPOSITION, headerValue);
+        headers.add(HttpHeaders.CONTENT_TYPE, "application/octet-stream");
+        return ResponseEntity.ok()
+                .headers(headers)
+                .body(resource);
+    }
+    @GetMapping("/admin/category-report")
+    public ResponseEntity<Map<String, Object>> getCategoryReport() {
+        List<Category> categoryList = categoryRepo.findAll();
+        Map<String, Object> responseData = new HashMap<>();
+        List<Map<String, Object>> categoryDataList = new ArrayList<>();
+
+        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+
+        for (Category category : categoryList) {
+            List<UserDataStorage> userDataStorageList = userDataStorageRepository.findByCategoryIdList(category.getId());
+            long downloadCount = userDataStorageList.stream().filter(s -> s.getDownload() == 1).count();
+            long viewCount = userDataStorageList.stream().filter(s -> s.getView() == 1).count();
+            long saveCount = userDataStorageList.stream().filter(s -> s.getSave() == 1).count();
+            String formattedDate = "Invalid Date";
+            LocalDateTime dateTime = null;
+
+            if (category.getDt1() != null) {
+                try {
+                    if (category.getDt1() instanceof LocalDateTime) {
+                        dateTime = category.getDt1();
+                        formattedDate = dateTime.format(dateFormatter);
+                    }
+                } catch (Exception e) {
+                    formattedDate = "Invalid Date";
+                }
+            }
+
+            Map<String, Object> categoryMap = new HashMap<>();
+            categoryMap.put("categoryId", category.getId());
+            categoryMap.put("categoryName", category.getName());
+            categoryMap.put("whitePaperCount", category.getSolutionSets().size());
+            categoryMap.put("totalDownload", downloadCount);
+            categoryMap.put("totalViews", viewCount);
+            categoryMap.put("totalSave", saveCount);
+            categoryMap.put("registeredAt", formattedDate);
+
+            categoryDataList.add(categoryMap);
+        }
+
+        responseData.put("categories", categoryDataList);
+
+        return ResponseEntity.ok(responseData);
+    }
+
+
+    @GetMapping("/admin/category-by-id-download-csv")
+    public ResponseEntity<ByteArrayResource> downloadCategoryCV(@RequestParam long id) {
+        Category category = categoryRepo.findById(id).orElse(null);
+
+        if (category == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
+
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+
+        try (OutputStreamWriter writer = new OutputStreamWriter(byteArrayOutputStream, StandardCharsets.UTF_8)) {
+            writer.write("Category ID,Category Name,WhitePaper Name,Total Download,Total Views,Total Save,Registered At\n");
+
+            DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+            String formattedDate = "Invalid Date";
+
+
+
+            if (category.getSolutionSets() != null) {
+                for (SolutionSets solutionSet : category.getSolutionSets()) {
+                    if (solutionSet.getDt1() != null && category.getDt1() instanceof LocalDateTime) {
+                        LocalDateTime dateTime = (LocalDateTime) category.getDt1();
+                        formattedDate = dateTime.format(dateFormatter);
+                    }
+
+                    List<UserDataStorage> userDataStorageList = userDataStorageRepository.findBySolutionSetIdList(solutionSet.getId());
+
+                    long downloadCount = userDataStorageList.stream().filter(s -> s.getDownload() == 1).count();
+                    long viewCount = userDataStorageList.stream().filter(s -> s.getView() == 1).count();
+                    long saveCount = userDataStorageList.stream().filter(s -> s.getSave() == 1).count();
+
+                    writer.write(String.format("%d,%s,%s,%d,%d,%s\n",
+                            category.getId(),
+                            category.getName(),
+                            solutionSet.getTitle(),
+                            downloadCount,
+                            viewCount,
+                            saveCount,
+                            formattedDate));
+                }
+            } else {
+                writer.write(String.format("%d,%s,%s,%d,%d,%s\n",
+                        category.getId(),
+                        category.getName(),
+                        "No Solution Sets",
+                        0,
+                        0,
+                        0,
+                        formattedDate));
+            }
+
+            writer.flush();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+
+        ByteArrayResource resource = new ByteArrayResource(byteArrayOutputStream.toByteArray());
+
+        String fileName = "whitepaperSet_" + category.getName().replaceAll("\\s+", "_") + ".csv";
+        String headerValue = "attachment; filename=" + fileName;
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.CONTENT_DISPOSITION, headerValue);
+        headers.add(HttpHeaders.CONTENT_TYPE, "application/octet-stream");
+        return ResponseEntity.ok()
+                .headers(headers)
+                .body(resource);
+
+    }
+    @GetMapping("/admin/category-by-id-report")
+    public ResponseEntity<Map<String, Object>> getCategoryByIdReport(@RequestParam long id) {
+        Category category = categoryRepo.findById(id).orElse(null);
+
+        if (category == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
+
+        Map<String, Object> responseData = new HashMap<>();
+        List<Map<String, Object>> solutionSetDataList = new ArrayList<>();
+
+        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+        String formattedDate = "Invalid Date";
+
+        if (category.getSolutionSets() != null) {
+            for (SolutionSets solutionSet : category.getSolutionSets()) {
+                List<UserDataStorage> userDataStorageList = userDataStorageRepository.findBySolutionSetIdList(solutionSet.getId());
+                long downloadCount = userDataStorageList.stream().filter(s -> s.getDownload() == 1).count();
+                long viewCount = userDataStorageList.stream().filter(s -> s.getView() == 1).count();
+                long saveCount = userDataStorageList.stream().filter(s -> s.getSave() == 1).count();
+
+                if (solutionSet.getDt1() != null && category.getDt1() instanceof LocalDateTime) {
+                    LocalDateTime dateTime = (LocalDateTime) category.getDt1();
+                    formattedDate = dateTime.format(dateFormatter);
+                }
+
+                Map<String, Object> solutionSetMap = new HashMap<>();
+                solutionSetMap.put("categoryId", category.getId());
+                solutionSetMap.put("categoryName", category.getName());
+                solutionSetMap.put("whitePaperName", solutionSet.getTitle());
+                solutionSetMap.put("totalDownload", downloadCount);
+                solutionSetMap.put("totalViews", viewCount);
+                solutionSetMap.put("totalSave", saveCount);
+                solutionSetMap.put("registeredAt", formattedDate);
+
+                solutionSetDataList.add(solutionSetMap);
+            }
+        } else {
+            Map<String, Object> noSolutionSetMap = new HashMap<>();
+            noSolutionSetMap.put("categoryId", category.getId());
+            noSolutionSetMap.put("categoryName", category.getName());
+            noSolutionSetMap.put("whitePaperName", "No Solution Sets");
+            noSolutionSetMap.put("totalDownload", 0);
+            noSolutionSetMap.put("totalViews", 0);
+            noSolutionSetMap.put("totalSave", 0);
+            noSolutionSetMap.put("registeredAt", formattedDate);
+            solutionSetDataList.add(noSolutionSetMap);
+        }
+
+        responseData.put("solutionSets", solutionSetDataList);
+
+        return ResponseEntity.ok(responseData);
+    }
+
+    @GetMapping("/admin/whitepaper-by-id-download-csv")
+    public ResponseEntity<ByteArrayResource> downloadWhitePaperCV(@RequestParam long id) {
+        SolutionSets solutionSets = solutionSetsRepository.findById(id).orElse(null);
+
+        if (solutionSets == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
+
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+
+        try (OutputStreamWriter writer = new OutputStreamWriter(byteArrayOutputStream, StandardCharsets.UTF_8)) {
+            writer.write("WhitePaper ID,WhitePaper Name,Category Name,Prospect Name,Prospect Email,Prospect Designation,Prospect Company,Prospect Country,View,Download,Save,User Ip,View At,Saved At,Download At\n");
+
+            DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+            String formattedDate = "Invalid Date";
+
+            if (solutionSets.getDt1() != null && solutionSets.getDt1() instanceof LocalDateTime) {
+                LocalDateTime dateTime = (LocalDateTime) solutionSets.getDt1();
+                formattedDate = dateTime.format(dateFormatter);
+            }
+
+            List<UserDataStorage> userDataStorageList = userDataStorageRepository.findBySolutionSetIdList(solutionSets.getId());
+
+            for (UserDataStorage userData : userDataStorageList) {
+                String view = "No";
+                String download = "No";
+                String save = "No";
+                String viewAt = "-";
+                String savedAt = "-";
+                String downloadAt = "-";
+
+                if (userData.getDownload() == 1) {
+                    download = "Yes";
+                    downloadAt = formattedDate;
+                } else if (userData.getSave() == 1) {
+                    save = "Yes";
+                    savedAt = formattedDate;
+                } else if (userData.getView() == 1) {
+                    view = "Yes";
+                    viewAt = formattedDate;
+                }
+
+                User user = userService.getUserById(userData.getUser_id());
+
+//                "WhitePaper ID,WhitePaper Name,Category Name,Prospect Name,Prospect Email" +
+//                        ",Prospect Designation,Prospect Company,Prospect Country," +
+//                        "View,Download,Save,User Ip,View At,Saved At,Download At\n
+                writer.write(String.format("%d,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n",
+                        solutionSets.getId(),
+                        solutionSets.getTitle(),
+                        solutionSets.getCategory().getName(),
+                        user.getName(),
+                        user.getEmail(),
+                        user.getJobTitle(),
+                        user.getCompany(),
+                        user.getCountry(),
+                        view,
+                        download,
+                        save,
+                        userData.getIp(),
+                        viewAt,
+                        savedAt,
+                        downloadAt));
+            }
+
+            writer.flush();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+
+        ByteArrayResource resource = new ByteArrayResource(byteArrayOutputStream.toByteArray());
+
+        String fileName = "whitepaper_" + solutionSets.getTitle().replaceAll("\\s+", "_") + ".csv";
+        String headerValue = "attachment; filename=" + fileName;
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.CONTENT_DISPOSITION, headerValue);
+        headers.add(HttpHeaders.CONTENT_TYPE, "application/octet-stream");
+
+        return ResponseEntity.ok()
+                .headers(headers)
+                .body(resource);
+    }
+    @GetMapping("/admin/whitepaper-download-csv")
+    public ResponseEntity<ByteArrayResource> downloadWhitePaperCV() {
+        List<SolutionSets> solutionSets = solutionSetsRepository.findAll();
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+
+        try (OutputStreamWriter writer = new OutputStreamWriter(byteArrayOutputStream, StandardCharsets.UTF_8)) {
+            writer.write("WhitePaper ID,WhitePaper Name,Category Name,Uploaded By,Total Download,Total Views,Total Save,Registered At\n");
+
+            for (SolutionSets sets : solutionSets) {
+                DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+                List<UserDataStorage> userDataStorageList = userDataStorageRepository.findBySolutionSetIdList(sets.getId()) ;
+                long downloadCount=userDataStorageList.stream().filter(s->s.getDownload()==1).count();
+                long viewCount=userDataStorageList.stream().filter(s->s.getView()==1).count();
+                long saveCount=userDataStorageList.stream().filter(s->s.getSave()==1).count();
+                String formattedDate = null;
+                LocalDateTime dateTime = null;
+                if (sets.getDt1() != null) {
+                    try {
+                        if (sets.getDt1() instanceof LocalDateTime) {
+                            dateTime = sets.getDt1();
+                            formattedDate = dateTime.format(dateFormatter);
+                            System.out.println("Formated Date" + formattedDate);
+                            System.out.println("Formated Date" + dateFormatter);
+                        }
+                    } catch (Exception e) {
+                        formattedDate = "Invalid Date";
+                    }
+
+                }
+                String title = sets.getTitle().replace(","," ");
+
+                writer.write(sets.getId() + "," +
+                        title + "," +
+                        sets.getCategory().getName() + "," +
+                        sets.getUploadedBy().getName() + ","+
+                        downloadCount + "," +
+                        viewCount + "," +
+                        saveCount + ","+
+                        dateTime.format(dateFormatter) + "," +
+                        "0\n");
+            }
+
+            writer.flush();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(null);
+        }
+
+        ByteArrayResource resource = new ByteArrayResource(byteArrayOutputStream.toByteArray());
+
+        String fileName = "Allwhitepaper_" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss")) + ".csv";
+
+        String headerValue = "attachment; filename=" + fileName;
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.CONTENT_DISPOSITION, headerValue);
+        headers.add(HttpHeaders.CONTENT_TYPE, "application/octet-stream");
+        return ResponseEntity.ok()
+                .headers(headers)
+                .body(resource);
+    }
+    @GetMapping("/admin/whitepaper-report")
+    public ResponseEntity<Map<String, Object>> getWhitePaperReport() {
+        List<SolutionSets> solutionSets = solutionSetsRepository.findAll();
+        Map<String, Object> reportData = new HashMap<>();
+        List<Map<String, Object>> whitePaperDetails = new ArrayList<>();
+
+        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+
+        for (SolutionSets sets : solutionSets) {
+            Map<String, Object> whitePaperReport = new HashMap<>();
+            List<UserDataStorage> userDataStorageList = userDataStorageRepository.findBySolutionSetIdList(sets.getId());
+            long downloadCount = userDataStorageList.stream().filter(s -> s.getDownload() == 1).count();
+            long viewCount = userDataStorageList.stream().filter(s -> s.getView() == 1).count();
+            long saveCount = userDataStorageList.stream().filter(s -> s.getSave() == 1).count();
+
+            String formattedDate = "Invalid Date";
+            if (sets.getDt1() != null) {
+                try {
+                    if (sets.getDt1() instanceof LocalDateTime) {
+                        LocalDateTime dateTime = sets.getDt1();
+                        formattedDate = dateTime.format(dateFormatter);
+                    }
+                } catch (Exception e) {
+                    formattedDate = "Invalid Date";
+                }
+            }
+
+            whitePaperReport.put("WhitePaper ID", sets.getId());
+            whitePaperReport.put("WhitePaper Name", sets.getTitle());
+            whitePaperReport.put("Category Name", sets.getCategory().getName());
+            whitePaperReport.put("Uploaded By", sets.getUploadedBy().getName());
+            whitePaperReport.put("Total Download", downloadCount);
+            whitePaperReport.put("Total Views", viewCount);
+            whitePaperReport.put("Total Save", saveCount);
+            whitePaperReport.put("Registered At", formattedDate);
+
+            whitePaperDetails.add(whitePaperReport);
+        }
+
+        reportData.put("whitePapers", whitePaperDetails);
+
+        return ResponseEntity.ok(reportData);
+    }
+
+    @GetMapping("/admin/whitepaper-by-id-download-report")
+    public ResponseEntity<Map<String, Object>> getWhitePaperReport(@RequestParam long id) {
+        SolutionSets solutionSets = solutionSetsRepository.findById(id).orElse(null);
+
+        if (solutionSets == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
+
+        Map<String, Object> responseData = new HashMap<>();
+        responseData.put("whitePaperId", solutionSets.getId());
+        responseData.put("whitePaperName", solutionSets.getTitle());
+        responseData.put("categoryName", solutionSets.getCategory().getName());
+
+        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+        String formattedDate = "Invalid Date";
+
+        if (solutionSets.getDt1() != null && solutionSets.getDt1() instanceof LocalDateTime) {
+            LocalDateTime dateTime = (LocalDateTime) solutionSets.getDt1();
+            formattedDate = dateTime.format(dateFormatter);
+        }
+
+        List<Map<String, Object>> userDataList = new ArrayList<>();
+        List<UserDataStorage> userDataStorageList = userDataStorageRepository.findBySolutionSetIdList(solutionSets.getId());
+
+        for (UserDataStorage userData : userDataStorageList) {
+            Map<String, Object> userDataMap = new HashMap<>();
+
+            String view = "No";
+            String download = "No";
+            String save = "No";
+            String viewAt = "-";
+            String savedAt = "-";
+            String downloadAt = "-";
+
+            if (userData.getDownload() == 1) {
+                download = "Yes";
+                downloadAt = formattedDate;
+            } else if (userData.getSave() == 1) {
+                save = "Yes";
+                savedAt = formattedDate;
+            } else if (userData.getView() == 1) {
+                view = "Yes";
+                viewAt = formattedDate;
+            }
+
+            User user = userService.getUserById(userData.getUser_id());
+
+            userDataMap.put("userName", user.getName());
+            userDataMap.put("userEmail", user.getEmail());
+            userDataMap.put("userDesignation", user.getJobTitle());
+            userDataMap.put("userCompany", user.getCompany());
+            userDataMap.put("userCountry", user.getCountry());
+            userDataMap.put("view", view);
+            userDataMap.put("download", download);
+            userDataMap.put("save", save);
+            userDataMap.put("userIp", userData.getIp());
+            userDataMap.put("viewAt", viewAt);
+            userDataMap.put("savedAt", savedAt);
+            userDataMap.put("downloadAt", downloadAt);
+
+            userDataList.add(userDataMap);
+        }
+
+        responseData.put("userData", userDataList);
+
+        return ResponseEntity.ok(responseData);
+    }
+
+
+    @GetMapping("/view-all-downloaded-by-userid")
+    public ResponseEntity<ApiResponse1<Map<?,?>>> getAllViewDownloaded(@RequestParam long id){
+        List<UserDataStorage> userDataStorage = userDataStorageRepository.findByUserIdList(id);
+        List<UserDataStorage> filteredData=userDataStorage.stream().filter(userDataStorage1 -> userDataStorage1.getDownload()==1&&userDataStorage1.getUser_id()==id).toList();
+        List<UserDataStorage> filteredSavedData=userDataStorage.stream().filter(userDataStorage1 -> userDataStorage1.getSave()==1&&userDataStorage1.getUser_id()==id).toList();
+        List<UserDataStorage> filteredViewData=userDataStorage.stream().filter(userDataStorage1 -> userDataStorage1.getView()==1&&userDataStorage1.getUser_id()==id).toList();
+
+        List<SolutionSets> solutionSets = new ArrayList<>();
+        for (UserDataStorage userData : filteredData) {
+            Long solutionSetId = userData.getSolutionSetId();
+
+            Optional<SolutionSets> solutionSetOptional = solutionSetsRepository.findById(solutionSetId);
+
+            solutionSetOptional.ifPresent(solutionSets::add);
+        }List<SolutionSets> solutionViewSets = new ArrayList<>();
+        for (UserDataStorage userData : filteredViewData) {
+            Long solutionSetId = userData.getSolutionSetId();
+
+            Optional<SolutionSets> solutionSetOptional = solutionSetsRepository.findById(solutionSetId);
+
+            solutionSetOptional.ifPresent(solutionViewSets::add);
+        }
+        List<SolutionSets> solutionSaveSets = new ArrayList<>();
+        for (UserDataStorage userData : filteredSavedData) {
+            Long solutionSetId = userData.getSolutionSetId();
+
+            Optional<SolutionSets> solutionSetOptional = solutionSetsRepository.findById(solutionSetId);
+
+            solutionSetOptional.ifPresent(solutionSaveSets::add);
+        }
+        Map<String,Object> map = new HashMap<>();
+
+        map.put("allDownloaded",solutionSets);
+        map.put("allViewed",solutionViewSets);
+        map.put("allSaved",solutionSaveSets);
+        return ResponseEntity.ok().body(ResponseUtils.createResponse1(map,"SUCCESS",true));
+
+
+    }
+
+
+
+
+
+
+
+
+
+
+
 
 
 }

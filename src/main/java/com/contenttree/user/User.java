@@ -29,6 +29,7 @@ public class User implements UserDetails {
     private long id;
 
     private String name;
+    private String email;
     private String lastName;
     private String country;
     private long phone;
@@ -36,9 +37,6 @@ public class User implements UserDetails {
     private String company;
     private int isSubscriber;
 
-    @Column(unique = true)
-    @Email
-    private String email;
 
     @Enumerated(EnumType.STRING)
     private UserStatus status;
@@ -49,12 +47,14 @@ public class User implements UserDetails {
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "user_favorites", joinColumns = @JoinColumn(name = "user_id"))
     @Column(name = "favorite_item")
+    @JsonIgnore
     private List<String> favorites;
 
 
     @OneToMany
     @JoinColumn(name = "user_id")
     @JsonManagedReference
+    @JsonIgnore
     private List<NewsLetter> newsLetterList;
 
     @JsonIgnore
@@ -66,6 +66,9 @@ public class User implements UserDetails {
 
     @JsonIgnore
     private boolean isEnabled;
+
+    @JsonIgnore
+    private int isNewsLetterSubscriber;
 
     @JsonIgnore
     private LocalDateTime dt1;

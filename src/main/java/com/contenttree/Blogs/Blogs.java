@@ -28,7 +28,7 @@ public class Blogs {
 
     private String blogImage;
 
-    private String blogPath;
+    private String blogContent;
 
 //    @JsonBackReference
 //    @ManyToOne

@@ -2,6 +2,7 @@ package com.contenttree.vendor;
 
 import org.apache.catalina.LifecycleState;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -11,6 +12,8 @@ import java.util.stream.Collectors;
 public class VendorsService {
     @Autowired
     VendorRepository vendorsRepository;
+    @Autowired
+    PasswordEncoder passwordEncoder;
 
     public List<Vendors> getAllVendors(){
         return vendorsRepository.findAll();
@@ -36,29 +39,41 @@ public class VendorsService {
     public Vendors getVendorsById(long id){
         return vendorsRepository.findById(id).orElse(null);
     }
-    public Vendors updateVendorDetails(Long vendorId, String name, String phone, String companyName,
-                                       String location, String password) {
-        Vendors vendor = vendorsRepository.findById(vendorId)
+    public Vendors updateVendorDetails(Vendors vendor) {
+        Vendors existingVendor = vendorsRepository.findById(vendor.getId())
                 .orElseThrow(() -> new RuntimeException("Vendor not found"));
 
-        if (name != null) {
-            vendor.setName(name);
+        if (vendor.getName() != null && !vendor.getName().isEmpty()) {
+            existingVendor.setName(vendor.getName());
         }
-        if (phone != null) {
-            vendor.setPhone(phone);
+        if (vendor.getLastName() != null && !vendor.getLastName().isEmpty()) {
+            existingVendor.setLastName(vendor.getLastName());
         }
-        if (companyName != null) {
-            vendor.setCompanyName(companyName);
+        if (vendor.getPhoneNo() != null && !vendor.getPhoneNo().isEmpty()) {
+            existingVendor.setPhoneNo(vendor.getPhoneNo());
         }
-        if (location != null) {
-            vendor.setLocation(location);
+        if (vendor.getCompanyName() != null && !vendor.getCompanyName().isEmpty()) {
+            existingVendor.setCompanyName(vendor.getCompanyName());
         }
-        if (password != null) {
-            vendor.setPassword(password);
+        if (vendor.getDesignation() != null && !vendor.getDesignation().isEmpty()) {
+            existingVendor.setDesignation(vendor.getDesignation());
+        }
+        if (vendor.getCountry() != null && !vendor.getCountry().isEmpty()) {
+            existingVendor.setCountry(vendor.getCountry());
+        }
+        if (vendor.getState() != null && !vendor.getState().isEmpty()) {
+            existingVendor.setState(vendor.getState());
+        }
+        if (vendor.getZipCode() != null && !vendor.getZipCode().isEmpty()) {
+            existingVendor.setZipCode(vendor.getZipCode());
+        }
+        if (vendor.getPassword() != null && !vendor.getPassword().isEmpty()) {
+            existingVendor.setPassword(passwordEncoder.encode(vendor.getPassword()));
         }
 
-        return vendorsRepository.save(vendor);
+        return vendorsRepository.save(existingVendor);
     }
+
 
 
     public Vendors getVendorsByEmail(String email) {

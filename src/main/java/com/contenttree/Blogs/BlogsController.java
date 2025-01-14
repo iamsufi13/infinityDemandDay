@@ -16,6 +16,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/blogs")
@@ -37,8 +38,15 @@ public class BlogsController {
         return ResponseEntity.ok().body(ResponseUtils.createResponse1(blogsCategory,"SUCCESS",true));
     }
     @GetMapping("/get-blogs-category")
-    public ResponseEntity<ApiResponse1<List<BlogsCategory>>> getAllBlogsCategory(){
+    public ResponseEntity<ApiResponse1<List<BlogsCategory>>> getAllBlogsCategory(@RequestParam(required = false)String name){
+
         List<BlogsCategory> list = blogsCategoryRepository.findAll();
+
+        if (name != null) {
+            list = list.stream()
+                    .filter(entry -> entry.getBlogCategoryName().toLowerCase().startsWith(name.toLowerCase()))
+                    .collect(Collectors.toList());
+        }
 
         return ResponseEntity.ok().body(ResponseUtils.createResponse1(list,"SUCCESS",true));
     }
@@ -49,9 +57,6 @@ public class BlogsController {
         List<Blogs> list = blogsRepository.findAll().stream().map(blog -> {
             if (blog.getBlogImage() != null && !blog.getBlogImage().isEmpty()) {
                 blog.setBlogImage(basePath + blog.getBlogImage());
-            }
-            if (blog.getBlogPath() != null && !blog.getBlogPath().isEmpty()) {
-                blog.setBlogPath(basePath + blog.getBlogPath());
             }
             return blog;
         }).toList();
@@ -100,7 +105,7 @@ public class BlogsController {
 public ResponseEntity<ApiResponse1<Blogs>> addBlogs(
         @RequestParam String name,
         @RequestParam MultipartFile image,
-        @RequestParam MultipartFile file,
+        @RequestParam String blogContent,
         @RequestParam long blogsCategoryId) {
 
     String uploadDir = "/var/www/infiniteb2b/springboot/blogs/";
@@ -110,16 +115,9 @@ public ResponseEntity<ApiResponse1<Blogs>> addBlogs(
         directory.mkdirs();
     }
 
-    String fileName = null;
     String imageName = null;
 
     try {
-        if (file != null && !file.isEmpty()) {
-            fileName = file.getOriginalFilename();
-            Path filePath = Paths.get(uploadDir + "files/" + fileName);
-            Files.createDirectories(filePath.getParent());
-            Files.write(filePath, file.getBytes());
-        }
 
         if (image != null && !image.isEmpty()) {
             imageName = image.getOriginalFilename();
@@ -142,12 +140,72 @@ public ResponseEntity<ApiResponse1<Blogs>> addBlogs(
     Blogs blogs = new Blogs();
     blogs.setBlogName(name);
     blogs.setBlogsCategory(blogsCategory);
-    blogs.setBlogPath(fileName != null ? "files/" + fileName : "");
+    blogs.setBlogContent(blogContent);
     blogs.setBlogImage(imageName != null ? "images/" + imageName : "");
     blogsRepository.save(blogs);
 
     return ResponseEntity.ok().body(ResponseUtils.createResponse1(blogs, "SUCCESS", true));
 }
+    @PutMapping("/edit-blogs")
+    public ResponseEntity<ApiResponse1<Blogs>> editBlogs(
+            @RequestParam long blogId,
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) MultipartFile image,
+            @RequestParam (required = false)String content,
+            @RequestParam (required = false)Long blogsCategoryId) {
+
+        Blogs existingBlog = blogsRepository.findById(blogId).orElse(null);
+
+        if (existingBlog == null) {
+            return ResponseEntity.badRequest()
+                    .body(ResponseUtils.createResponse1(null, "Blog not found with ID: " + blogId, false));
+        }
+        BlogsCategory blogsCategory = null;
+
+        if (blogsCategoryId==null){
+           blogsCategory = blogsCategoryRepository.findById(existingBlog.getBlogsCategory().getId()).orElse(null);
+        }
+        else {blogsCategory = blogsCategoryRepository.findById(blogsCategoryId).orElse(null);}
+
+
+
+        if (blogsCategory == null) {
+            return ResponseEntity.badRequest()
+                    .body(ResponseUtils.createResponse1(null, "Invalid Blogs Category ID", false));
+        }
+
+        existingBlog.setBlogName(name);
+        existingBlog.setBlogContent(content);
+        existingBlog.setBlogsCategory(blogsCategory);
+
+        String uploadDir = "/var/www/infiniteb2b/springboot/blogs/";
+        String imageName = existingBlog.getBlogImage();
+
+        try {
+            if (image != null && !image.isEmpty()) {
+                imageName = image.getOriginalFilename();
+                Path imagePath = Paths.get(uploadDir + "images/" + imageName);
+                Files.createDirectories(imagePath.getParent());
+                Files.write(imagePath, image.getBytes());
+            }
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ResponseUtils.createResponse1(null, "File or image upload failed: " + e.getMessage(), false));
+        }
+
+        existingBlog.setBlogImage(imageName != null ? "images/" + imageName : existingBlog.getBlogImage());
+
+        blogsRepository.save(existingBlog);
+
+        return ResponseEntity.ok().body(ResponseUtils.createResponse1(existingBlog, "Blog updated successfully", true));
+    }
+    @DeleteMapping("/delete-blog/{id}")
+    public ResponseEntity<ApiResponse1<String>> delteBlogbyId(@PathVariable long id){
+        blogsRepository.deleteById(id);
+        return ResponseEntity.ok().body(ResponseUtils.createResponse1(null,"DELETED",true));
+    }
+
+
 
 
 }

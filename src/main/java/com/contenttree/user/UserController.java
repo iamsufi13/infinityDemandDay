@@ -132,7 +132,8 @@ public ResponseEntity<?> registerUser(@RequestParam(required = false) String nam
                                       @RequestParam(required = false) String country,
                                       @RequestParam(required = false) String jobTitle,
                                       @RequestParam(required = false) String company,
-                                      @RequestParam(required = false) Long phone) throws MessagingException, IOException {
+                                      @RequestParam(required = false) Long phone,
+                                      HttpServletRequest request) throws MessagingException, IOException {
 
     if (name == null || name.isEmpty()) {
         return ResponseEntity.badRequest().body(ResponseUtils.createResponse1(null, "Name is required", false));
@@ -158,6 +159,7 @@ public ResponseEntity<?> registerUser(@RequestParam(required = false) String nam
     if (phone == null || phone <= 0) {
         return ResponseEntity.badRequest().body(ResponseUtils.createResponse1(null, "Phone number is required and must be valid", false));
     }
+    String clientIp = getClientIp(request);
 
     User user = new User();
     user.setName(name);
@@ -170,21 +172,23 @@ public ResponseEntity<?> registerUser(@RequestParam(required = false) String nam
     user.setCountry(country);
     user.setLastName(lastName);
     user.setPhone(phone);
+    user.setIsNewsLetterSubscriber(1);
     user.setJobTitle(jobTitle);
+    user.setIpAddress(clientIp);
 
     if (adminService.getAdminByEmailId(email) != null) {
-        return ResponseEntity.badRequest().body(ResponseUtils.createResponse1(null, "Cannot create account. Email is already registered.", false));
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(ResponseUtils.createResponse1(null, "Email is already registered.", false));
     }
     if (vendorsService.getVendorsByEmail(email) != null) {
-        return ResponseEntity.badRequest().body(ResponseUtils.createResponse1(null, "Cannot create account. Email is already registered as a vendor.", false));
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(ResponseUtils.createResponse1(null, "Email is already registered as a vendor.", false));
     }
 
-    ResponseEntity<?> response = userService.saveUser(user);
-    if (response.getStatusCode() == HttpStatus.CREATED) {
-        return ResponseEntity.ok().body(ResponseUtils.createResponse1(user, "Account created successfully", true));
-    } else {
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ResponseUtils.createResponse1(null, "Failed to create account", false));
-    }
+
+    userService.saveUser(user);
+    System.out.println("user_____"+user);
+
+    return ResponseEntity.ok().body(ResponseUtils.createResponse1(user, "Account created successfully", true));
+
 }
 
 
@@ -1200,6 +1204,48 @@ public ResponseEntity<ApiResponse1<?>> toggleFavorite(@AuthenticationPrincipal U
                         .ifPresent(curatedWhitePapers::add);
             }
 
+            List<Map<String, Object>> mostDownloadedMap = userDataStorageRepository.findAll()
+                    .stream()
+                    .filter(userData -> userData.getDownload() > 0)
+                    .sorted((data1, data2) -> Long.compare(data2.getDownload(), data1.getDownload()))
+                    .map(userData -> solutionSetsRepository.findById(userData.getSolutionSetId()).orElse(null))
+                    .filter(Objects::nonNull)
+                    .limit(10)
+                    .map(solutionSet -> {
+                        Map<String, Object> solutionMap = new HashMap<>();
+
+                        solutionMap.put("title", solutionSet.getTitle());
+                        solutionMap.put("id", solutionSet.getId());
+                        solutionMap.put("description", solutionSet.getDescription());
+                        solutionMap.put("imgSrc", solutionSet.getImagePath());
+                        solutionMap.put("category", solutionSet.getCategory().getName());
+                        solutionMap.put("category_id", solutionSet.getCategory().getId());
+
+                        return solutionMap;
+                    })
+                    .toList();
+            List<Map<String, Object>> mostViewedMap = userDataStorageRepository.findAll()
+                    .stream()
+                    .filter(userData -> userData.getView() > 0)
+                    .sorted((data1, data2) -> Long.compare(data2.getView(), data1.getView()))
+                    .map(userData -> solutionSetsRepository.findById(userData.getSolutionSetId()).orElse(null))
+                    .filter(Objects::nonNull)
+                    .limit(10)
+                    .map(solutionSet -> {
+                        Map<String, Object> solutionMap = new HashMap<>();
+
+                        solutionMap.put("title", solutionSet.getTitle());
+                        solutionMap.put("id", solutionSet.getId());
+                        solutionMap.put("description", solutionSet.getDescription());
+                        solutionMap.put("imgSrc", solutionSet.getImagePath());
+                        solutionMap.put("category", solutionSet.getCategory().getName());
+                        solutionMap.put("category_id", solutionSet.getCategory().getId());
+
+                        return solutionMap;
+                    })
+                    .toList();
+            List<SolutionSets> recentlyAdded = solutionSetsRepository.findAll().stream().
+                    sorted(Comparator.comparing(SolutionSets::getDt1).reversed()).limit(10).toList();
 
 
             List<Category> topicsThatMatterYou = categoryRepository.findAll()
@@ -1211,6 +1257,8 @@ public ResponseEntity<ApiResponse1<?>> toggleFavorite(@AuthenticationPrincipal U
             map.put("curatedWhitePapers",curatedWhitePapers);
             map.put("topicsThatMatterYou",topicsThatMatterYou);
             map.put("STATISTICS",statsCount);
+            map.put("mostDownloaded",mostDownloadedMap);
+            map.put("trendingWhitePapers",mostViewedMap);
 
 
             return ResponseEntity.ok().body(ResponseUtils.createResponse1(map, "SUCCESS", true));
@@ -1265,15 +1313,61 @@ public ResponseEntity<ApiResponse1<?>> toggleFavorite(@AuthenticationPrincipal U
                         .ifPresent(curatedWhitePapers::add);
             }
 
+
             List<Category> topicsThatMatterYou = categoryRepository.findAll()
                     .stream()
                     .limit(14)
                     .collect(Collectors.toList());
+            List<Map<String, Object>> mostDownloadedMap = userDataStorageRepository.findAll()
+                    .stream()
+                    .filter(userData -> userData.getDownload() > 0)
+                    .sorted((data1, data2) -> Long.compare(data2.getDownload(), data1.getDownload()))
+                    .map(userData -> solutionSetsRepository.findById(userData.getSolutionSetId()).orElse(null))
+                    .filter(Objects::nonNull)
+                    .limit(10)
+                    .map(solutionSet -> {
+                        Map<String, Object> solutionMap = new HashMap<>();
+
+                        solutionMap.put("title", solutionSet.getTitle());
+                        solutionMap.put("id", solutionSet.getId());
+                        solutionMap.put("description", solutionSet.getDescription());
+                        solutionMap.put("imgSrc", solutionSet.getImagePath());
+                        solutionMap.put("category", solutionSet.getCategory().getName());
+                        solutionMap.put("category_id", solutionSet.getCategory().getId());
+
+                        return solutionMap;
+                    })
+                    .toList();
+            List<Map<String, Object>> mostViewedMap = userDataStorageRepository.findAll()
+                    .stream()
+                    .filter(userData -> userData.getView() > 0)
+                    .sorted((data1, data2) -> Long.compare(data2.getView(), data1.getView()))
+                    .map(userData -> solutionSetsRepository.findById(userData.getSolutionSetId()).orElse(null))
+                    .filter(Objects::nonNull)
+                    .limit(10)
+                    .map(solutionSet -> {
+                        Map<String, Object> solutionMap = new HashMap<>();
+
+                        solutionMap.put("title", solutionSet.getTitle());
+                        solutionMap.put("id", solutionSet.getId());
+                        solutionMap.put("description", solutionSet.getDescription());
+                        solutionMap.put("imgSrc", solutionSet.getImagePath());
+                        solutionMap.put("category", solutionSet.getCategory().getName());
+                        solutionMap.put("category_id", solutionSet.getCategory().getId());
+
+                        return solutionMap;
+                    })
+                    .collect(Collectors.toList());
+
+            List<SolutionSets> recentlyAdded = solutionSetsRepository.findAll().stream().
+                    sorted(Comparator.comparing(SolutionSets::getDt1).reversed()).limit(10).toList();
             Map<String,Object> map = new HashMap<>();
             map.put("poweringYourBusiness",maps);
             map.put("curatedWhitePapers",curatedWhitePapers);
             map.put("topicsThatMatterYou",topicsThatMatterYou);
             map.put("STATISTICS",statsCount);
+            map.put("mostDownloaded",mostDownloadedMap);
+            map.put("trendingWhitePapers",mostViewedMap);
 
             return ResponseEntity.ok().body(ResponseUtils.createResponse1(map, "SUCCESS", true));
         }
@@ -1351,6 +1445,15 @@ public ResponseEntity<ApiResponse1<?>> toggleFavorite(@AuthenticationPrincipal U
         return ResponseEntity.ok().body(ResponseUtils.createResponse1(map,"SUCCESS",true));
 
 
+    }
+    @PostMapping("/newsletter-subscribe")
+    public ResponseEntity<String> newsletterSubscribe(@AuthenticationPrincipal User user){
+        if (user.getIsNewsLetterSubscriber()==1){
+            user.setIsNewsLetterSubscriber(0);
+        } else {
+            user.setIsNewsLetterSubscriber(1);
+        }
+        return ResponseEntity.ok().body("User NewsLetter updated");
     }
     @GetMapping("/view-all-viewed")
     public ResponseEntity<ApiResponse1<Map<?,?>>> getAllViewViewed(@AuthenticationPrincipal User user){

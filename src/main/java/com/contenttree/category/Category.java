@@ -38,11 +38,6 @@ public class Category {
     @JsonManagedReference
     @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, orphanRemoval = true,fetch = FetchType.LAZY)
     private List<SolutionSets> solutionSets;
-    @JsonIgnore
-    @JsonManagedReference
-    @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, orphanRemoval = true,fetch = FetchType.LAZY)
-    private List<NewsLetter> newsLetters;
-
 
     @JsonIgnore
     private LocalDateTime dt1;

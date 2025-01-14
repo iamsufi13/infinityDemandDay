@@ -35,10 +35,8 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.time.LocalDateTime;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @CrossOrigin("http://localhost:3000/")
@@ -163,23 +161,63 @@ public class VendorController {
     }
 
 
-    @PostMapping("/register")
-    public ResponseEntity<String> registerVendor(@RequestParam String email,
-                                                 @RequestParam String password,
-                                                 @RequestParam String name) {
-        Vendors vendors = new Vendors();
-        vendors.setName(name);
-        String hashPassword = passwordEncoder.encode(password);
-        vendors.setPassword(hashPassword);
-        vendors.setEmail(email);
+//    @PostMapping("/register")
+//    public ResponseEntity<String> registerVendor(@RequestParam String email,
+//                                                 @RequestParam String password,
+//                                                 @RequestParam String name) {
+//        Vendors vendors = new Vendors();
+//        vendors.setName(name);
+//        String hashPassword = passwordEncoder.encode(password);
+//        vendors.setPassword(hashPassword);
+//        vendors.setEmail(email);
+//
+//        if (adminService.getAdminByEmailId(email) == null && userService.getUserByEmail(email) == null) {
+//            vendorsService.registerVendors(vendors);
+//            return ResponseEntity.ok("Vendor Registered Successfully. Waiting for Approval From Central Team");
+//        }
+//
+//        return ResponseEntity.ok("Email Already Registered. Please Try Again");
+//    }
+@PostMapping("/register")
+public ResponseEntity<String> registerVendor(@RequestParam String email,
+                                             @RequestParam String password,
+                                             @RequestParam String name,
+                                             @RequestParam String lastName,
+                                             @RequestParam String phoneNo,
+                                             @RequestParam String companyName,
+                                             @RequestParam String designation,
+                                             @RequestParam String country,
+                                             @RequestParam String state,
+                                             @RequestParam String zipCode) {
 
-        if (adminService.getAdminByEmailId(email) == null && userService.getUserByEmail(email) == null) {
-            vendorsService.registerVendors(vendors);
-            return ResponseEntity.ok("Vendor Registered Successfully. Waiting for Approval From Central Team");
-        }
-
-        return ResponseEntity.ok("Email Already Registered. Please Try Again");
+    if (email == null || email.isEmpty() || password == null || password.isEmpty() || name == null || name.isEmpty()) {
+        return ResponseEntity.badRequest().body("Email, password, and name are required.");
     }
+
+    if (adminService.getAdminByEmailId(email) != null || userService.getUserByEmail(email) != null) {
+        return ResponseEntity.badRequest().body("Email Already Registered. Please Try Again");
+    }
+
+    Vendors vendor = Vendors.builder()
+            .email(email)
+            .password(passwordEncoder.encode(password))
+            .name(name)
+            .lastName(lastName != null ? lastName : "")
+            .phoneNo(phoneNo != null ? phoneNo : "")
+            .companyName(companyName != null ? companyName : "")
+            .designation(designation != null ? designation : "")
+            .country(country != null ? country : "")
+            .state(state != null ? state : "")
+            .zipCode(zipCode != null ? zipCode : "")
+            .status(VendorStatus.PENDING)
+            .dt1(LocalDateTime.now())
+            .build();
+
+    vendorsService.registerVendors(vendor);
+
+    return ResponseEntity.ok("Vendor Registered Successfully. Waiting for Approval From Central Team");
+}
+
 
     @PostMapping("/register123")
     public ResponseEntity<String> registerVendor(@RequestBody VendorDto vendorDTO) {
@@ -200,10 +238,15 @@ public class VendorController {
 
         return ResponseEntity.ok("Email Already Registered. Please Try Again");
     }
+    @GetMapping("/by-id/{id}")
+    public ResponseEntity<ApiResponse1<Vendors>> getVendorById(@PathVariable long id){
+        Vendors vendors = vendorsService.getVendorsById(id);
+        return ResponseEntity.ok().body(ResponseUtils.createResponse1(vendors,"SUCCESS",true));
+    }
 
 
     @GetMapping("/byid")
-    public ResponseEntity<ApiResponse1<SolutionSetDto>> getVendorById(@RequestParam long id) {
+    public ResponseEntity<ApiResponse1<SolutionSetDto>> getSolutionSetById(@RequestParam long id) {
         SolutionSets solutionSets = solutionSetsService.getById(id);
 //        SolutionSetDto solutionSetDto = SolutionSetMapper(solutionSets); // Map to DTO
 //        return ResponseEntity.ok().body(ResponseUtils.createResponse1(solutionSetDto, "SUCCESS", true));
@@ -456,23 +499,23 @@ public class VendorController {
 
         long whitepapersSubmitted = solutionSetsList.stream()
                 .filter(sets -> sets.getUploadedBy() != null
-                        && sets.getUploadedBy().getId() == vendors.getId())
+                        && Objects.equals(sets.getUploadedBy().getId(), vendors.getId()))
                 .count();
 
         long whitepapersApproved = solutionSetsList.stream()
                 .filter(sets -> sets.getUploadedBy() != null
-                        && sets.getUploadedBy().getId() == vendors.getId()
+                        && Objects.equals(sets.getUploadedBy().getId(), vendors.getId())
                         && "APPROVED".equalsIgnoreCase(String.valueOf(sets.getStatus())))
                 .count();
 
         long whitepapersPending = solutionSetsList.stream()
                 .filter(sets -> sets.getUploadedBy() != null
-                        && sets.getUploadedBy().getId() == vendors.getId()
+                        && Objects.equals(sets.getUploadedBy().getId(), vendors.getId())
                         && "PENDING".equalsIgnoreCase(String.valueOf(sets.getStatus())))
                 .count();
         long whitepapersRejected = solutionSetsList.stream()
                 .filter(sets -> sets.getUploadedBy() != null
-                        && sets.getUploadedBy().getId() == vendors.getId()
+                        && Objects.equals(sets.getUploadedBy().getId(), vendors.getId())
                         && "REJECTED".equalsIgnoreCase(String.valueOf(sets.getStatus())))
                 .count();
 
@@ -550,15 +593,54 @@ public ResponseEntity<ApiResponse1<List<SolutionSets>>> getAllWhitePapersList(
     public ResponseEntity<ApiResponse1<Vendors>> updateVendorDetails(
             @AuthenticationPrincipal Vendors vendor,
             @RequestParam(required = false) String name,
-            @RequestParam(required = false) String phone,
+            @RequestParam(required = false) String lastName,
+            @RequestParam(required = false) String phoneNo,
             @RequestParam(required = false) String companyName,
+            @RequestParam(required = false) String designation,
             @RequestParam(required = false) String location,
+            @RequestParam(required = false) String country,
+            @RequestParam(required = false) String state,
+            @RequestParam(required = false) String zipCode,
             @RequestParam(required = false) String password) {
 
-        Vendors updatedVendor = vendorsService.updateVendorDetails(vendor.getId(), name, phone, companyName, location, password);
+        if (vendor == null) {
+            return ResponseEntity.badRequest().body(ResponseUtils.createResponse1(null, "Vendor not found", false));
+        }
+
+        if (name != null && !name.isEmpty()) {
+            vendor.setName(name);
+        }
+        if (lastName != null && !lastName.isEmpty()) {
+            vendor.setLastName(lastName);
+        }
+        if (phoneNo != null && !phoneNo.isEmpty()) {
+            vendor.setPhoneNo(phoneNo);
+        }
+        if (companyName != null && !companyName.isEmpty()) {
+            vendor.setCompanyName(companyName);
+        }
+        if (designation != null && !designation.isEmpty()) {
+            vendor.setDesignation(designation);
+        }
+        if (country != null && !country.isEmpty()) {
+            vendor.setCountry(country);
+        }
+        if (state != null && !state.isEmpty()) {
+            vendor.setState(state);
+        }
+        if (zipCode != null && !zipCode.isEmpty()) {
+            vendor.setZipCode(zipCode);
+        }
+
+        if (password != null && !password.isEmpty()) {
+            vendor.setPassword(passwordEncoder.encode(password));
+        }
+
+        Vendors updatedVendor = vendorsService.updateVendorDetails(vendor);
 
         return ResponseEntity.ok().body(ResponseUtils.createResponse1(updatedVendor, "Details updated successfully", true));
     }
+
     @PostMapping("/update-solutionset")
     public ResponseEntity<ApiResponse1<SolutionSets>> updateSolutionSet(
             @RequestParam(required = false) MultipartFile file,
@@ -635,6 +717,7 @@ public ResponseEntity<ApiResponse1<List<SolutionSets>>> getAllWhitePapersList(
         if (categoryEntity != null) {
             existingSolutionSet.setCategory(categoryEntity);
         }
+        existingSolutionSet.setStatus(SolutionSetsStatus.PENDING);
 
         solutionSetsRepository.save(existingSolutionSet);
 
