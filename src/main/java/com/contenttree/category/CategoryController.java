@@ -228,7 +228,7 @@ public ResponseEntity<ApiResponse1<List<Map<String, Object>>>> getAllCategory(
             categoryMap.put("bannerPath", "https://infiniteb2b.com/var/www/infiniteb2b/springboot/whitepapersSet/"+category.getBannerPath());
             categoryMap.put("descp", category.getDescp());
             categoryMap.put("isSubscribe", isSub);
-            categoryMap.put("whitePapersCount", count);
+            categoryMap.put("whitePaperCount", count);
 
 
 //            String categoryUrl = "https://infiniteb2b.com/category/" + category.getName().toLowerCase();

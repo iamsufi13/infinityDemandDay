@@ -3,7 +3,6 @@ package com.contenttree.Blogs;
 
 import com.contenttree.utils.ApiResponse1;
 import com.contenttree.utils.ResponseUtils;
-import jakarta.mail.util.LineOutputStream;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -37,6 +36,27 @@ public class BlogsController {
         blogsCategoryRepository.save(blogsCategory);
         return ResponseEntity.ok().body(ResponseUtils.createResponse1(blogsCategory,"SUCCESS",true));
     }
+    @PutMapping("/update-blogs-category/{id}")
+    public ResponseEntity<ApiResponse1<BlogsCategory>> updateBlogCategory(
+            @PathVariable Long id,
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) String blogCategoryDescp) {
+
+        BlogsCategory existingCategory = blogsCategoryRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Blog category not found"));
+
+        if (name != null) {
+            existingCategory.setBlogCategoryName(name);
+        }
+        if (blogCategoryDescp != null) {
+            existingCategory.setBlogCategoryDescp(blogCategoryDescp);
+        }
+
+        blogsCategoryRepository.save(existingCategory);
+
+        return ResponseEntity.ok().body(ResponseUtils.createResponse1(existingCategory, "SUCCESS", true));
+    }
+
     @GetMapping("/get-blogs-category")
     public ResponseEntity<ApiResponse1<List<BlogsCategory>>> getAllBlogsCategory(@RequestParam(required = false)String name){
 
@@ -203,6 +223,11 @@ public ResponseEntity<ApiResponse1<Blogs>> addBlogs(
     public ResponseEntity<ApiResponse1<String>> delteBlogbyId(@PathVariable long id){
         blogsRepository.deleteById(id);
         return ResponseEntity.ok().body(ResponseUtils.createResponse1(null,"DELETED",true));
+    }
+    @GetMapping("/get-blog/{id}")
+    public ResponseEntity<ApiResponse1<Blogs>> getBlogByID(@PathVariable long id){
+        Blogs blogs = blogsRepository.findById(id).orElse(null);
+        return ResponseEntity.ok().body(ResponseUtils.createResponse1(blogs,"SUCCESS",true));
     }
 
 

@@ -1299,7 +1299,8 @@ public ResponseEntity<ApiResponse1<Map<?, ?>>> getAllWhitePapersList(@RequestPar
         ByteArrayResource resource = new ByteArrayResource(byteArrayOutputStream.toByteArray());
 
         HttpHeaders headers = new HttpHeaders();
-        headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=users_cv.csv");
+        String fileName = "users_"+ LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss")) +".csv";
+                headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename="+fileName);
         headers.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM_VALUE);
 
         return ResponseEntity.ok()
@@ -1413,7 +1414,7 @@ public ResponseEntity<ApiResponse1<Map<?, ?>>> getAllWhitePapersList(@RequestPar
 
         ByteArrayResource resource = new ByteArrayResource(byteArrayOutputStream.toByteArray());
 
-        String fileName = "whitepaperSet_.csv";
+        String fileName = "whitepaperSet_"+ LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss")) + ".csv";
         String headerValue = "attachment; filename=" + fileName;
 
         HttpHeaders headers = new HttpHeaders();
@@ -1498,11 +1499,12 @@ public ResponseEntity<ApiResponse1<Map<?, ?>>> getAllWhitePapersList(@RequestPar
                     long downloadCount = userDataStorageList.stream().filter(s -> s.getDownload() == 1).count();
                     long viewCount = userDataStorageList.stream().filter(s -> s.getView() == 1).count();
                     long saveCount = userDataStorageList.stream().filter(s -> s.getSave() == 1).count();
+                    String title = solutionSet.getTitle().replace(",", " ");
 
                     writer.write(String.format("%d,%s,%s,%d,%d,%s\n",
                             category.getId(),
                             category.getName(),
-                            solutionSet.getTitle(),
+                            title,
                             downloadCount,
                             viewCount,
                             saveCount,
@@ -1527,7 +1529,7 @@ public ResponseEntity<ApiResponse1<Map<?, ?>>> getAllWhitePapersList(@RequestPar
 
         ByteArrayResource resource = new ByteArrayResource(byteArrayOutputStream.toByteArray());
 
-        String fileName = "whitepaperSet_" + category.getName().replaceAll("\\s+", "_") + ".csv";
+        String fileName = "whitepaperSet_" + category.getName().replaceAll("\\s+", "_") + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss")) +  ".csv";
         String headerValue = "attachment; filename=" + fileName;
 
         HttpHeaders headers = new HttpHeaders();
@@ -1665,7 +1667,7 @@ public ResponseEntity<ApiResponse1<Map<?, ?>>> getAllWhitePapersList(@RequestPar
 
         ByteArrayResource resource = new ByteArrayResource(byteArrayOutputStream.toByteArray());
 
-        String fileName = "whitepaper_" + solutionSets.getTitle().replaceAll("\\s+", "_") + ".csv";
+        String fileName = "whitepaper_" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss")) + solutionSets.getTitle().replaceAll("\\s+", "_") + ".csv";
         String headerValue = "attachment; filename=" + fileName;
 
         HttpHeaders headers = new HttpHeaders();
@@ -1764,14 +1766,14 @@ public ResponseEntity<ApiResponse1<Map<?, ?>>> getAllWhitePapersList(@RequestPar
                 }
             }
 
-            whitePaperReport.put("WhitePaper ID", sets.getId());
-            whitePaperReport.put("WhitePaper Name", sets.getTitle());
-            whitePaperReport.put("Category Name", sets.getCategory().getName());
-            whitePaperReport.put("Uploaded By", sets.getUploadedBy().getName());
-            whitePaperReport.put("Total Download", downloadCount);
-            whitePaperReport.put("Total Views", viewCount);
-            whitePaperReport.put("Total Save", saveCount);
-            whitePaperReport.put("Registered At", formattedDate);
+            whitePaperReport.put("whitePaperID", sets.getId());
+            whitePaperReport.put("whitePaperName", sets.getTitle());
+            whitePaperReport.put("categoryName", sets.getCategory().getName());
+            whitePaperReport.put("uploadedBy", sets.getUploadedBy().getName());
+            whitePaperReport.put("totalDownload", downloadCount);
+            whitePaperReport.put("totalViews", viewCount);
+            whitePaperReport.put("totalSave", saveCount);
+            whitePaperReport.put("registeredAt", formattedDate);
 
             whitePaperDetails.add(whitePaperReport);
         }
@@ -1889,17 +1891,185 @@ public ResponseEntity<ApiResponse1<Map<?, ?>>> getAllWhitePapersList(@RequestPar
 
 
     }
+    @GetMapping("/admin/newsletter-report")
+    public ResponseEntity<Map<String, Object>> getNewsLetterReport() {
+        List<NewsLetter> newsLetterList = newsLetterRepository.findAll();
+        Map<String, Object> reportData = new HashMap<>();
+        List<Map<String, Object>> whitePaperDetails = new ArrayList<>();
+
+        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+
+        for (NewsLetter newsLetter : newsLetterList) {
+            Map<String, Object> whitePaperReport = new HashMap<>();
+
+            String formattedDate = "Invalid Date";
+            if (newsLetter.getDt1() != null) {
+                try {
+                    if (newsLetter.getDt1() instanceof LocalDateTime) {
+                        LocalDateTime dateTime = newsLetter.getDt1();
+                        formattedDate = dateTime.format(dateFormatter);
+                    }
+                } catch (Exception e) {
+                    formattedDate = "Invalid Date";
+                }
+            }
+
+            whitePaperReport.put("newsLetterId", newsLetter.getId());
+            whitePaperReport.put("newsLetterName", newsLetter.getTitle());
+            whitePaperReport.put("uploadedBy", newsLetter.getAdmin().getName());
+            whitePaperReport.put("totalDownload", 0);
+            whitePaperReport.put("totalViews", 0);
+            whitePaperReport.put("totalSave", 0);
+            whitePaperReport.put("uploadDate", formattedDate);
+
+            whitePaperDetails.add(whitePaperReport);
+        }
+
+        reportData.put("newsLetters", whitePaperDetails);
+
+        return ResponseEntity.ok(reportData);
+    }
+    @GetMapping("/admin/newsletter-download-csv")
+    public ResponseEntity<ByteArrayResource> downloadNewsLetterCV() {
+        List<NewsLetter> newsLetterList = newsLetterRepository.findAll();
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+
+        try (OutputStreamWriter writer = new OutputStreamWriter(byteArrayOutputStream, StandardCharsets.UTF_8)) {
+            writer.write("News Letter ID,News Letter Name,Uploaded By,Total Download,Total Views,Total Save,Upload Date\n");
+
+            for (NewsLetter newsLetter : newsLetterList) {
+                DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+                String formattedDate = null;
+                LocalDateTime dateTime = null;
+                if (newsLetter.getDt1() != null) {
+                    try {
+                        if (newsLetter.getDt1() instanceof LocalDateTime) {
+                            dateTime = newsLetter.getDt1();
+                            formattedDate = dateTime.format(dateFormatter);
+                        }
+                    } catch (Exception e) {
+                        formattedDate = "Invalid Date";
+                    }
+
+                }
+                String title = newsLetter.getTitle().replace(","," ");
+
+                writer.write(newsLetter.getId() + "," +
+                        title + "," +
+                        newsLetter.getAdmin().getName() + "," +
+                        0 + "," +
+                        0 + "," +
+                        0 + ","+
+                        dateTime.format(dateFormatter) + "," +
+                        "0\n");
+            }
+
+            writer.flush();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(null);
+        }
+
+        ByteArrayResource resource = new ByteArrayResource(byteArrayOutputStream.toByteArray());
+
+        String fileName = "Allnewsletterr_" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss")) + ".csv";
+
+        String headerValue = "attachment; filename=" + fileName;
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.CONTENT_DISPOSITION, headerValue);
+        headers.add(HttpHeaders.CONTENT_TYPE, "application/octet-stream");
+        return ResponseEntity.ok()
+                .headers(headers)
+                .body(resource);
+    }
+    @GetMapping("/admin/blog-report")
+    public ResponseEntity<Map<String, Object>> getBlogReport() {
+        List<Blogs> blogsList = blogsRepository.findAll();
+        Map<String, Object> reportData = new HashMap<>();
+        List<Map<String, Object>> whitePaperDetails = new ArrayList<>();
+
+        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+
+        for (Blogs blogs : blogsList) {
+            Map<String, Object> whitePaperReport = new HashMap<>();
+
+            String formattedDate = "Invalid Date";
+            if (blogs.getDt1() != null) {
+                try {
+                    if (blogs.getDt1() instanceof LocalDateTime) {
+                        LocalDateTime dateTime = blogs.getDt1();
+                        formattedDate = dateTime.format(dateFormatter);
+                    }
+                } catch (Exception e) {
+                    formattedDate = "Invalid Date";
+                }
+            }
+
+            whitePaperReport.put("blogId", blogs.getId());
+            whitePaperReport.put("blogName", blogs.getBlogName());
+            whitePaperReport.put("blogCategory", blogs.getBlogsCategory().getBlogCategoryName());
+            whitePaperReport.put("uploadDate", formattedDate);
+
+            whitePaperDetails.add(whitePaperReport);
+        }
+
+        reportData.put("newsLetters", whitePaperDetails);
+
+        return ResponseEntity.ok(reportData);
+    }
+    @GetMapping("/admin/blog-download-csv")
+    public ResponseEntity<ByteArrayResource> downloadBlogCV() {
+        List<Blogs> blogsList = blogsRepository.findAll();
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+
+        try (OutputStreamWriter writer = new OutputStreamWriter(byteArrayOutputStream, StandardCharsets.UTF_8)) {
+            writer.write("Blog ID,Blog Name,Blog Category,Uploaded By,Upload Date\n");
 
 
+            for (Blogs blogs : blogsList) {
+                DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+                String formattedDate = null;
+                LocalDateTime dateTime = null;
 
+                if (blogs.getDt1() != null) {
+                    try {
+                        if (blogs.getDt1() instanceof LocalDateTime) {
+                            dateTime = blogs.getDt1();
+                            formattedDate = dateTime.format(dateFormatter);
+                        }
+                    } catch (Exception e) {
+                        formattedDate = "Invalid Date";
+                    }
 
+                }
+                String title = blogs.getBlogName().replace(","," ");
 
+                writer.write(blogs.getId() + "," +
+                        title + "," +
+                        blogs.getBlogsCategory().getBlogCategoryName() + "," +
+                        blogs.getAdmin().getName()+ "," +
+                        dateTime.format(dateFormatter) + "," +
+                        "0\n");
+            }
 
+            writer.flush();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(null);
+        }
 
+        ByteArrayResource resource = new ByteArrayResource(byteArrayOutputStream.toByteArray());
 
+        String fileName = "AllBlogs" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss")) + ".csv";
 
+        String headerValue = "attachment; filename=" + fileName;
 
-
-
-
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.CONTENT_DISPOSITION, headerValue);
+        headers.add(HttpHeaders.CONTENT_TYPE, "application/octet-stream");
+        return ResponseEntity.ok()
+                .headers(headers)
+                .body(resource);
+    }
 }

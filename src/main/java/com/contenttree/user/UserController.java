@@ -1224,10 +1224,28 @@ public ResponseEntity<ApiResponse1<?>> toggleFavorite(@AuthenticationPrincipal U
                         return solutionMap;
                     })
                     .toList();
+//            List<Map<String, Object>> mostViewedMap = userDataStorageRepository.findAll()
+//                    .stream()
+//                    .filter(userData -> userData.getView() > 0)
+//                    .sorted((data1, data2) -> Long.compare(data2.getView(), data1.getView()))
+//                    .map(userData -> solutionSetsRepository.findById(userData.getSolutionSetId()).orElse(null))
+//                    .filter(Objects::nonNull)
+//                    .limit(10)
+//                    .map(solutionSet -> {
+//                        Map<String, Object> solutionMap = new HashMap<>();
+//
+//                        solutionMap.put("title", solutionSet.getTitle());
+//                        solutionMap.put("id", solutionSet.getId());
+//                        solutionMap.put("description", solutionSet.getDescription());
+//                        solutionMap.put("imgSrc", solutionSet.getImagePath());
+//                        solutionMap.put("category", solutionSet.getCategory().getName());
+//                        solutionMap.put("category_id", solutionSet.getCategory().getId());
+//
+//                        return solutionMap;
+//                    })
+//                    .toList();
             List<Map<String, Object>> mostViewedMap = userDataStorageRepository.findAll()
                     .stream()
-                    .filter(userData -> userData.getView() > 0)
-                    .sorted((data1, data2) -> Long.compare(data2.getView(), data1.getView()))
                     .map(userData -> solutionSetsRepository.findById(userData.getSolutionSetId()).orElse(null))
                     .filter(Objects::nonNull)
                     .limit(10)
@@ -1338,10 +1356,28 @@ public ResponseEntity<ApiResponse1<?>> toggleFavorite(@AuthenticationPrincipal U
                         return solutionMap;
                     })
                     .toList();
+//            List<Map<String, Object>> mostViewedMap = userDataStorageRepository.findAll()
+//                    .stream()
+//                    .filter(userData -> userData.getView() > 0)
+//                    .sorted((data1, data2) -> Long.compare(data2.getView(), data1.getView()))
+//                    .map(userData -> solutionSetsRepository.findById(userData.getSolutionSetId()).orElse(null))
+//                    .filter(Objects::nonNull)
+//                    .limit(10)
+//                    .map(solutionSet -> {
+//                        Map<String, Object> solutionMap = new HashMap<>();
+//
+//                        solutionMap.put("title", solutionSet.getTitle());
+//                        solutionMap.put("id", solutionSet.getId());
+//                        solutionMap.put("description", solutionSet.getDescription());
+//                        solutionMap.put("imgSrc", solutionSet.getImagePath());
+//                        solutionMap.put("category", solutionSet.getCategory().getName());
+//                        solutionMap.put("category_id", solutionSet.getCategory().getId());
+//
+//                        return solutionMap;
+//                    })
+//                    .collect(Collectors.toList());
             List<Map<String, Object>> mostViewedMap = userDataStorageRepository.findAll()
                     .stream()
-                    .filter(userData -> userData.getView() > 0)
-                    .sorted((data1, data2) -> Long.compare(data2.getView(), data1.getView()))
                     .map(userData -> solutionSetsRepository.findById(userData.getSolutionSetId()).orElse(null))
                     .filter(Objects::nonNull)
                     .limit(10)
@@ -1357,7 +1393,7 @@ public ResponseEntity<ApiResponse1<?>> toggleFavorite(@AuthenticationPrincipal U
 
                         return solutionMap;
                     })
-                    .collect(Collectors.toList());
+                    .toList();
 
             List<SolutionSets> recentlyAdded = solutionSetsRepository.findAll().stream().
                     sorted(Comparator.comparing(SolutionSets::getDt1).reversed()).limit(10).toList();
@@ -1477,6 +1513,17 @@ public ResponseEntity<ApiResponse1<?>> toggleFavorite(@AuthenticationPrincipal U
 
 
     }
+    @GetMapping("/white-paper-search")
+    public ResponseEntity<ApiResponse1<List<SolutionSets>>> searchWhitePapers(@RequestParam String name) {
+        List<SolutionSets> solutionSetsList = solutionSetsRepository.findAll();
+
+        List<SolutionSets> filteredList = solutionSetsList.stream()
+                .filter(solutionSets -> solutionSets.getTitle().toLowerCase().contains(name.toLowerCase()))
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok().body(ResponseUtils.createResponse1(filteredList, "SUCCESS", true));
+    }
+
 
 
 
