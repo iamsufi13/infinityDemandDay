@@ -207,6 +207,7 @@ public class SpringSecurityConfig {
                         .requestMatchers("/api/category/add", "/api/category/update").permitAll()
                         .requestMatchers("/get-all-subscribers-by-id/**").permitAll()
                         .requestMatchers("/api/vendor/by-id/**").permitAll()
+                        .requestMatchers("/api/mail/html/demand-verse/**").permitAll()
                         .requestMatchers("/api/user/white-paper-search").permitAll()
                         .requestMatchers("/api/vendor/get-allwhitepapers","/uploads/**").permitAll()
                         .requestMatchers("/admin/**").hasAnyAuthority("SUPERADMIN", "EDITOR", "ADMIN")

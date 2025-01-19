@@ -17,6 +17,8 @@
 /Users/demanday67/Documents/JavaProjects/infinityDemandDay/src/main/java/com/contenttree/CountryCode/CountryController.java
 /Users/demanday67/Documents/JavaProjects/infinityDemandDay/src/main/java/com/contenttree/CountryCode/CountryRepository.java
 /Users/demanday67/Documents/JavaProjects/infinityDemandDay/src/main/java/com/contenttree/DataBaseBackup/DatabaseBackupService.java
+/Users/demanday67/Documents/JavaProjects/infinityDemandDay/src/main/java/com/contenttree/DemandVerse/EmailController.java
+/Users/demanday67/Documents/JavaProjects/infinityDemandDay/src/main/java/com/contenttree/DemandVerse/SendEmailDemandVerse.java
 /Users/demanday67/Documents/JavaProjects/infinityDemandDay/src/main/java/com/contenttree/Jwt/JwtResponse.java
 /Users/demanday67/Documents/JavaProjects/infinityDemandDay/src/main/java/com/contenttree/NewsLetter/NewsLetter.java
 /Users/demanday67/Documents/JavaProjects/infinityDemandDay/src/main/java/com/contenttree/NewsLetter/NewsLetterController.java

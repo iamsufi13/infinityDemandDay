@@ -49,6 +49,7 @@ com/contenttree/vendor/VendorController.class
 com/contenttree/admin/Admin$AdminBuilder.class
 com/contenttree/home/HomePageDto.class
 com/contenttree/home/HomePageMapper.class
+com/contenttree/DemandVerse/EmailController.class
 com/contenttree/Blogs/BlogsController.class
 com/contenttree/config/CustomUserDetailsService.class
 com/contenttree/security/JwtHelper.class
@@ -114,6 +115,7 @@ com/contenttree/home/HomePageController.class
 com/contenttree/category/CategoryCountDto.class
 com/contenttree/userdatastorage/UserDataStorageRepository.class
 com/contenttree/downloadlog/DownloadLog.class
+com/contenttree/DemandVerse/SendEmailDemandVerse.class
 com/contenttree/NewsLetter/NewsLetterService.class
 com/contenttree/user/User.class
 com/contenttree/banner/BannerEntity.class

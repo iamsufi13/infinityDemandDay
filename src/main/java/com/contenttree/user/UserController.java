@@ -1523,6 +1523,22 @@ public ResponseEntity<ApiResponse1<?>> toggleFavorite(@AuthenticationPrincipal U
 
         return ResponseEntity.ok().body(ResponseUtils.createResponse1(filteredList, "SUCCESS", true));
     }
+    @GetMapping("/newsletter-status")
+    public ResponseEntity<ApiResponse1<User>> getNewsLetterStatus(@AuthenticationPrincipal User user){
+        return ResponseEntity.ok().body(ResponseUtils.createResponse1(user,"SUCCESS",true));
+    }
+    @GetMapping("/count-dashboard")
+    public ResponseEntity<ApiResponse1<Map<?,?>>> getUserDashboardCount(@AuthenticationPrincipal User user){
+        List<UserDataStorage> userDataStorageList = userDataStorageRepository.findByUserIdList(user.getId());
+        long savedCount=userDataStorageList.stream().filter(u->u.getSave()>1).count();
+        long subsCount = user.getFavorites().size();
+        int newsletterSubscribed = user.getIsNewsLetterSubscriber();
+        Map map = new HashMap<>();
+        map.put("savedWhitePapersCount",savedCount);
+        map.put("subscribedCategory",subsCount);
+        map.put("newsLetterSubscribed",newsletterSubscribed);
+        return ResponseEntity.ok().body(ResponseUtils.createResponse1(map,"SUCCESS",true));
+    }
 
 
 
