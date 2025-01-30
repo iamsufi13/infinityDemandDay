@@ -1,6 +1,7 @@
 package com.contenttree.confirmationtoken;
 
 import com.contenttree.user.User;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -26,6 +27,7 @@ public class ConfirmationToken {
     private Date createdDate;
 
     @ManyToOne
+    @JsonBackReference
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 

@@ -29,8 +29,8 @@ public class SendEmailDemandVerse {
                 return;
             }
 
-            String fromName = "No Reply";
-            String fromEmail = "no-reply@openwhitepapers.com";
+            String fromName = "Emily Roberts";
+            String fromEmail = "emily.roberts@openwhitepapers.com";
 
             MimeMessage mimeMessage = javaMailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(mimeMessage,true, "utf-8");

@@ -34,7 +34,7 @@ public class CategoryMapper {
         categoryDto.setName(category.getName());
         categoryDto.setIconPath(category.getIconPath());
         categoryDto.setBannerPath(category.getBannerPath());
-        categoryDto.setSolutionSetCount(category.getSolutionSets().size());
+        categoryDto.setWhitePaperCount(category.getSolutionSets().size());
 
         if (loggedInUser != null) {
             boolean isSubscribed = isCategoryInFav(category.getId(), loggedInUser);
@@ -56,7 +56,7 @@ public class CategoryMapper {
         categoryDto.setName(category.getName());
         categoryDto.setIconPath(category.getIconPath());
         categoryDto.setBannerPath(category.getBannerPath());
-        categoryDto.setSolutionSetCount(category.getSolutionSets().size());
+        categoryDto.setWhitePaperCount(category.getSolutionSets().size());
 
         categoryDto.setIsSubscribe(0);
 

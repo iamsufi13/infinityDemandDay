@@ -1,16 +1,14 @@
 package com.contenttree.user;
 
 import com.contenttree.NewsLetter.NewsLetter;
-import com.contenttree.admin.Status;
 import com.contenttree.confirmationtoken.ConfirmationToken;
 import com.contenttree.downloadlog.DownloadLog;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Email;
+import jakarta.persistence.Entity;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDateTime;
@@ -18,10 +16,11 @@ import java.util.Collection;
 import java.util.List;
 
 @Entity
-@Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+@Setter
+@Getter
 public class User implements UserDetails {
 
     @Id
@@ -36,7 +35,7 @@ public class User implements UserDetails {
     private String jobTitle;
     private String company;
     private int isSubscriber;
-
+    private String profilePicture;
 
     @Enumerated(EnumType.STRING)
     private UserStatus status;
@@ -50,24 +49,22 @@ public class User implements UserDetails {
     @JsonIgnore
     private List<String> favorites;
 
-
-    @OneToMany
-    @JoinColumn(name = "user_id")
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL,fetch = FetchType.EAGER)
     @JsonManagedReference
-    @JsonIgnore
     private List<NewsLetter> newsLetterList;
 
     @JsonIgnore
     private List<Long> savedPdf;
+
     @JsonIgnore
-    private List<Long> viewdPdf;
+    private List<Long> viewedPdf;
+
     @JsonIgnore
     private String password;
 
     @JsonIgnore
     private boolean isEnabled;
 
-    @JsonIgnore
     private int isNewsLetterSubscriber;
 
     @JsonIgnore
@@ -79,14 +76,14 @@ public class User implements UserDetails {
     }
 
     @JsonManagedReference
-    @JsonIgnore
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<ConfirmationToken> confirmationTokens;
 
     @JsonIgnore
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL,orphanRemoval = true)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<DownloadLog> downloadLogs;
-  @JsonIgnore
+
+    @JsonIgnore
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of();
@@ -122,9 +119,4 @@ public class User implements UserDetails {
         return UserDetails.super.isCredentialsNonExpired();
     }
 
-    @JsonIgnore
-    @Override
-    public boolean isEnabled() {
-        return isEnabled;
-    }
 }

@@ -49,6 +49,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -1235,14 +1236,40 @@ public ResponseEntity<ApiResponse1<Map<?, ?>>> getAllWhitePapersList(@RequestPar
     }
 
     @GetMapping("/admin/user-download-csv")
-    public ResponseEntity<ByteArrayResource> downloadUserCV() {
+    public ResponseEntity<ByteArrayResource> downloadUserCV(@RequestParam(required = false) String startDate,
+                                                            @RequestParam(required = false) String endDate) {
         List<User> userList = userService.getAllUsers();
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+
+        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+        LocalDate start = LocalDate.MIN, end = LocalDate.now();  // Default start date is a very old date, end date is today.
+
+        // Parse the dates if provided
+        try {
+            if (startDate != null && !startDate.isEmpty()) {
+                start = LocalDate.parse(startDate, dateFormatter);
+            }
+            if (endDate != null && !endDate.isEmpty()) {
+                end = LocalDate.parse(endDate, dateFormatter);
+            }
+        } catch (Exception e) {
+            // Handle invalid date formats
+            return ResponseEntity.status(400).body(null); // Bad request if dates are invalid
+        }
 
         try (OutputStreamWriter writer = new OutputStreamWriter(byteArrayOutputStream, StandardCharsets.UTF_8)) {
             writer.write("User ID,First Name,Last Name,Email,Job Title,Organisation,Total Save Count,Total Download Count,Total View Count,IP Address,Registered At\n");
 
             for (User user : userList) {
+                // Check if user's registration date is within the provided range
+                if (user.getDt1() != null) {
+                    LocalDate userRegistrationDate = user.getDt1().toLocalDate();
+                    // Skip if the registration date is outside the range
+                    if (userRegistrationDate.isBefore(start) || userRegistrationDate.isAfter(end)) {
+                        continue; // Skip user if registration is outside the date range
+                    }
+                }
+
                 List<UserDataStorage> userData = userDataStorageRepository.findByUserIdList(user.getId());
                 List<String> userSubscribeCount = user.getFavorites() != null ? user.getFavorites() : new ArrayList<>();
                 int totalCategorySubscribedCount = 0;
@@ -1259,22 +1286,7 @@ public ResponseEntity<ApiResponse1<Map<?, ?>>> getAllWhitePapersList(@RequestPar
                 long totalViewCount = userData.stream().filter(count -> count.getView() == 1).count();
 
                 String ipAddress = user.getIpAddress() != null ? user.getIpAddress() : "null";
-                DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
-                String formattedDate = null;
-                LocalDateTime dateTime = null;
-                if (user.getDt1() != null) {
-                    try {
-                        if (user.getDt1() instanceof LocalDateTime) {
-                            dateTime = user.getDt1();
-                            formattedDate = dateTime.format(dateFormatter);
-                            System.out.println("Formated Date" + formattedDate);
-                            System.out.println("Formated Date" + dateFormatter);
-                        }
-                    } catch (Exception e) {
-                        formattedDate = "Invalid Date";
-                    }
-
-                }
+                String formattedDate = user.getDt1() != null ? user.getDt1().format(dateFormatter) : "Invalid Date";
 
                 writer.write(user.getId() + "," +
                         user.getName() + "," +
@@ -1286,8 +1298,7 @@ public ResponseEntity<ApiResponse1<Map<?, ?>>> getAllWhitePapersList(@RequestPar
                         totalDownloadCount + "," +
                         totalViewCount + "," +
                         ipAddress + "," +
-                        dateTime.format(dateFormatter) + "," +
-                        "0\n");
+                        formattedDate + "\n");
             }
 
             writer.flush();
@@ -1297,23 +1308,49 @@ public ResponseEntity<ApiResponse1<Map<?, ?>>> getAllWhitePapersList(@RequestPar
         }
 
         ByteArrayResource resource = new ByteArrayResource(byteArrayOutputStream.toByteArray());
-
         HttpHeaders headers = new HttpHeaders();
-        String fileName = "users_"+ LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss")) +".csv";
-                headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename="+fileName);
+        String fileName = "users_" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss")) + ".csv";
+        headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + fileName);
         headers.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM_VALUE);
 
         return ResponseEntity.ok()
                 .headers(headers)
                 .body(resource);
     }
+
     @GetMapping("/admin/user-report")
-    public ResponseEntity<Map<String, Object>> getUserReport() {
+    public ResponseEntity<Map<String, Object>> getUserReport(@RequestParam(required = false) String startDate,
+                                                             @RequestParam(required = false) String endDate) {
         List<User> userList = userService.getAllUsers();
         Map<String, Object> responseData = new HashMap<>();
         List<Map<String, Object>> userDataList = new ArrayList<>();
 
+        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+        LocalDate start = LocalDate.MIN, end = LocalDate.now();  // Default start date is a very old date, end date is today.
+
+        // Parse the dates if provided
+        try {
+            if (startDate != null && !startDate.isEmpty()) {
+                start = LocalDate.parse(startDate, dateFormatter);
+            }
+            if (endDate != null && !endDate.isEmpty()) {
+                end = LocalDate.parse(endDate, dateFormatter);
+            }
+        } catch (Exception e) {
+            // Handle invalid date formats
+            return ResponseEntity.status(400).body(null); // Bad request if dates are invalid
+        }
+
         for (User user : userList) {
+            // Check if user's registration date is within the provided range
+            if (user.getDt1() != null) {
+                LocalDate userRegistrationDate = user.getDt1().toLocalDate();
+                // Skip if the registration date is outside the range
+                if (userRegistrationDate.isBefore(start) || userRegistrationDate.isAfter(end)) {
+                    continue; // Skip user if registration is outside the date range
+                }
+            }
+
             List<UserDataStorage> userData = userDataStorageRepository.findByUserIdList(user.getId());
             List<String> userSubscribeCount = user.getFavorites() != null ? user.getFavorites() : new ArrayList<>();
             int totalCategorySubscribedCount = 0;
@@ -1330,20 +1367,7 @@ public ResponseEntity<ApiResponse1<Map<?, ?>>> getAllWhitePapersList(@RequestPar
             long totalViewCount = userData.stream().filter(count -> count.getView() == 1).count();
 
             String ipAddress = user.getIpAddress() != null ? user.getIpAddress() : "null";
-            DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
-            String formattedDate = null;
-            LocalDateTime dateTime = null;
-
-            if (user.getDt1() != null) {
-                try {
-                    if (user.getDt1() instanceof LocalDateTime) {
-                        dateTime = user.getDt1();
-                        formattedDate = dateTime.format(dateFormatter);
-                    }
-                } catch (Exception e) {
-                    formattedDate = "Invalid Date";
-                }
-            }
+            String formattedDate = user.getDt1() != null ? user.getDt1().format(dateFormatter) : "Invalid Date";
 
             Map<String, Object> userMap = new HashMap<>();
             userMap.put("userId", user.getId());
@@ -1365,6 +1389,140 @@ public ResponseEntity<ApiResponse1<Map<?, ?>>> getAllWhitePapersList(@RequestPar
 
         return ResponseEntity.ok(responseData);
     }
+
+
+
+//    @GetMapping("/admin/user-download-csv")
+//    public ResponseEntity<ByteArrayResource> downloadUserCV() {
+//        List<User> userList = userService.getAllUsers();
+//        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+//
+//        try (OutputStreamWriter writer = new OutputStreamWriter(byteArrayOutputStream, StandardCharsets.UTF_8)) {
+//            writer.write("User ID,First Name,Last Name,Email,Job Title,Organisation,Total Save Count,Total Download Count,Total View Count,IP Address,Registered At\n");
+//
+//            for (User user : userList) {
+//                List<UserDataStorage> userData = userDataStorageRepository.findByUserIdList(user.getId());
+//                List<String> userSubscribeCount = user.getFavorites() != null ? user.getFavorites() : new ArrayList<>();
+//                int totalCategorySubscribedCount = 0;
+//
+//                for (String favorites : userSubscribeCount) {
+//                    if (favorites != null && !favorites.isEmpty()) {
+//                        String[] splitFavorites = favorites.split(",");
+//                        totalCategorySubscribedCount += splitFavorites.length;
+//                    }
+//                }
+//
+//                long totalSaveCount = userData.stream().filter(count -> count.getSave() == 1).count();
+//                long totalDownloadCount = userData.stream().filter(count -> count.getDownload() == 1).count();
+//                long totalViewCount = userData.stream().filter(count -> count.getView() == 1).count();
+//
+//                String ipAddress = user.getIpAddress() != null ? user.getIpAddress() : "null";
+//                DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+//                String formattedDate = null;
+//                LocalDateTime dateTime = null;
+//                if (user.getDt1() != null) {
+//                    try {
+//                        if (user.getDt1() instanceof LocalDateTime) {
+//                            dateTime = user.getDt1();
+//                            formattedDate = dateTime.format(dateFormatter);
+//                            System.out.println("Formated Date" + formattedDate);
+//                            System.out.println("Formated Date" + dateFormatter);
+//                        }
+//                    } catch (Exception e) {
+//                        formattedDate = "Invalid Date";
+//                    }
+//
+//                }
+//
+//                writer.write(user.getId() + "," +
+//                        user.getName() + "," +
+//                        user.getLastName() + "," +
+//                        user.getEmail() + "," +
+//                        user.getJobTitle() + "," +
+//                        user.getCompany() + "," +
+//                        totalSaveCount + "," +
+//                        totalDownloadCount + "," +
+//                        totalViewCount + "," +
+//                        ipAddress + "," +
+//                        dateTime.format(dateFormatter) + "," +
+//                        "0\n");
+//            }
+//
+//            writer.flush();
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            return ResponseEntity.status(500).body(null);
+//        }
+//
+//        ByteArrayResource resource = new ByteArrayResource(byteArrayOutputStream.toByteArray());
+//
+//        HttpHeaders headers = new HttpHeaders();
+//        String fileName = "users_"+ LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss")) +".csv";
+//                headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename="+fileName);
+//        headers.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM_VALUE);
+//
+//        return ResponseEntity.ok()
+//                .headers(headers)
+//                .body(resource);
+//    }
+//    @GetMapping("/admin/user-report")
+//    public ResponseEntity<Map<String, Object>> getUserReport() {
+//        List<User> userList = userService.getAllUsers();
+//        Map<String, Object> responseData = new HashMap<>();
+//        List<Map<String, Object>> userDataList = new ArrayList<>();
+//
+//        for (User user : userList) {
+//            List<UserDataStorage> userData = userDataStorageRepository.findByUserIdList(user.getId());
+//            List<String> userSubscribeCount = user.getFavorites() != null ? user.getFavorites() : new ArrayList<>();
+//            int totalCategorySubscribedCount = 0;
+//
+//            for (String favorites : userSubscribeCount) {
+//                if (favorites != null && !favorites.isEmpty()) {
+//                    String[] splitFavorites = favorites.split(",");
+//                    totalCategorySubscribedCount += splitFavorites.length;
+//                }
+//            }
+//
+//            long totalSaveCount = userData.stream().filter(count -> count.getSave() == 1).count();
+//            long totalDownloadCount = userData.stream().filter(count -> count.getDownload() == 1).count();
+//            long totalViewCount = userData.stream().filter(count -> count.getView() == 1).count();
+//
+//            String ipAddress = user.getIpAddress() != null ? user.getIpAddress() : "null";
+//            DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+//            String formattedDate = null;
+//            LocalDateTime dateTime = null;
+//
+//            if (user.getDt1() != null) {
+//                try {
+//                    if (user.getDt1() instanceof LocalDateTime) {
+//                        dateTime = user.getDt1();
+//                        formattedDate = dateTime.format(dateFormatter);
+//                    }
+//                } catch (Exception e) {
+//                    formattedDate = "Invalid Date";
+//                }
+//            }
+//
+//            Map<String, Object> userMap = new HashMap<>();
+//            userMap.put("userId", user.getId());
+//            userMap.put("firstName", user.getName());
+//            userMap.put("lastName", user.getLastName());
+//            userMap.put("email", user.getEmail());
+//            userMap.put("jobTitle", user.getJobTitle());
+//            userMap.put("organisation", user.getCompany());
+//            userMap.put("totalSaveCount", totalSaveCount);
+//            userMap.put("totalDownloadCount", totalDownloadCount);
+//            userMap.put("totalViewCount", totalViewCount);
+//            userMap.put("ipAddress", ipAddress);
+//            userMap.put("registeredAt", formattedDate);
+//
+//            userDataList.add(userMap);
+//        }
+//
+//        responseData.put("users", userDataList);
+//
+//        return ResponseEntity.ok(responseData);
+//    }
 
     @GetMapping("/admin/category-download-csv")
     public ResponseEntity<ByteArrayResource> downloadCategoryCV() {

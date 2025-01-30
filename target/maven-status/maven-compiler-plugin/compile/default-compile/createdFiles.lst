@@ -13,6 +13,7 @@ com/contenttree/user/User$UserBuilder.class
 com/contenttree/category/CategoryDto.class
 com/contenttree/StaticCount/Region$RegionBuilder.class
 com/contenttree/utils/ApiResponse2.class
+com/contenttree/Jwt/UserJwtResponse.class
 com/contenttree/Blogs/BlogsCategory$BlogsCategoryBuilder.class
 com/contenttree/userdatastorage/UserDataStorageService.class
 com/contenttree/category/CategoryController.class
@@ -99,6 +100,7 @@ com/contenttree/solutionsets/SolutionSetsController.class
 com/contenttree/vendor/VendorStatus.class
 com/contenttree/category/CategoryRepository.class
 com/contenttree/Blogs/BlogsCategoryRepository.class
+com/contenttree/Jwt/UserJwtResponse$UserJwtResponseBuilder.class
 com/contenttree/solutionsets/SolutionSetResponse.class
 com/contenttree/category/Category.class
 com/contenttree/CampaignManager/CampaignManagerController.class

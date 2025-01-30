@@ -28,8 +28,6 @@ public class Event {
     private List<String> eventSpeakers;
 
     private String eventSubject;
-    @ManyToOne
-    private Admin admin;
 
     @JsonIgnore
     private LocalDateTime dt1;

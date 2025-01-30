@@ -14,7 +14,7 @@ public class CategoryDto {
     private String bannerPath;
     private int isSubscribe;
 
-    private long solutionSetCount;
+    private long whitePaperCount;
 
     public CategoryDto(long id, String name, int size) {
     }

@@ -2,14 +2,12 @@ package com.contenttree.user;
 
 import com.contenttree.Jwt.JwtResponse;
 
+import com.contenttree.Jwt.UserJwtResponse;
 import com.contenttree.admin.AdminService;
 import com.contenttree.admin.DashboardWidgetsResponse;
 import com.contenttree.admin.Status;
 import com.contenttree.admin.Widget;
-import com.contenttree.category.Category;
-import com.contenttree.category.CategoryDto;
-import com.contenttree.category.CategoryRepository;
-import com.contenttree.category.CategoryService;
+import com.contenttree.category.*;
 import com.contenttree.downloadlog.DownloadLogRepository;
 import com.contenttree.downloadlog.DownloadLogService;
 import com.contenttree.security.UserJwtHelper;
@@ -44,11 +42,16 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.util.RedirectUrlBuilder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.StringReader;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -250,7 +253,7 @@ public ResponseEntity<?> registerUser(@RequestParam(required = false) String nam
 
         updatedView.addAll(oldView);
 
-        user.setViewdPdf(updatedView);
+        user.setViewedPdf(updatedView);
 
         String clientIp = getClientIp(request);
         com.contenttree.userdatastorage.IpInfo info = getIpInfo(clientIp);
@@ -870,9 +873,6 @@ public ResponseEntity<ApiResponse1<?>> toggleFavorite(@AuthenticationPrincipal U
 //                .body(resource);
 //    }
 
-
-
-
     private String getClientIp(HttpServletRequest request) {
         String ipAddress = request.getHeader("X-Forwarded-For");
 
@@ -985,13 +985,14 @@ public ResponseEntity<ApiResponse1<?>> toggleFavorite(@AuthenticationPrincipal U
         String token = this.helper.generateToken(user);
         log.info("Generated token: {}", token);
 
-        JwtResponse jwtResponse = JwtResponse.builder()
+        UserJwtResponse jwtResponse = UserJwtResponse.builder()
                 .jwtToken(token)
                 .username(user.getName()+ " "+user.getLastName())
                 .id(user.getId())
+                .profilePicture(user.getProfilePicture())
                 .build();
 
-        ApiResponse1<JwtResponse> response = ResponseUtils.createResponse1(jwtResponse, "Login Successful", true);
+        ApiResponse1<UserJwtResponse> response = ResponseUtils.createResponse1(jwtResponse, "Login Successful", true);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
     @PostMapping("/subscribecategory")
@@ -1047,35 +1048,39 @@ public ResponseEntity<ApiResponse1<?>> toggleFavorite(@AuthenticationPrincipal U
 
 
     @GetMapping("/allwhitepapers-saved")
-    public ResponseEntity<ApiResponse1<List<SolutionSetResponse>>> getAllWhitePapersSaved(
+    public ResponseEntity<ApiResponse1<Map<String, Object>>> getAllWhitePapersSaved(
             @AuthenticationPrincipal User user) {
 
-        List<UserDataStorage> userDataStorages = userDataStorageRepository.findAll();
+        List<UserDataStorage> savedWhitepapers = userDataStorageRepository.findByUserIdList(user.getId())
+                .stream().filter(u -> u.getSave() == 1).collect(Collectors.toList());
 
-        List<UserDataStorage> savedWhitepapers = userDataStorages.stream()
-                .filter(u -> u.getUser_id() == user.getId() && u.getSave() == 1)
-                .collect(Collectors.toList());
-
-        List<SolutionSetResponse> responseList = new ArrayList<>();
+        List<Map<String, Object>> responseList = new ArrayList<>();
 
         for (UserDataStorage savedWhitepaper : savedWhitepapers) {
             SolutionSets solutionSet = solutionSetsService.getSolutionSetById(savedWhitepaper.getSolutionSetId());
 
             if (solutionSet != null) {
-                Category category = categoryRepository.findById(solutionSet.getCategory().getId()).orElse(null);
-                String categoryName = category != null ? category.getName() : "Unknown";
+                Map<String, Object> whitepaperResponse = new HashMap<>();
 
-                SolutionSetResponse response = new SolutionSetResponse();
-                response.setId(solutionSet.getId());
-                response.setWhitePaperName(solutionSet.getTitle());
-                response.setWhitePaperSetName(categoryName);
+                whitepaperResponse.put("category_id", solutionSet.getCategory().getId());
+                whitepaperResponse.put("isSavedByUser", 1);
+                whitepaperResponse.put("description", solutionSet.getDescription());
+                whitepaperResponse.put("id", solutionSet.getId());
+                whitepaperResponse.put("title", solutionSet.getTitle());
+                whitepaperResponse.put("category", solutionSet.getCategory().getName());
+                whitepaperResponse.put("imgSrc", solutionSet.getImagePath());
 
-                responseList.add(response);
+                responseList.add(whitepaperResponse);
             }
         }
 
-        return ResponseEntity.ok().body(ResponseUtils.createResponse1(responseList, "SUCCESS", true));
+        Map<String, Object> responseMap = new HashMap<>();
+        responseMap.put("whitepapers", responseList);
+
+        return ResponseEntity.ok().body(ResponseUtils.createResponse1(responseMap, "SUCCESS", true));
     }
+
+
 
     @GetMapping("/allwhitepapers-download")
     public ResponseEntity<ApiResponse1<List<?>>> getAllWhitePapersDownload(@AuthenticationPrincipal User user){
@@ -1101,15 +1106,23 @@ public ResponseEntity<ApiResponse1<?>> toggleFavorite(@AuthenticationPrincipal U
     CategoryService categoryService;
     @Autowired
     CategoryRepository categoryRepository;
+    @Autowired
+    CategoryMapper categoryMapper;
     @GetMapping("/getall-favortie-category")
     public ResponseEntity<ApiResponse1<List<?>>> getAllFavoritesCategoryByUser(@AuthenticationPrincipal User user){
         List<String> favoritesList = user.getFavorites();
-        List<Category> categoryList = new ArrayList<>();
+        List<CategoryDto> categoryList = new ArrayList<>();
         for (String category : favoritesList){
             Category category1 = categoryService.getCategoryByName(category);
-
-            categoryList.add(category1);
-        }
+            CategoryDto categoryDto = categoryMapper.categoryToCategoryDto(category1);
+            if (categoryDto != null) {
+                categoryDto.setIconPath("https://infiniteb2b.com/var/www/infiniteb2b/springboot/whitepapersSet/" + category1.getIconPath());
+                categoryDto.setBannerPath("https://infiniteb2b.com/var/www/infiniteb2b/springboot/whitepapersSet/" + category1.getBannerPath());
+            }
+            if (categoryDto!=null) {
+                categoryDto.setIsSubscribe(1);
+                categoryList.add(categoryDto);
+            }}
         return ResponseEntity.ok().body(ResponseUtils.createResponse1(categoryList,"SUCCESS",true));
     }
 
@@ -1489,8 +1502,11 @@ public ResponseEntity<ApiResponse1<?>> toggleFavorite(@AuthenticationPrincipal U
         } else {
             user.setIsNewsLetterSubscriber(1);
         }
+        userRepository.save(user);
         return ResponseEntity.ok().body("User NewsLetter updated");
     }
+
+
     @GetMapping("/view-all-viewed")
     public ResponseEntity<ApiResponse1<Map<?,?>>> getAllViewViewed(@AuthenticationPrincipal User user){
         List<UserDataStorage> userDataStorage = userDataStorageRepository.findByUserIdList(user.getId());
@@ -1525,19 +1541,81 @@ public ResponseEntity<ApiResponse1<?>> toggleFavorite(@AuthenticationPrincipal U
     }
     @GetMapping("/newsletter-status")
     public ResponseEntity<ApiResponse1<User>> getNewsLetterStatus(@AuthenticationPrincipal User user){
+        if (user.getProfilePicture()!=null){
+            user.setProfilePicture("/var/www/infiniteb2b/springboot/user/profilephoto/"+user.getProfilePicture());
+        }
         return ResponseEntity.ok().body(ResponseUtils.createResponse1(user,"SUCCESS",true));
     }
     @GetMapping("/count-dashboard")
     public ResponseEntity<ApiResponse1<Map<?,?>>> getUserDashboardCount(@AuthenticationPrincipal User user){
         List<UserDataStorage> userDataStorageList = userDataStorageRepository.findByUserIdList(user.getId());
-        long savedCount=userDataStorageList.stream().filter(u->u.getSave()>1).count();
+        List<UserDataStorage> userDataStorages =userDataStorageList.stream().filter(u->u.getSave()==1).toList();
         long subsCount = user.getFavorites().size();
         int newsletterSubscribed = user.getIsNewsLetterSubscriber();
         Map map = new HashMap<>();
-        map.put("savedWhitePapersCount",savedCount);
+        map.put("savedWhitePapersCount",userDataStorages.size());
         map.put("subscribedCategory",subsCount);
         map.put("newsLetterSubscribed",newsletterSubscribed);
         return ResponseEntity.ok().body(ResponseUtils.createResponse1(map,"SUCCESS",true));
+    }
+    @PostMapping("update-password")
+    public ResponseEntity<ApiResponse1<User>> updatePassoword(@AuthenticationPrincipal User user,@RequestParam String oldpassword,@RequestParam String newpassword){
+        if (!passwordEncoder.matches(oldpassword, user.getPassword())) {
+            return ResponseEntity.ok().body(ResponseUtils.createResponse1(null,"Wrong current password",false));
+        }
+        String hashCode= passwordEncoder.encode(newpassword);
+        user.setPassword(hashCode);
+        userRepository.save(user);
+        return ResponseEntity.ok().body(ResponseUtils.createResponse1(user,"SUCCESS",true));
+    }
+    @PostMapping("/upload-profilepicture")
+    public  ResponseEntity<ApiResponse1<User>> uploadProfilePicture(@AuthenticationPrincipal User user,@RequestParam MultipartFile file){
+        String uploadDirectory = "/var/www/infiniteb2b/springboot/user/profilephoto";
+
+        File directory = new File(uploadDirectory);
+        if (!directory.exists()) {
+            boolean created = directory.mkdirs();
+            if (!created) {
+                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Unable to create directory for profile pictures");
+            }
+        }
+
+        String originalFilename = file.getOriginalFilename();
+        String fileExtension = originalFilename != null ? originalFilename.substring(originalFilename.lastIndexOf(".")) : ".jpg";  // Default to .jpg if extension is not found
+        String uniqueFilename = UUID.randomUUID().toString() + fileExtension;
+
+        Path filePath = Path.of(uploadDirectory, uniqueFilename);
+
+        try {
+            Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+
+            String filePathString = filePath.toString();
+
+            user.setProfilePicture(filePathString);
+            userRepository.save(user);
+
+            return ResponseEntity.ok().body(ResponseUtils.createResponse1(user,"SUCCESS",true));
+
+        } catch (IOException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to save the file", e);
+        }
+    }
+    @GetMapping("/user-profile")
+    public ResponseEntity<ApiResponse1<User>> userProfile(@AuthenticationPrincipal User user){
+        return ResponseEntity.ok().body(ResponseUtils.createResponse1(user,"SUCCESS",true));
+    }
+    @PostMapping("/profile-picture")
+    public ResponseEntity<ApiResponse1<String>> userProfilePicture(@AuthenticationPrincipal User user){
+        String userProfile = user.getProfilePicture();
+        return ResponseEntity.ok().body(ResponseUtils.createResponse1(userProfile,"SUCCESS",true));
+    }
+
+    @PostMapping("/clear-favorites")
+    public String removeFav(@AuthenticationPrincipal User user){
+        List list = new ArrayList<>();
+        user.setFavorites(list);
+        userRepository.save(user);
+        return "Updated";
     }
 
 

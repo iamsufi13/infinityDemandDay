@@ -22,7 +22,7 @@ import java.util.List;
 @NoArgsConstructor
 @Data
 @Builder
-@ToString(exclude = "solutionSets")
+@ToString(exclude = {"solutionSets", "newsLetters", "campaignList", "blogs"})
 public class Admin implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -43,24 +43,20 @@ public class Admin implements UserDetails {
     private String email;
 
     @JsonIgnore
-    @OneToMany(mappedBy = "admin", cascade = CascadeType.ALL,fetch = FetchType.LAZY)
-    private List<Webinar> webinars;
-    @JsonIgnore
-    @OneToMany(mappedBy = "admin",cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "admin",cascade = CascadeType.ALL,fetch = FetchType.EAGER)
     private List<Campaign> campaignList;
-    @JsonIgnore
-    @OneToMany(mappedBy = "admin",cascade = CascadeType.ALL)
-    private List<Event> events;
+
 
     @Enumerated(EnumType.STRING)
     private Status status;
 
     @JsonIgnore
-    @OneToMany(mappedBy = "admin",cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "admin",cascade = CascadeType.ALL,fetch = FetchType.EAGER)
     private List<Blogs> blogs;
 
     @JsonIgnore
-    @OneToMany(mappedBy = "admin",cascade = CascadeType.ALL)
+
+    @OneToMany(mappedBy = "admin",cascade = CascadeType.ALL,fetch = FetchType.EAGER)
     private List<NewsLetter> newsLetters;
 
     @ElementCollection(fetch = FetchType.EAGER)
