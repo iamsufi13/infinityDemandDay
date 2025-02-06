@@ -1,6 +1,7 @@
 package com.contenttree.user;
 
 import jakarta.mail.MessagingException;
+import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
@@ -32,7 +33,9 @@ public class EmailService {
         MimeMessage mimeMessage = javaMailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, "utf-8");
 
+        String name="Infiniteb2b";
         helper.setTo(to);
+        helper.setFrom(new InternetAddress(name));
         helper.setSubject(subject);
         helper.setText(htmlContent, true);
 

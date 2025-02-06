@@ -203,6 +203,7 @@ public class SpringSecurityConfig {
                 .authorizeRequests(authorizeRequests -> authorizeRequests
                         .requestMatchers("/api/newsletter","/api/user/get-whitepaper","/api/user/solutionset-search","/api/user/get-whitepaper/**","/api/country","/uploads/**","/uploads/**","/api/user/view-pdf","/api/login", "/api/register","/api/category/**","/api/user/solution-sets-homepage", "/api/vendor/login","/login/admin","/register/admin","/api/user/register","/api/user/login","/user/register","/api/user/confirm-account","/api/home","/api/vendor/login","/api/vendor/register","/api/vendor/register123","/error/**","/api/category","/api/user/download-pdf").permitAll()
                         .requestMatchers("/var/***","/uploads/**").permitAll()
+                        .requestMatchers("/api/solutionsets/update").permitAll()
                         .requestMatchers("/api/blogs/get-blogs-category","/api/blogs/get-blogs","/api/newsletter","/api/blogs/get-blog/**").permitAll()
                         .requestMatchers("/api/category/add", "/api/category/update").permitAll()
                         .requestMatchers("/get-all-subscribers-by-id/**").permitAll()

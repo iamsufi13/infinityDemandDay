@@ -185,8 +185,8 @@ public ResponseEntity<ApiResponse1<NewsLetter>> addNewsLetter(
 
         log.debug("Found " + subscribedUsers.size() + " subscribed users.");
 
-        String logoUrl = "https://infiniteb2b.com/static/media/Infinite-b2b-1-scaled.f42a6998e6eac74721e6.png";
-        String newsletterUrl = "https://infiniteb2b.com/newsletters";
+        String logoUrl = "https://infeedu.com/static/media/Infinite-b2b-1-scaled.f42a6998e6eac74721e6.png";
+        String newsletterUrl = "https://infeedu.com/newsletters";
         String title = newsLetter.getTitle();
 
         String htmlMessage = "<div style=\"font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px; background-color: #f9f9f9;\">" +
@@ -260,7 +260,7 @@ PreviewImageRepository previewImageRepository;
         previewImage1.setName(previewImage.getName());
 
 
-        String outputPath = "https://infiniteb2b.com/var/www/infiniteb2b/springboot/new-preview/images/" + imageName;
+        String outputPath = "https://infeedu.com/var/www/infiniteb2b/springboot/new-preview/images/" + imageName;
 
         previewImage1.setPath(outputPath);
         return ResponseEntity.ok().body(ResponseUtils.createResponse1(previewImage1, "File uploaded successfully", true));
@@ -273,7 +273,7 @@ PreviewImageRepository previewImageRepository;
 
     @GetMapping
     public ResponseEntity<ApiResponse1<List<NewsLetter>>> getAllNewsLetter() {
-        String baseUrl = "https://infiniteb2b.com/var/www/infiniteb2b/springboot/newsletters/";
+        String baseUrl = "https://infeedu.com/var/www/infiniteb2b/springboot/newsletters/";
         List<NewsLetter> list = newsLetterService.newsLetterRepository.findAll();
 
         for (NewsLetter newsLetter : list) {
@@ -285,8 +285,8 @@ PreviewImageRepository previewImageRepository;
         return ResponseEntity.ok().body(ResponseUtils.createResponse1(list, "SUCCESS", true));
     }
 
-    @DeleteMapping("/delete")
-    public ResponseEntity<String>deleteNewsLetter(@RequestParam long id) {
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<String>deleteNewsLetter(@PathVariable long id) {
 
         newsLetterService.newsLetterRepository.deleteById(id);
         return ResponseEntity.ok().body("DELETED SUCCESSFULLY");}

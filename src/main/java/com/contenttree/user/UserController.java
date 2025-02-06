@@ -144,7 +144,7 @@ public ResponseEntity<?> registerUser(@RequestParam(required = false) String nam
     if (password == null || password.isEmpty()) {
         return ResponseEntity.badRequest().body(ResponseUtils.createResponse1(null, "Password is required", false));
     }
-    if (email == null || email.isEmpty()) {
+    if (email == null || !email.contains("@")) {
         return ResponseEntity.badRequest().body(ResponseUtils.createResponse1(null, "Email is required", false));
     }
     if (lastName == null || lastName.isEmpty()) {
@@ -314,13 +314,13 @@ public ResponseEntity<ApiResponse1<Map<?, ?>>> getWhitePaperById(@PathVariable l
     map.put("category", category.orElse(null));
     map.put("whitePaper", solutionSets);
 
-    String whitePaperPath = "https://infiniteb2b.com/whitepaper";
+    String whitePaperPath = "https://infeedu.com/whitepaper";
     if (user != null) {
         Optional<UserDataStorage> userDataStorage = userDataStorageRepository.findByUserIdAndSaveAndSolutionSetId(user.getId(), solutionSets.getId());
         int isSaved = (userDataStorage.isPresent() && userDataStorage.get().getSave() == 1) ? 1 : 0;
 
         map.put("isSaved", isSaved);
-        String filePath = "https://infiniteb2b.com" + solutionSets.getFilePath();
+        String filePath = "https://infeedu.com" + solutionSets.getFilePath();
         map.put("whitepaperUrl",filePath);
         map.put("whitePaperPathForRedirection",whitePaperPath + "/" + solutionSets.getId());
 
@@ -328,12 +328,51 @@ public ResponseEntity<ApiResponse1<Map<?, ?>>> getWhitePaperById(@PathVariable l
         map.put("isSubscribe", isSubscribe);
     } else {
         map.put("isSaved", 0);
-        String filePath = "https://infiniteb2b.com" + solutionSets.getFilePath();
+        String filePath = "https://infeedu.com" + solutionSets.getFilePath();
         map.put("whitepaperUrl",filePath);
     }
 
     return ResponseEntity.ok().body(ResponseUtils.createResponse1(map, "SUCCESS", true));
 }
+    @GetMapping("/get-whitepaper/name/{slug}")
+    public ResponseEntity<ApiResponse1<Map<?, ?>>> getWhitePaperBySlug(@PathVariable String slug, @AuthenticationPrincipal User user) {
+
+        SolutionSets solutionSets = solutionSetsRepository.findBySlug(slug).orElse(null);
+
+        if (solutionSets == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(ResponseUtils.createResponse1(null, "Whitepaper not found", false));
+        }
+
+        Optional<Category> category = categoryRepository.findById(solutionSets.getCategory().getId());
+
+        Map<String, Object> map = new HashMap<>();
+        map.put("category", category.orElse(null));
+        map.put("whitePaper", solutionSets);
+
+        String whitePaperPath = "https://infeedu.com/whitepaper";
+
+        if (user != null) {
+            Optional<UserDataStorage> userDataStorage = userDataStorageRepository.findByUserIdAndSaveAndSolutionSetId(user.getId(), solutionSets.getId());
+            int isSaved = (userDataStorage.isPresent() && userDataStorage.get().getSave() == 1) ? 1 : 0;
+
+            map.put("isSaved", isSaved);
+
+            String filePath = "https://infeedu.com" + solutionSets.getFilePath();
+            map.put("whitepaperUrl", filePath);
+            map.put("whitePaperPathForRedirection", whitePaperPath + "/" + solutionSets.getName());
+
+            int isSubscribe = user.getIsSubscriber();
+            map.put("isSubscribe", isSubscribe);
+        } else {
+            map.put("isSaved", 0);
+            String filePath = "https://infeedu.com" + solutionSets.getFilePath();
+            map.put("whitepaperUrl", filePath);
+        }
+
+        return ResponseEntity.ok().body(ResponseUtils.createResponse1(map, "SUCCESS", true));
+    }
+
 //@GetMapping("/get-whitepaper/{id}")
 //public ResponseEntity<ApiResponse1<Map<?, ?>>> getWhitePaperById(@PathVariable long id, @AuthenticationPrincipal User user) {
 //
@@ -1116,8 +1155,8 @@ public ResponseEntity<ApiResponse1<?>> toggleFavorite(@AuthenticationPrincipal U
             Category category1 = categoryService.getCategoryByName(category);
             CategoryDto categoryDto = categoryMapper.categoryToCategoryDto(category1);
             if (categoryDto != null) {
-                categoryDto.setIconPath("https://infiniteb2b.com/var/www/infiniteb2b/springboot/whitepapersSet/" + category1.getIconPath());
-                categoryDto.setBannerPath("https://infiniteb2b.com/var/www/infiniteb2b/springboot/whitepapersSet/" + category1.getBannerPath());
+                categoryDto.setIconPath("https://infeedu.com/var/www/infiniteb2b/springboot/whitepapersSet/" + category1.getIconPath());
+                categoryDto.setBannerPath("https://infeedu.com/var/www/infiniteb2b/springboot/whitepapersSet/" + category1.getBannerPath());
             }
             if (categoryDto!=null) {
                 categoryDto.setIsSubscribe(1);

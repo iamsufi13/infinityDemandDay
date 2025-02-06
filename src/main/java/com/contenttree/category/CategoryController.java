@@ -224,15 +224,15 @@ public ResponseEntity<ApiResponse1<List<Map<String, Object>>>> getAllCategory(
            long count= list.stream().filter(solutionSets -> solutionSets.getCategory().getId()== category.getId()).count();
             categoryMap.put("id", category.getId());
             categoryMap.put("name", category.getName());
-            categoryMap.put("iconPath", "https://infiniteb2b.com/var/www/infiniteb2b/springboot/whitepapersSet/"+category.getIconPath());
-            categoryMap.put("bannerPath", "https://infiniteb2b.com/var/www/infiniteb2b/springboot/whitepapersSet/"+category.getBannerPath());
+            categoryMap.put("iconPath", "https://infeedu.com/var/www/infiniteb2b/springboot/whitepapersSet/"+category.getIconPath());
+            categoryMap.put("bannerPath", "https://infeedu.com/var/www/infiniteb2b/springboot/whitepapersSet/"+category.getBannerPath());
             categoryMap.put("descp", category.getDescp());
             categoryMap.put("isSubscribe", isSub);
             categoryMap.put("whitePaperCount", count);
 
 
 //            String categoryUrl = "https://infiniteb2b.com/category/" + category.getName().toLowerCase();
-            String categoryUrl = "https://infiniteb2b.com/category/" + category.getId();
+            String categoryUrl = "https://infeedu.com/category/" + category.getId();
             categoryMap.put("url", categoryUrl);
 
             categoriesWithUrls.add(categoryMap);
@@ -244,14 +244,14 @@ public ResponseEntity<ApiResponse1<List<Map<String, Object>>>> getAllCategory(
             Map<String, Object> categoryMap = new HashMap<>();
             categoryMap.put("id", category.getId());
             categoryMap.put("name", category.getName());
-            categoryMap.put("iconPath", "https://infiniteb2b.com/var/www/infiniteb2b/springboot/whitepapersSet/"+category.getIconPath());
-            categoryMap.put("bannerPath", "https://infiniteb2b.com/var/www/infiniteb2b/springboot/whitepapersSet/"+category.getBannerPath());
+            categoryMap.put("iconPath", "https://infeedu.com/var/www/infiniteb2b/springboot/whitepapersSet/"+category.getIconPath());
+            categoryMap.put("bannerPath", "https://infeedu.com/var/www/infiniteb2b/springboot/whitepapersSet/"+category.getBannerPath());
             categoryMap.put("descp", category.getDescp());
             categoryMap.put("isSubscribe", 0);
             categoryMap.put("whitePaperCount", count);
 
 //            String categoryUrl = "https://infiniteb2b.com/category/" + category.getName().toLowerCase();
-            String categoryUrl = "https://infiniteb2b.com/category/" + category.getId();
+            String categoryUrl = "https://infeedu.com/category/" + category.getId();
             categoryMap.put("url", categoryUrl);
 
             categoriesWithUrls.add(categoryMap);
@@ -356,8 +356,8 @@ public ResponseEntity<ApiResponse1<List<Map<String, Object>>>> getAllCategory(
         }
 
         Category category = categoryService.categoryRepository.findById(id).orElse(null);
-        String iconPath ="https://infiniteb2b.com/var/www/infiniteb2b/springboot/whitepapersSet/"+category.getIconPath();
-        String bannerPath = "https://infiniteb2b.com/var/www/infiniteb2b/springboot/whitepapersSet/"+category.getBannerPath();
+        String iconPath ="https://infeedu.com/var/www/infiniteb2b/springboot/whitepapersSet/"+category.getIconPath();
+        String bannerPath = "https://infeedu.com/var/www/infiniteb2b/springboot/whitepapersSet/"+category.getBannerPath();
         category.setIconPath(iconPath);
         category.setBannerPath(bannerPath);
 
@@ -385,6 +385,92 @@ public ResponseEntity<ApiResponse1<List<Map<String, Object>>>> getAllCategory(
         return ResponseEntity.ok()
                 .body(ResponseUtils.createResponse1(map, "SUCCESS", true));
     }
+    @GetMapping("/getsolution-setsbycategory/slug/{name}")
+    public ResponseEntity<ApiResponse1<Map<String, Object>>> getSolutionSetsByName(@PathVariable String name, @AuthenticationPrincipal User user) {
+
+        Category category = categoryService.categoryRepository.findBySlug(name);
+
+        if (category == null) {
+            System.out.println("Category not found for slug: " + name);  // Debug log to see why it's null
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(ResponseUtils.createResponse1(null, "Category not found", false));
+        }
+
+
+        // Fetch approved solution sets by category
+        List<SolutionSets> list = solutionSetsService.getByCategoryName(name).stream()
+                .filter(solutionSets -> "APPROVED".equalsIgnoreCase(String.valueOf(solutionSets.getStatus())))
+                .toList();
+
+        List<Map<String, Object>> solutionSetWithStatusList = new ArrayList<>();
+        boolean isUserAuthenticated = user != null;
+
+        // Prepare solution set data
+        for (SolutionSets solutionSet : list) {
+            Map<String, Object> solutionSetMap = new HashMap<>();
+            solutionSetMap.put("solutionSet", solutionSet);
+
+            if (isUserAuthenticated) {
+                Optional<UserDataStorage> userDataStorage = userDataStorageRepository.findByUserIdAndSaveAndSolutionSetId(user.getId(), solutionSet.getId());
+                int isSaved = (userDataStorage.isPresent() && userDataStorage.get().getSave() == 1) ? 1 : 0;
+                solutionSetMap.put("isSaved", isSaved);
+            } else {
+                solutionSetMap.put("isSaved", 0);
+            }
+
+            solutionSetWithStatusList.add(solutionSetMap);
+        }
+
+        // Format paths for icons and banners
+        String iconPath = "https://infeedu.com/var/www/infiniteb2b/springboot/whitepapersSet/" + category.getIconPath();
+        String bannerPath = "https://infeedu.com/var/www/infiniteb2b/springboot/whitepapersSet/" + category.getBannerPath();
+        category.setIconPath(iconPath);
+        category.setBannerPath(bannerPath);
+
+        // Check if the user is subscribed to the category
+        int isSub = 0;
+        if (isUserAuthenticated) {
+            List<String> userFavorites = user.getFavorites();
+            if (userFavorites.contains(category.getName())) {
+                isSub = 1;
+            }
+        }
+
+        // Get the count of approved solution sets for the category
+        List<SolutionSets> list1 = solutionSetsRepository.findAll().stream()
+                .filter(solutionSets -> "APPROVED".equalsIgnoreCase(String.valueOf(solutionSets.getStatus())))
+                .toList();
+        long count = list1.stream().filter(solutionSets -> solutionSets.getCategory().getId() == category.getId()).count();
+
+        // Prepare the response
+        Map<String, Object> map = new HashMap<>();
+        map.put("category", category);
+        map.put("isSubscribe", isSub);
+        map.put("solutionSets", solutionSetWithStatusList);
+        map.put("whitePapersCount", count);
+
+        return ResponseEntity.ok()
+                .body(ResponseUtils.createResponse1(map, "SUCCESS", true));
+    }
+    @GetMapping("/getsolution-setsbycategory/slugupdate")
+    public String updateSlug() {
+       List<Category> list = categoryService.categoryRepository.findAll();
+        list.forEach(category -> {
+            String name = category.getName();
+
+            // Replace spaces with hyphens and convert to lowercase
+            String slug = name.trim().replaceAll("\\s+", "-").toLowerCase();
+
+            // Set the generated slug for the category
+            category.setSlug(slug);
+
+            // Save the updated category
+            categoryService.categoryRepository.save(category);
+        });
+        return "Done";
+    }
+
+
 
 
 

@@ -11,13 +11,10 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 
 @Service
@@ -231,6 +228,17 @@ public String uploadSolutionSets(MultipartFile file, MultipartFile imageFile, lo
 
     return "File and Image Uploaded Successfully: " + fileName + ", " + imageName;
 }
+    public List<SolutionSets> getByCategoryName(String categoryName) {
+        // Fetch category by slug (name)
+        Category category = categoryRepository.findByNameIgnoreCase(categoryName);
+
+        // If category exists, fetch solution sets, otherwise return empty list
+        if (category != null) {
+            return solutionSetsRepository.findByCategory(category);
+        } else {
+            return List.of(); // Return an empty list if the category is not found
+        }
+    }
 
 
 
@@ -306,6 +314,9 @@ public byte[] downloadPdf(long id) throws IOException {
     public List<SolutionSets> getSolutionSetsByCategory(String category)
     {
         return solutionSetsRepository.findByCategoryIgnoreCase(category);
+    }
+    public Category getSolutionSetsByCategoryName(String name){
+        return categoryRepository.findByNameIgnoreCase(name);
     }
 
     public List<SolutionSets> getByCategoryId(long id) {

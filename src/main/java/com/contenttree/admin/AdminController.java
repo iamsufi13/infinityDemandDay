@@ -805,8 +805,8 @@ public ResponseEntity<ApiResponse2> getMostDownloadedWhitePaperList() {
             map.put("totalViews", 0);
             map.put("content",newsletter.getContent());
             map.put("previewLink",newsletter.getPreviewLink());
-            map.put("image","https://infiniteb2b.com/var/www/infiniteb2b/springboot/newsletters/"+newsletter.getImagePath());
-            map.put("viewPath","https://infiniteb2b.com/newsletters");
+            map.put("image","https://infeedu.com/var/www/infiniteb2b/springboot/newsletters/"+newsletter.getImagePath());
+            map.put("viewPath","https://infeedu.com/newsletters");
 
             if (newsletter.getDt1() != null) {
                 String formattedDate = null;

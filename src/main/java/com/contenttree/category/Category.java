@@ -28,6 +28,8 @@ public class Category {
 
     private String iconPath;
 
+    private String slug;
+
     private String bannerPath;
 
     private String descp;

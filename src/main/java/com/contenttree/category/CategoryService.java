@@ -73,6 +73,7 @@ public class CategoryService {
         Category category = new Category();
         String updatedName = name;
         category.setName(updatedName);
+        category.setSlug(name.replace(" ","-"));
         category.setDescp(desc);
         category.setIs_Subscribe(0);
 //        String updatedIconPath = iconName != null ? iconName.replace(" ", "-") : "";
@@ -173,4 +174,5 @@ public class CategoryService {
 
         return categoryRepository.save(category);
     }
+
 }

@@ -23,6 +23,7 @@ public class SolutionSets {
     private long id;
 
     private String name;
+    private String slug;
 
     private String fileType;
 

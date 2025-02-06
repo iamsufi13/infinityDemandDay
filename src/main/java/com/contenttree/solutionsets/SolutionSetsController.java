@@ -24,6 +24,8 @@ public class SolutionSetsController {
     @Autowired
     SolutionSetsService solutionSetsService;
     @Autowired
+    SolutionSetsRepository solutionSetsRepository;
+    @Autowired
     DownloadLogService downloadLogService;
     @Autowired
     VendorsService vendorsService;
@@ -65,5 +67,27 @@ public class SolutionSetsController {
         String uploadResponse = solutionSetsService.uploadSolutionSets(file,image, vendors.getId(),category,desc,title,1);
         return ResponseEntity.ok(new ApiResponse1<>(true,"SUCCESS",null));
     }
+    @GetMapping("/update")
+    public String update() {
+        List<SolutionSets> solutionSets = solutionSetsRepository.findAll();
+
+        solutionSets.forEach(solutionSets1 -> {
+            // Assuming 'getTitle()' is the correct method to get the title of the SolutionSet
+            String title = solutionSets1.getTitle();
+
+            // Replace spaces with hyphens and convert to lowercase
+            String slug = title.trim().replaceAll("\\s+", "-").toLowerCase();
+
+            // Set the generated slug for the SolutionSet
+            solutionSets1.setSlug(slug);
+
+            // Save the updated SolutionSet
+            solutionSetsRepository.save(solutionSets1);
+        });
+
+        return "Slugs updated successfully";
+    }
+
+
 }
 
