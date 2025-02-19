@@ -38,6 +38,48 @@ public class EmailController {
         return ResponseEntity.ok("Email sent successfully. to "+ email);
     }
 
+    @PostMapping("/api/mail/html/demand-verse/business-resilience/{email}")
+    public ResponseEntity<String> sendHtmlMailBusinessResilience(@PathVariable String email) {
+        try {
+            String personalizedBody = loadEmailTemplate("thankyou_email_send_view-ai-pcs.php");
+//            String personalizedBody = loadEmailTemplate("Demandverse.html");
+
+            try {
+                emailSender.sendEmailPcs(email, "Thank You for Your Interest - Drive business resilience with AI PCs", personalizedBody);
+            } catch (Exception e) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body("Error sending email: " + e.getMessage());
+            }
+
+        } catch (IOException ex) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error loading email template: " + ex.getMessage());
+        }
+
+        return ResponseEntity.ok("Email sent successfully. to "+ email);
+    }
+    @PostMapping("/api/mail/html/demand-verse/buyers-guide/{email}")
+    public ResponseEntity<String> sendHtmlMailBuyersGuide(@PathVariable String email) {
+        try {
+            String personalizedBody = loadEmailTemplate("thankyou-buyers-guide.html");
+//            String personalizedBody = loadEmailTemplate("Demandverse.html");
+
+            try {
+                emailSender.sendEmailBuyersGuide(email, "Thank You for Registering - Buyer's Guide:\n" +
+                        "Microsoft 365 Data Protection", personalizedBody);
+            } catch (Exception e) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body("Error sending email: " + e.getMessage());
+            }
+
+        } catch (IOException ex) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error loading email template: " + ex.getMessage());
+        }
+
+        return ResponseEntity.ok("Email sent successfully. to "+ email);
+    }
+
     private String loadEmailTemplate(String templatePath) throws IOException {
         try (InputStream inputStream = getClass().getClassLoader().getResourceAsStream(templatePath)) {
             if (inputStream == null) {

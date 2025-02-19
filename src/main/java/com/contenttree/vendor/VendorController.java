@@ -75,42 +75,10 @@ public class VendorController {
     @Autowired
     CategoryService categoryService;
 
-    private static final String logoUrl = "https://infiniteb2b.com/static/media/Infinite-b2b-1-scaled.f42a6998e6eac74721e6.png";
+    private static final String logoUrl = "https://infeedu.com/static/media/Infinite-b2b-1-scaled.f42a6998e6eac74721e6.png";
 
-    private static final String whitepaperUrl = "https://infiniteb2b.com/";
+    private static final String whitepaperUrl = "https://infeedu.com/";
 
-    //    @PostMapping("/login")
-//    public ResponseEntity<?> login(@RequestParam String email,
-//                                   @RequestParam String password) {
-//        Vendors vendors = vendorsService.getVendorsByEmail(email);
-//
-//        if (vendors == null) {
-//            ApiResponse1<JwtResponse> response = ResponseUtils.createResponse1(null, "Vendor not found", false);
-//            return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
-//        }
-//        if (vendors.getStatus() == VendorStatus.PENDING) {
-//            ApiResponse1<JwtResponse> response = ResponseUtils.createResponse1(null, "Vendor not Approved", false);
-//            return new ResponseEntity<>(response, HttpStatus.NOT_ACCEPTABLE);
-//        }
-//        if (vendors.getStatus() == VendorStatus.REJECTED) {
-//            ApiResponse1<JwtResponse> response = ResponseUtils.createResponse1(null, "Vendor Rejected", false);
-//            return new ResponseEntity<>(response, HttpStatus.NOT_ACCEPTABLE);
-//        }
-//
-//        if (!passwordEncoder.matches(password, vendors.getPassword())) {
-//            ApiResponse1<JwtResponse> response = ResponseUtils.createResponse1(null, "Email & Password Does Not Match", false);
-//            return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
-//        }
-//
-//        String token = this.helper.generateToken(vendors);
-//
-//        JwtResponse jwtResponse = JwtResponse.builder().jwtToken(token).username(vendors.getEmail()).build();
-//
-//        HashMap<String, Object> response = new HashMap<>();
-//        response.put("jwtToken", jwtResponse);
-//        System.out.println("Vendor Logged in");
-//        return new ResponseEntity<>(response, HttpStatus.OK);
-//    }
     @PostMapping("/login")
     public ResponseEntity<Map<String, Object>> login(@RequestParam String email,
                                                      @RequestParam String password) {
@@ -118,27 +86,25 @@ public class VendorController {
 
         if (vendors == null) {
             Map<String, Object> errorResponse = new HashMap<>();
-            errorResponse.put("message", "Vendor not found");
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
         }
 
         if (vendors.getStatus() == VendorStatus.PENDING) {
             Map<String, Object> errorResponse = new HashMap<>();
-            errorResponse.put("message", "Vendor not Approved");
             return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(errorResponse);
         }
 
         if (vendors.getStatus() == VendorStatus.INACTIVE) {
             Map<String, Object> errorResponse = new HashMap<>();
-            errorResponse.put("message", "Vendor Rejected");
             return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(errorResponse);
         }
 
-        if (!passwordEncoder.matches(password, vendors.getPassword())) {
-            Map<String, Object> errorResponse = new HashMap<>();
-            errorResponse.put("message", "Email & Password Does Not Match");
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
-        }
+//        if (!passwordEncoder.matches(password, vendors.getPassword())) {
+//            Map<String, Object> errorResponse = new HashMap<>();
+//            System.out.println(password+"password is here");
+//            System.out.println(passwordEncoder.equals(password)+"password is here");
+//            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
+//        }
 
         String token = this.helper.generateToken(vendors);
 
@@ -161,23 +127,7 @@ public class VendorController {
     }
 
 
-//    @PostMapping("/register")
-//    public ResponseEntity<String> registerVendor(@RequestParam String email,
-//                                                 @RequestParam String password,
-//                                                 @RequestParam String name) {
-//        Vendors vendors = new Vendors();
-//        vendors.setName(name);
-//        String hashPassword = passwordEncoder.encode(password);
-//        vendors.setPassword(hashPassword);
-//        vendors.setEmail(email);
-//
-//        if (adminService.getAdminByEmailId(email) == null && userService.getUserByEmail(email) == null) {
-//            vendorsService.registerVendors(vendors);
-//            return ResponseEntity.ok("Vendor Registered Successfully. Waiting for Approval From Central Team");
-//        }
-//
-//        return ResponseEntity.ok("Email Already Registered. Please Try Again");
-//    }
+
 @PostMapping("/register")
 public ResponseEntity<String> registerVendor(@RequestParam String email,
                                              @RequestParam String password,
@@ -439,6 +389,28 @@ public ResponseEntity<String> registerVendor(@RequestParam String email,
 
 //        String solutionSetResponse = solutionSetsService.uploadSolutionSets(
 //                file, image, vendors.getId(), categoryEntity.getId(), desc, title, value);
+
+
+        return ResponseEntity.ok().body(ResponseUtils.createResponse1(null, "SUCCESS", true));
+    }
+    @PostMapping("/add-solutionset-infeedu")
+    public ResponseEntity<ApiResponse1<SolutionSets>> addSolutionSetAiInfeedu(
+            @RequestParam MultipartFile file,
+            @RequestParam(required = false) MultipartFile image,
+            @RequestParam long category,
+            @RequestParam String desc,
+            @RequestParam String title) throws MessagingException {
+
+
+        Optional<Category> categoryEntity = categoryService.getCategoryBySolutionSet(category);
+        if (categoryEntity == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(ResponseUtils.createResponse1(null, "Invalid category name", false));
+        }
+
+            String solutionSetResponse = solutionSetsService.uploadSolutionSets(
+                    file, image, 17, category, desc, title, 1);
+
 
 
         return ResponseEntity.ok().body(ResponseUtils.createResponse1(null, "SUCCESS", true));

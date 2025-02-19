@@ -2,15 +2,14 @@ package com.contenttree.StaticCount;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Data
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
@@ -26,6 +25,14 @@ public class StaticCount {
     private long usersCount;
 
     private long vendorsCount;
+
+    private long newsLetterCount;
+
+    private long blogsCount;
+
+    private long subscribers;
+
+    private long campaignsCount;
 
     @JsonIgnore
     private LocalDateTime dt1;

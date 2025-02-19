@@ -65,6 +65,7 @@ public class SolutionSetsService {
 //                .status(SolutionSetsStatus.PENDING)
 //                .category(category)
 //                .description(desc)
+//                .description(descinfiniteb2b)
 //                .filePath(uploadDir + fileName)
 //                .build();
 //
@@ -170,7 +171,6 @@ public String uploadSolutionSets(MultipartFile file, MultipartFile imageFile, lo
 
     try {
         Files.write(Paths.get(filePath), file.getBytes());
-        System.out.println("PDF File uploaded successfully at: " + filePath);
     } catch (IOException e) {
         e.printStackTrace();
         return "PDF Upload failed: " + e.getMessage();
@@ -209,6 +209,7 @@ public String uploadSolutionSets(MultipartFile file, MultipartFile imageFile, lo
                 .description(desc)
                 .filePath(filePath)
                 .imagePath(imagePath)
+                .slug(title.replace(" ","-"))
                 .build();
     } else if (value == 2) {
         solutionSets = SolutionSets.builder()
@@ -221,6 +222,7 @@ public String uploadSolutionSets(MultipartFile file, MultipartFile imageFile, lo
                 .description(desc)
                 .filePath(filePath)
                 .imagePath(imagePath)
+                .slug(title.replace(" ","-"))
                 .build();
     }
 

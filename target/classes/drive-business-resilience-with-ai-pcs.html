@@ -1,0 +1,1174 @@
+<html>
+
+<head>
+  <script type="text/javascript">
+    var HTTP_SITE = "<?php echo base_url();?>";
+  </script>
+
+  <meta charset="utf-8" />
+  <title>
+    Drive business resilience with AI PCs
+  </title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta content="Premium Multipurpose Admin & Dashboard Template" name="description" />
+  <meta content="Themesbrand" name="author" />
+  <!-- App favicon -->
+  <link rel="shortcut icon" href="https://apps.demanday.com/assets/images/favicon.icon" />
+
+  <!-- plugin css -->
+  <link href="https://apps.demanday.com/assets/libs/jsvectormap/css/jsvectormap.min.css" rel="stylesheet"
+    type="text/css" />
+
+  <!-- dropzone css -->
+  <link rel="stylesheet" href="https://apps.demanday.com/assets/libs/dropzone/dropzone.css" type="text/css" />
+
+  <!-- Filepond css -->
+  <link rel="stylesheet" href="https://apps.demanday.com/assets/libs/filepond/filepond.min.css" type="text/css" />
+  <link rel="stylesheet"
+    href="https://apps.demanday.com/assets/libs/filepond-plugin-image-preview/filepond-plugin-image-preview.min.css" />
+
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+HK:wght@200;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css?family=Poppins" rel="stylesheet" />
+
+  <!-- Layout config Js -->
+  <script src="https://apps.demanday.com/assets/js/layout.js"></script>
+  <!-- Bootstrap Css -->
+  <link href="https://apps.demanday.com/assets/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+  <!-- Icons Css -->
+  <link href="https://apps.demanday.com/assets/css/icons.min.css" rel="stylesheet" type="text/css" />
+  <!-- App Css-->
+  <link href="https://apps.demanday.com/assets/css/app.min.css" rel="stylesheet" type="text/css" />
+  <!-- custom Css-->
+  <link href="https://apps.demanday.com/assets/css/custom.min.css" rel="stylesheet" type="text/css" />
+
+  <link rel="stylesheet" href="https://apps.demanday.com/assets/css/web_template.css" />
+</head>
+<style>
+  body {
+    background-color: #fff;
+    font-family: "Poppins", Sans-serif;
+  }
+
+  dl,
+  ol,
+  ul {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    font-size: 17px;
+  }
+
+  .pushdown .form {
+    padding: 20px;
+    animation-name: rotateInUpLeft;
+    background: #ffffff;
+  }
+
+  .form {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.5);
+  }
+
+  .form-control {
+    font-size: 15px;
+    background-color: #ffffff;
+    border-color: #636363;
+    border-radius: 5px;
+  }
+
+  .form-select.mb-3 {
+    /* padding: 0.7rem .9rem; */
+    font-size: 16px;
+    border: 1px solid #636363;
+    border-radius: 5px;
+  }
+
+  #category-add-form {
+    padding-top: 20px;
+  }
+
+  .r-form-r-top {
+    color: #4c4382;
+    font-family: "Poppins", Sans-serif;
+    font-size: 25px;
+    font-weight: 600;
+    text-align: center;
+  }
+
+  .btn.btn-block.btn-bg {
+    width: 100%;
+    font-size: 17px;
+    font-weight: 500;
+    transition: all 0.3s;
+  }
+
+  .btn.btn-block.btn-bg:hover {
+    transform: translateY(-8px);
+    transition-duration: 0.3s;
+    transition-property: transform;
+    transition-timing-function: ease-out;
+  }
+
+  .col-12 {
+    -webkit-box-flex: 0;
+    -ms-flex: 0 0 auto;
+    flex: 0 0 auto;
+    width: 100%;
+    margin-bottom: 15px;
+  }
+
+  .mb-3 {
+    margin-bottom: 0 !important;
+  }
+
+  .invalid-feedback {
+    margin-bottom: 0;
+  }
+
+  .pushdown {
+    padding: 0 15px;
+  }
+
+  .form-control:hover,
+  .form-control:focus,
+  .form-select:focus,
+  .form-select:hover {
+    border-color: #9ea6c3 !important;
+    outline: 0;
+    -webkit-box-shadow: 0 0 6px 0 rgba(64, 81, 137, 0.35);
+    box-shadow: 0 0 6px 0 rgba(64, 81, 137, 0.35);
+  }
+
+  @media (min-width: 1200px) {
+
+    .h3,
+    h3 {
+      font-size: 0.922rem;
+      text-align: center;
+      color: #5fc173;
+    }
+  }
+
+  @media (min-width: 1200px) {
+
+    .h2,
+    h2 {
+      font-size: 1.625rem;
+      text-align: center;
+    }
+  }
+</style>
+<style>
+  .form-group {
+    position: relative;
+  }
+
+  /* .form-group label {
+    position: absolute;
+    top: 13px;
+    left: 14px;
+    transition: all 0.3s ease-in-out;
+    pointer-events: none;
+    opacity: 0.7;
+}
+
+#first_name:focus+#first_name_label,
+#first_name:not(:placeholder-shown)+#first_name_label,
+#last_name:focus+#last_name_label,
+#last_name:not(:placeholder-shown)+#last_name_label,
+#email:focus+#email_label,
+#email:not(:placeholder-shown)+#email_label,
+#phone_no:focus+#phone_no_label,
+#phone_no:not(:placeholder-shown)+#phone_no_label,
+#company_name:focus+#company_name_label,
+#company_name:not(:placeholder-shown)+#company_name_label,
+#job_title:focus+#job_title_label,
+#job_title:not(:placeholder-shown)+#job_title_label,
+#zip_code:focus+#zip_code_label,
+#zip_code:not(:placeholder-shown)+#zip_code_label,
+#company_size:focus+#company_size_label,
+#company_size:not(:placeholder-shown)+#company_size_label {
+    top: 2px;
+    font-size: 13px;
+    opacity: 0.3;
+} */
+
+  .form-control::placeholder,
+  .form-select::placeholder {
+    color: #878a99;
+    opacity: 0;
+  }
+
+  /* .form-control:focus+.form-group label,
+.form-control:not(:placeholder-shown)+.form-group label {
+    top: 2px;
+    font-size: 13px;
+    opacity: 1;
+} */
+
+  .form-control,
+  .form-select {
+    height: 45px;
+    padding: 20px 0px 0px 15px;
+  }
+
+  .form-group label {
+    font-size: 17px;
+    font-weight: 600;
+  }
+
+  label p {
+    margin: 0px !important;
+    font-weight: normal;
+    font-size: 15px;
+    text-align: start;
+  }
+
+  .invalid-feedback.confirmation_invalid {
+    margin-left: 20;
+    margin-top: 0;
+    font-weight: normal;
+    font-size: 13px;
+  }
+
+  .form_confirmation_area label {
+    margin-bottom: 0;
+  }
+</style>
+<style>
+  .writing {
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+
+  .writing :is(input, textarea, select) {
+    /* padding: 0px 0;
+        width: 100%;
+        margin-top: 1.2em;
+        margin-left: 8px; */
+  }
+
+  .writing :is(input, textarea, select)~label {
+    position: absolute;
+    top: 10px;
+    left: 15px;
+    font-size: 17px;
+    transition: all 0.2s ease;
+    color: #323232;
+  }
+
+  .writing :is(input, textarea, select):focus~label,
+  .writing :is(input, textarea, select).has-text~label {
+    top: 5px;
+    font-size: 0.8em;
+    color: rgba(59, 63, 71, 0.6);
+  }
+
+  .writing :is(input, textarea, select)~span {
+    content: "";
+    /*height: 1px;*/
+    width: 100%;
+    background: #80808080;
+    display: flex;
+    justify-content: center;
+  }
+</style>
+<style>
+  label {
+    /* position: absolute; */
+    top: 0.25rem;
+    left: 1rem;
+    transition: all 0.2s ease-out;
+    color: #555;
+    /* Set your desired label color */
+  }
+
+  /* input:focus+label,
+input:not(:placeholder-shown)+label {
+    top: -1.25rem;
+    font-size: 0.8rem;
+    color: #007bff;
+} */
+  p {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    font-size: 17px;
+    font-weight: 400;
+  }
+
+  @media (min-width: 1200px) {
+
+    .container,
+    .container-lg,
+    .container-md,
+    .container-sm,
+    .container-xl,
+    .container-xxl {
+      max-width: 1180px;
+    }
+  }
+
+  .form-check .form-check-label {
+    font-size: 15px;
+    font-weight: normal;
+  }
+</style>
+<style>
+  .form-check-input.is-valid~.form-check-label,
+  .was-validated .form-check-input:valid~.form-check-label {
+    color: #555;
+    border-radius: 50%;
+  }
+
+  .form-check-input.is-valid,
+  .was-validated .form-check-input:valid {
+    border-color: #555;
+    border-radius: 50%;
+  }
+
+  .form-check-input[type="checkbox"] {
+    border-radius: 50%;
+  }
+</style>
+
+<body>
+  <div class="container-fluid logo">
+    <div class="container">
+      <div class="row">
+        <span class="col-6 left">
+          <img src="https://apps.demanday.com/upload/branding_logo/drive-business-resilience-with-ai-pcs_1.png"
+            style="height: 50px; margin: 10px 0" />
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <div class="container-fluid title" style="background-color: #ffffff">
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-7">
+          <h1 style="
+                font-size: 44px;
+                color: #0a3256;
+                font-weight: 600;
+                margin-bottom: 50px;
+              ">
+            Drive business resilience with AI PCs
+          </h1>
+          <div style="text-align: center">
+            <img src="https://apps.demanday.com/upload/campaign_img/drive-business-resilience-with-ai-pcs.jpg"
+              align="middle" style="width: 40%" />
+          </div>
+          <p>
+            Discover how to build a resilient business prepared for constant change with insights from Microsoft’s
+            latest e-book.
+            <br><br>
+            In a world where agile operations, robust cybersecurity, and innovation are essential, this e-book explores
+            strategies for empowering employees and IT teams alike. From using AI-powered devices to reduce daily
+            friction to enabling seamless collaboration, this guide reveals actionable steps to optimise productivity
+            and secure your operations against evolving threats.
+            <br><br>
+            Unlock your team’s potential and future-proof your business—dive into this e-book to navigate challenges
+            with confidence and stay ahead of the curve.
+            <br><br>
+          </p>
+        </div>
+        <div class="pushdown col-lg-5 col-xs-12" style="position: relative; margin-bottom: 30px">
+          <div class="form">
+            <h2>Download the Guide</h2>
+            <script>
+              function showThankYouMessage(event) {
+                event.preventDefault();  // Prevents the form from submitting and refreshing the page
+                document.getElementById('thank-you-message').style.display = 'block'; // Show the thank you message
+                document.getElementById('download-form').style.display = 'none'; // Keeps the form visible
+              }
+            </script>
+
+            <div id="thank-you-message" style="display:none; margin-top: 20px;">
+              <h3>Thank you for your submission!</h3>
+            </div>
+            <form id="download-form" action="#" method="post" novalidate onsubmit="showThankYouMessage(event)">
+              <div class="row">
+                <div class="col-12">
+                  <div class="form-group writing">
+                    <input type="text" class="form-control mb-3" id="first_name" name="first_name"
+                      placeholder="First Name" value="" required>
+                    <label for="first_name" class="mb-2" id="first_name_label">First Name</label>
+                    <div class="invalid-feedback">
+                      Please enter first name.
+                    </div>
+                  </div>
+                </div>
+                <div class="col-12">
+                  <div class="form-group writing">
+                    <input type="text" class="form-control mb-3" id="last_name" name="last_name" placeholder="Last Name"
+                      value="" required>
+                    <label for="last_name" class="mb-2" id="last_name_label">Last Name</label>
+                    <div class="invalid-feedback">
+                      Please enter last name.
+                    </div>
+                  </div>
+                </div>
+
+                <div class="col-12">
+                  <div class="form-group writing">
+                    <input type="email" class="form-control mb-3" id="email" name="email" placeholder="Business Email"
+                      value="" required>
+                    <label for="email" class="mb-2" id="email_label">Business Email</label>
+                    <div class="invalid-feedback">
+                      Please enter Business Email.
+                    </div>
+                  </div>
+                </div>
+
+                <div class="col-12">
+                  <div class="form-group writing">
+                    <input type="text" class="form-control mb-3" id="phone_no" name="phone_no"
+                      placeholder="Mobile Number" value="" required>
+                    <label for="phone_no" class="mb-2" id="phone_no_label">Phone Number</label>
+                    <div class="invalid-feedback">
+                      Please enter phone number.
+                    </div>
+                  </div>
+                </div>
+
+                <div class="col-12">
+                  <div class="form-group writing">
+                    <input type="text" class="form-control mb-3" id="company_name" name="company_name"
+                      placeholder="Company Name" value="" required>
+                    <label for="company_name" class="mb-2" id="company_name_label">Company
+                      Name</label>
+                    <div class="invalid-feedback">
+                      Please enter company name.
+                    </div>
+                  </div>
+                </div>
+
+                <div class="col-12">
+                  <div class="form-group writing">
+                    <input type="text" class="form-control mb-3" id="job_title" name="job_title" placeholder="Job Title"
+                      value="" required>
+                    <label for="job_title" class="mb-2" id="job_title_label">Job Title</label>
+                    <div class="invalid-feedback">
+                      Please enter job title.
+                    </div>
+                  </div>
+                </div>
+
+                <div class="col-12">
+                  <div class="form-group writing">
+                    <select class="form-select mb-3" id="company_size" name="company_size"
+                      aria-label="Default select example" required>
+                      <option value=""> </option>
+                      <option value="1 to 9">1-9</option>
+                      <option value="10 to 24">10-24</option>
+                      <option value="25-49">
+                        25-49</option>
+                      <option value="50-99">
+                        50-99</option>
+                      <option value="100-249">100-249</option>
+                      <option value="250-499">250-499</option>
+                      <option value="500-999">500-999</option>
+                      <option value="1,000-4,999">1,000-4,999
+                      </option>
+                      <option value="5,000-9,999">5,000-9,999
+                      </option>
+                      <option value="10,000-49,999">
+                        10,000-49,999</option>
+                      <option value="50K-100K">50K-100K</option>
+                      <option value=">100K">
+                        &gt;100K</option>
+                    </select>
+                    <label for="company_size" class="mb-2" id="company_size_label">Company
+                      Size</label>
+                    <div class="invalid-feedback">
+                      Please select company size.
+                    </div>
+                  </div>
+                </div>
+                <div class="col-12">
+                  <div class="form-group writing">
+                    <select class="form-select mb-3" name="country" id="country" aria-label="Default select example"
+                      required>
+                      <option value=""> </option>
+                      <option value="Afghanistan">Afghanistan</option>
+                      <option value="Albania">Albania</option>
+                      <option value="Algeria">Algeria</option>
+                      <option value="American Samoa">American Samoa</option>
+                      <option value="Andorra">Andorra</option>
+                      <option value="Angola">Angola</option>
+                      <option value="Anguilla">Anguilla</option>
+                      <option value="Antigua &amp; Barbuda">Antigua &amp; Barbuda</option>
+                      <option value="Argentina">Argentina</option>
+                      <option value="Armenia">Armenia</option>
+                      <option value="Aruba">Aruba</option>
+                      <option value="Australia">Australia</option>
+                      <option value="Austria">Austria</option>
+                      <option value="Azerbaijan">Azerbaijan</option>
+                      <option value="Bahamas, The">Bahamas, The</option>
+                      <option value="Bahrain">Bahrain</option>
+                      <option value="Bangladesh">Bangladesh</option>
+                      <option value="Barbados">Barbados</option>
+                      <option value="Belarus">Belarus</option>
+                      <option value="Belgium">Belgium</option>
+                      <option value="Belize">Belize</option>
+                      <option value="Benin">Benin</option>
+                      <option value="Bermuda">Bermuda</option>
+                      <option value="Bhutan">Bhutan</option>
+                      <option value="Bolivia">Bolivia</option>
+                      <option value="Bosnia &amp; Herzegovina">Bosnia &amp; Herzegovina
+                      </option>
+                      <option value="Botswana">Botswana</option>
+                      <option value="Brazil">Brazil</option>
+                      <option value="British Virgin Is.">British Virgin Is.</option>
+                      <option value="Brunei">Brunei</option>
+                      <option value="Bulgaria">Bulgaria</option>
+                      <option value="Burkina Faso">Burkina Faso</option>
+                      <option value="Burma">Burma</option>
+                      <option value="Burundi">Burundi</option>
+                      <option value="Cambodia">Cambodia</option>
+                      <option value="Cameroon">Cameroon</option>
+                      <option value="Canada">Canada</option>
+                      <option value="Cape Verde">Cape Verde</option>
+                      <option value="Cayman Islands">Cayman Islands</option>
+                      <option value="Central African Rep.">Central African Rep.</option>
+                      <option value="Chad">Chad</option>
+                      <option value="Chile">Chile</option>
+                      <option value="China">China</option>
+                      <option value="Colombia">Colombia</option>
+                      <option value="Comoros">Comoros</option>
+                      <option value="Congo, Dem. Rep.">Congo, Dem. Rep.</option>
+                      <option value="Congo, Repub. of the">Congo, Repub. of the</option>
+                      <option value="Cook Islands">Cook Islands</option>
+                      <option value="Costa Rica">Costa Rica</option>
+                      <option value="Cote d'Ivoire">Cote d'Ivoire</option>
+                      <option value="Croatia">Croatia</option>
+                      <option value="Cuba">Cuba</option>
+                      <option value="Cyprus">Cyprus</option>
+                      <option value="Czech Republic">Czech Republic</option>
+                      <option value="Denmark">Denmark</option>
+                      <option value="Djibouti">Djibouti</option>
+                      <option value="Dominica">Dominica</option>
+                      <option value="Dominican Republic">Dominican Republic</option>
+                      <option value="East Timor">East Timor</option>
+                      <option value="Ecuador">Ecuador</option>
+                      <option value="Egypt">Egypt</option>
+                      <option value="El Salvador">El Salvador</option>
+                      <option value="Equatorial Guinea">Equatorial Guinea</option>
+                      <option value="Eritrea">Eritrea</option>
+                      <option value="Estonia">Estonia</option>
+                      <option value="Ethiopia">Ethiopia</option>
+                      <option value="Faroe Islands">Faroe Islands</option>
+                      <option value="Fiji">Fiji</option>
+                      <option value="Finland">Finland</option>
+                      <option value="France">France</option>
+                      <option value="French Guiana">French Guiana</option>
+                      <option value="French Polynesia">French Polynesia</option>
+                      <option value="Gabon">Gabon</option>
+                      <option value="Gambia, The">Gambia, The</option>
+                      <option value="Gaza Strip">Gaza Strip</option>
+                      <option value="Georgia">Georgia</option>
+                      <option value="Germany">Germany</option>
+                      <option value="Ghana">Ghana</option>
+                      <option value="Gibraltar">Gibraltar</option>
+                      <option value="Greece">Greece</option>
+                      <option value="Greenland">Greenland</option>
+                      <option value="Grenada">Grenada</option>
+                      <option value="Guadeloupe">Guadeloupe</option>
+                      <option value="Guam">Guam</option>
+                      <option value="Guatemala">Guatemala</option>
+                      <option value="Guernsey">Guernsey</option>
+                      <option value="Guinea">Guinea</option>
+                      <option value="Guinea-Bissau">Guinea-Bissau</option>
+                      <option value="Guyana">Guyana</option>
+                      <option value="Haiti">Haiti</option>
+                      <option value="Honduras">Honduras</option>
+                      <option value="Hong Kong">Hong Kong</option>
+                      <option value="Hungary">Hungary</option>
+                      <option value="Iceland">Iceland</option>
+                      <option value="India">India</option>
+                      <option value="Indonesia">Indonesia</option>
+                      <option value="Iran">Iran</option>
+                      <option value="Iraq">Iraq</option>
+                      <option value="Ireland">Ireland</option>
+                      <option value="Isle of Man">Isle of Man</option>
+                      <option value="Israel">Israel</option>
+                      <option value="Italy">Italy</option>
+                      <option value="Jamaica">Jamaica</option>
+                      <option value="Japan">Japan</option>
+                      <option value="Jersey">Jersey</option>
+                      <option value="Jordan">Jordan</option>
+                      <option value="Kazakhstan">Kazakhstan</option>
+                      <option value="Kenya">Kenya</option>
+                      <option value="Kiribati">Kiribati</option>
+                      <option value="Korea, North">Korea, North</option>
+                      <option value="Korea, South">Korea, South</option>
+                      <option value="Kuwait">Kuwait</option>
+                      <option value="Kyrgyzstan">Kyrgyzstan</option>
+                      <option value="Laos">Laos</option>
+                      <option value="Latvia">Latvia</option>
+                      <option value="Lebanon">Lebanon</option>
+                      <option value="Lesotho">Lesotho</option>
+                      <option value="Liberia">Liberia</option>
+                      <option value="Libya">Libya</option>
+                      <option value="Liechtenstein">Liechtenstein</option>
+                      <option value="Lithuania">Lithuania</option>
+                      <option value="Luxembourg">Luxembourg</option>
+                      <option value="Macau">Macau</option>
+                      <option value="Macedonia">Macedonia</option>
+                      <option value="Madagascar">Madagascar</option>
+                      <option value="Malawi">Malawi</option>
+                      <option value="Malaysia">Malaysia</option>
+                      <option value="Maldives">Maldives</option>
+                      <option value="Mali">Mali</option>
+                      <option value="Malta">Malta</option>
+                      <option value="Marshall Islands">Marshall Islands</option>
+                      <option value="Martinique">Martinique</option>
+                      <option value="Mauritania">Mauritania</option>
+                      <option value="Mauritius">Mauritius</option>
+                      <option value="Mayotte">Mayotte</option>
+                      <option value="Mexico">Mexico</option>
+                      <option value="Micronesia, Fed. St.">Micronesia, Fed. St.</option>
+                      <option value="Moldova">Moldova</option>
+                      <option value="Monaco">Monaco</option>
+                      <option value="Mongolia">Mongolia</option>
+                      <option value="Montserrat">Montserrat</option>
+                      <option value="Morocco">Morocco</option>
+                      <option value="Mozambique">Mozambique</option>
+                      <option value="Namibia">Namibia</option>
+                      <option value="Nauru">Nauru</option>
+                      <option value="Nepal">Nepal</option>
+                      <option value="Netherlands">Netherlands</option>
+                      <option value="Netherlands Antilles">Netherlands Antilles</option>
+                      <option value="New Caledonia">New Caledonia</option>
+                      <option value="New Zealand">New Zealand</option>
+                      <option value="Nicaragua">Nicaragua</option>
+                      <option value="Niger">Niger</option>
+                      <option value="Nigeria">Nigeria</option>
+                      <option value="N. Mariana Islands">N. Mariana Islands</option>
+                      <option value="Norway">Norway</option>
+                      <option value="Oman">Oman</option>
+                      <option value="Pakistan">Pakistan</option>
+                      <option value="Palau">Palau</option>
+                      <option value="Panama">Panama</option>
+                      <option value="Papua New Guinea">Papua New Guinea</option>
+                      <option value="Paraguay">Paraguay</option>
+                      <option value="Peru">Peru</option>
+                      <option value="Philippines">Philippines</option>
+                      <option value="Poland">Poland</option>
+                      <option value="Portugal">Portugal</option>
+                      <option value="Puerto Rico">Puerto Rico</option>
+                      <option value="Qatar">Qatar</option>
+                      <option value="Reunion">Reunion</option>
+                      <option value="Romania">Romania</option>
+                      <option value="Russia">Russia</option>
+                      <option value="Rwanda">Rwanda</option>
+                      <option value="Saint Helena">Saint Helena</option>
+                      <option value="Saint Kitts &amp; Nevis">Saint Kitts &amp; Nevis</option>
+                      <option value="Saint Lucia">Saint Lucia</option>
+                      <option value="St Pierre &amp; Miquelon">St Pierre &amp; Miquelon
+                      </option>
+                      <option value="Saint Vincent and the Grenadines">Saint Vincent and the
+                        Grenadines</option>
+                      <option value="Samoa">Samoa</option>
+                      <option value="San Marino">San Marino</option>
+                      <option value="Sao Tome &amp; Principe">Sao Tome &amp; Principe</option>
+                      <option value="Saudi Arabia">Saudi Arabia</option>
+                      <option value="Senegal">Senegal</option>
+                      <option value="Serbia">Serbia</option>
+                      <option value="Seychelles">Seychelles</option>
+                      <option value="Sierra Leone">Sierra Leone</option>
+                      <option value="Singapore">Singapore</option>
+                      <option value="Slovakia">Slovakia</option>
+                      <option value="Slovenia">Slovenia</option>
+                      <option value="Solomon Islands">Solomon Islands</option>
+                      <option value="Somalia">Somalia</option>
+                      <option value="South Africa">South Africa</option>
+                      <option value="Spain">Spain</option>
+                      <option value="Sri Lanka">Sri Lanka</option>
+                      <option value="Sudan">Sudan</option>
+                      <option value="Suriname">Suriname</option>
+                      <option value="Swaziland">Swaziland</option>
+                      <option value="Sweden">Sweden</option>
+                      <option value="Switzerland">Switzerland</option>
+                      <option value="Syria">Syria</option>
+                      <option value="Taiwan">Taiwan</option>
+                      <option value="Tajikistan">Tajikistan</option>
+                      <option value="Tanzania">Tanzania</option>
+                      <option value="Thailand">Thailand</option>
+                      <option value="Togo">Togo</option>
+                      <option value="Tonga">Tonga</option>
+                      <option value="Trinidad &amp; Tobago">Trinidad &amp; Tobago</option>
+                      <option value="Tunisia">Tunisia</option>
+                      <option value="Turkey">Turkey</option>
+                      <option value="Turkmenistan">Turkmenistan</option>
+                      <option value="Turks &amp; Caicos Is">Turks &amp; Caicos Is</option>
+                      <option value="Tuvalu">Tuvalu</option>
+                      <option value="Uganda">Uganda</option>
+                      <option value="Ukraine">Ukraine</option>
+                      <option value="United Arab Emirates">United Arab Emirates</option>
+                      <option value="United Kingdom">United Kingdom</option>
+                      <option value="United States">United States</option>
+                      <option value="Uruguay">Uruguay</option>
+                      <option value="Uzbekistan">Uzbekistan</option>
+                      <option value="Vanuatu">Vanuatu</option>
+                      <option value="Venezuela">Venezuela</option>
+                      <option value="Vietnam">Vietnam</option>
+                      <option value="Virgin Islands">Virgin Islands</option>
+                      <option value="Wallis and Futuna">Wallis and Futuna</option>
+                      <option value="West Bank">West Bank</option>
+                      <option value="Western Sahara">Western Sahara</option>
+                      <option value="Yemen">Yemen</option>
+                      <option value="Zambia">Zambia</option>
+                      <option value="Zimbabwe">Zimbabwe</option>
+                    </select>
+                    <label for="country" class="mb-2" id="country_label">Country</label>
+                    <div class="invalid-feedback">
+                      Please select country.
+                    </div>
+                  </div>
+                </div>
+
+                <div class="col-12">
+                  <div class="form-group writing">
+                    <select class="form-select mb-3" id="industry" name="industry" aria-label="Default select example"
+                      required>
+                      <option value=""> </option>
+                      <option value="Financial Services">Financial Services</option>
+                      <option value="Pharmaceutical">Pharmaceutical</option>
+                      <option value="Retail">Retail</option>
+                      <option value="Logistics">Logistics</option>
+                      <option value="Oil and Gas">Oil and Gas</option>
+                      <option value="Utilities">Utilities</option>
+                      <option value="Public Sector">Public Sector</option>
+                      <option value="Advertising/Media/Publishing">
+                        Advertising/Media/Publishing
+                      </option>
+                      <option value="Aerospace and Aviation">Aerospace and Aviation</option>
+                      <option value="Agriculture and Forestry">Agriculture and Forestry
+                      </option>
+                      <option value="Automotive">Automotive</option>
+                      <option value="Banking/Accounting/Financial">
+                        Banking/Accounting/Financial
+                      </option>
+                      <option value="Computer and Technology">Computer and Technology</option>
+                      <option value="Education and Training">Education and Training</option>
+                      <option value="Engineering and Construction">Engineering and
+                        Construction
+                      </option>
+                      <option value="Entertainment/Travel/Hospitality">
+                        Entertainment/Travel/Hospitality
+                      </option>
+                      <option value="Food and Beverage">Food and Beverage</option>
+                      <option value="Government and Public">Government and Public</option>
+                      <option value="Administration">Administration</option>
+                      <option value="Healthcare">Healthcare</option>
+                      <option value="Insurance">Insurance</option>
+                      <option value="Legal Solutions">Legal Solutions</option>
+                      <option value="Manufacturing">Manufacturing</option>
+                      <option value="Marketing">Marketing</option>
+                      <option value="Non profit Organizations">Non profit Organizations
+                      </option>
+                      <option value="Other Industry Not Listed">Other Industry Not Listed
+                      </option>
+                      <option value="Pharmaceutical">Pharmaceutical</option>
+                      <option value="Public Relations">Public Relations</option>
+                      <option value="Real Estate">Real Estate</option>
+                      <option value="Retail and Wholesale">Retail and Wholesale</option>
+                      <option value="Scientific">Scientific</option>
+                      <option value="Telecommunications">Telecommunications</option>
+                      <option value="Transportation and Shipping">Transportation and Shipping
+                      </option>
+                      <option value="Utilities">Utilities</option>
+                      <option value="VAR/VAD/System Integrator">VAR/VAD/System Integrator
+                      </option>
+                    </select>
+                    <label for="industry" class="mb-2" id="industry_label">Industry</label>
+                    <div class="invalid-feedback">
+                      Please enter Industry.
+                    </div>
+                  </div>
+                </div>
+
+                <div class="col-12">
+                  <div class="form-group writing">
+                    <input type="text" class="form-control mb-3" id="zip_code" name="zip_code" placeholder="Zip Code"
+                      value="" required>
+                    <label for="zip_code" class="mb-2" id="zip_code_label">Zip Code</label>
+                    <div class="invalid-feedback">
+                      Please enter zip Code.
+                    </div>
+                  </div>
+                </div>
+
+                <!-- <div class="col-12">
+                  <div class="form-group mb-3">
+                    <label for="question_1">
+                      Does your organization intend to acquire new Vulnerability Management
+                      technology within the next 12 months? </label>
+                    <select class="form-select mb-3" id="question_1" name="question_1" style="padding: 0 0 0 15px;"
+                      required="">
+                      <option value="">Select Answer</option>
+                      <option value="Yes">Yes </option>
+                      <option value="No">No </option>
+                    </select>
+                    <div class="invalid-feedback">
+                      Please select answer.
+                    </div>
+                  </div>
+                </div> -->
+
+                <div class="col-12">
+                  <div class="form-group mb-3">
+                    <label for="question_1">
+                      What is your organisation's primary industry? </label>
+                    <select class="form-select mb-3" id="question_1" name="question_1" style="padding: 0 0 0 15px;"
+                      required>
+                      <option value="">Select Answer</option>
+                      <option value="Accommodation and hospitality">Accommodation and hospitality</option>
+                      <option value="Agriculture, forestry and fishing">Agriculture, forestry and fishing</option>
+                      <option value="Banking, insurance and financial services">Banking, insurance and financial
+                        services</option>
+                      <option value="Construction">Construction</option>
+                      <option value="Cultural and recreational services">Cultural and recreational services</option>
+                      <option value="Defence">Defence</option>
+                      <option value="Education">Education</option>
+                      <option value="Electricity, gas and water supply">Electricity, gas and water supply</option>
+                      <option value="Health (Private)">Health (Private)</option>
+                      <option value="Other">Other</option>
+
+                    </select>
+                    <div class="invalid-feedback">
+                      Please select answer.
+                    </div>
+                  </div>
+                </div>
+
+                <style>
+                  /* Make checkboxes round */
+                  .round-checkbox {
+                    width: 18px;
+                    height: 18px;
+                    border-radius: 50%;
+                    border: 2px solid #007bff;
+                    appearance: none;
+                    -webkit-appearance: none;
+                    outline: none;
+                    cursor: pointer;
+                  }
+
+                  .round-checkbox:checked {
+                    background-color: #007bff;
+                    border-color: #007bff;
+                  }
+
+                  .round-checkbox:checked::before {
+                    content: '\2713';
+                    color: white;
+                    font-size: 12px;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    height: 100%;
+                  }
+                </style>
+                <!-- <script>
+                  document.querySelector('form').addEventListener('submit', function (e) {
+                    const checkboxes = document.querySelectorAll(
+                      'input[name="question_2[]"]');
+                    let oneChecked = Array.from(checkboxes).some(checkbox => checkbox
+                      .checked);
+
+                    if (!oneChecked) {
+                      e.preventDefault();
+                      document.getElementById('checkbox-feedback').style.display =
+                        'block';
+                    } else {
+                      document.getElementById('checkbox-feedback').style.display = 'none';
+                    }
+                  });
+                </script> -->
+                <!-- end form questions -->
+                <hr>
+                <!-- form confirmation text -->
+
+                <div class="col-12">
+                  <div class="form-group mb-3 form_confirmation_area">
+                    <input type="checkbox" id="form_confirmation" name="form_confirmation" required>
+                    <label for="form_confirmation">
+                      <span>&emsp;</span>
+                      <p>By accessing this resource, I agree to have my details passed on to Data3 and Nextmedia Pty Ltd.</p>
+                    </label>
+                    <div class="invalid-feedback">
+                      Please check confirmation checkbox.
+                    </div>
+                  </div>
+                </div>
+
+
+              </div>
+              <button type="submit" class="btn btn-primary btn-block">
+                Download Now
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="container-fluid" style="background-color: #1c1c1c">
+    <div class="container">
+      <div class="row" style="padding-bottom: 10px; padding-top: 10px">
+        <div class="col-md-6" style="color: #98a6ad">
+          &copy;
+          <span id="currentYear"></span>. All rights reserved. Demanday
+        </div>
+        <div class="col-md-6" style="text-align: right">
+          <a style="color: #98a6ad" href="https://apps.demanday.com/privacy_policy" target="_blank">Privacy Policy</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+  <!-- JAVASCRIPT -->
+  <script src="https://code.jquery.com/jquery-latest.min.js"></script>
+  <script src="https://apps.demanday.com/assets/libs/bootstrap/js/bootstrap.bundle.min.js "></script>
+  <script src="https://apps.demanday.com/assets/libs/simplebar/simplebar.min.js "></script>
+  <script src="https://apps.demanday.com/assets/libs/node-waves/waves.min.js "></script>
+  <script src="https://apps.demanday.com/assets/libs/feather-icons/feather.min.js "></script>
+  <script src="https://apps.demanday.com/assets/js/pages/plugins/lord-icon-2.1.0.js "></script>
+  <script src="https://apps.demanday.com/assets/js/plugins.js "></script>
+
+  <!-- prismjs plugin -->
+  <script src="https://apps.demanday.com/assets/libs/prismjs/prism.js "></script>
+  <!-- particles js -->
+  <script src="https://apps.demanday.com/assets/libs/particles.js/particles.js "></script>
+  <script src="https://apps.demanday.com/assets/js/pages/form-validation.init.js "></script>
+
+  <!-- dropzone min -->
+  <script src="https://apps.demanday.com/assets/libs/dropzone/dropzone-min.js "></script>
+  <!-- filepond js -->
+  <script src="https://apps.demanday.com/assets/libs/filepond/filepond.min.js "></script>
+  <script
+    src="https://apps.demanday.com/assets/libs/filepond-plugin-image-preview/filepond-plugin-image-preview.min.js "></script>
+  <script
+    src="https://apps.demanday.com/assets/libs/filepond-plugin-file-validate-size/filepond-plugin-file-validate-size.min.js "></script>
+  <script
+    src="https://apps.demanday.com/assets/libs/filepond-plugin-image-exif-orientation/filepond-plugin-image-exif-orientation.min.js "></script>
+  <script
+    src="https://apps.demanday.com/assets/libs/filepond-plugin-file-encode/filepond-plugin-file-encode.min.js "></script>
+  <script src="https://apps.demanday.com/assets/js/pages/form-file-upload.init.js "></script>
+
+  <!-- App js -->
+  <script src="https://apps.demanday.com/assets/js/app.js "></script>
+  <script src="https://apps.demanday.com/assets/js/common.js "></script>
+  <script>
+    /* Posicion nombre de seccion */
+    document.querySelectorAll('.writing :is(input , textarea, select)').forEach(writinginput => {
+      writinginput.addEventListener('input', () => {
+        if (writinginput.value.trim() !== '') {
+          writinginput.classList.add('has-text');
+        } else {
+          writinginput.classList.remove('has-text');
+        }
+      });
+    });
+
+    /* Alto de textarea */
+  </script>
+  <script>
+    document.querySelector('form').addEventListener('submit', function (e) {
+      let isValid = true;
+
+      // Validate required inputs and selects
+      const inputs = document.querySelectorAll('input[required]:not([type="checkbox"]), select[required]');
+      inputs.forEach(input => {
+        const feedback = input.nextElementSibling.nextElementSibling; // Assuming feedback is after label
+        if (!input.value.trim()) {
+          isValid = false;
+          feedback.style.display = 'block';
+        } else {
+          feedback.style.display = 'none';
+        }
+      });
+
+      // Validate checkbox groups
+      const checkboxGroups = [
+        {
+          name: 'preferences',
+          feedbackId: 'preferences_feedback',
+        }
+      ];
+
+      checkboxGroups.forEach(group => {
+        const checkboxes = document.querySelectorAll(`input[name="${group.name}"]`);
+        const feedback = document.getElementById(group.feedbackId);
+        const oneChecked = Array.from(checkboxes).some(checkbox => checkbox.checked);
+
+        if (!oneChecked) {
+          isValid = false;
+          feedback.style.display = 'block';
+        } else {
+          feedback.style.display = 'none';
+        }
+      });
+
+      // Validate single checkboxes
+      const singleCheckboxes = document.querySelectorAll('input[type="checkbox"][required]:not([name="preferences"])');
+      singleCheckboxes.forEach(checkbox => {
+        const feedback = checkbox.parentElement.querySelector('.invalid-feedback');
+        if (!checkbox.checked) {
+          isValid = false;
+          feedback.style.display = 'block';
+        } else {
+          feedback.style.display = 'none';
+        }
+      });
+
+      // Prevent form submission if any field is invalid
+      if (!isValid) {
+        e.preventDefault();
+      }
+    });
+  </script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const form = document.getElementById("download-form");
+
+      // Event listener for form submission
+      form.addEventListener("submit", function (event) {
+        event.preventDefault(); // Prevent the default form submission
+
+        // Get the form data
+        const firstName = document.getElementById("first_name").value;
+        const lastName = document.getElementById("last_name").value;
+        const email = document.getElementById("email").value;
+        const phoneNo = document.getElementById("phone_no").value;
+        const companyName = document.getElementById("company_name").value;
+        const companySize = document.getElementById("company_size").value;
+
+        // Validate the email
+        if (!email) {
+          alert("Please enter a valid email address.");
+          return;
+        }
+
+        // Create the request payload
+        const payload = {
+          first_name: firstName,
+          last_name: lastName,
+          email: email,
+          phone_no: phoneNo,
+          company_name: companyName,
+          company_size: companySize,
+        };
+
+        // Ensure the URL uses http instead of https
+        const apiUrl = `https://infeedu.com:8443/api/mail/html/demand-verse/business-resilience/${email}`;
+
+        // Call the API using fetch with a POST method
+        fetch(apiUrl, {
+          method: "POST", // Use POST request
+          headers: {
+            "Content-Type": "application/json", // Indicate that we're sending JSON data
+          },
+          body: JSON.stringify(payload), // Send form data as JSON body
+        })
+          .then((response) => {
+            // Log response status and body for debugging
+            if (!response.ok) {
+              throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            return response.json(); // Parse JSON response
+          })
+          .then((data) => {
+            console.log("API Response:", data);
+            alert("The guide has been sent to your email!");
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+          });
+      });
+    });
+  </script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const form = document.getElementById('userForm');
+
+      // Handle form submission
+      form.addEventListener('submit', function (event) {
+        // Prevent form submission if validation fails
+        if (!form.checkValidity()) {
+          event.preventDefault();
+          event.stopPropagation();
+        }
+
+        // Add the 'was-validated' class to the form
+        form.classList.add('was-validated');
+      }, false);
+
+      // Optional: Reset validation styles when inputs are modified
+      const inputs = form.querySelectorAll('input');
+      inputs.forEach(input => {
+        input.addEventListener('input', function () {
+          if (input.checkValidity()) {
+            input.classList.remove('is-invalid');
+            input.classList.add('is-valid');
+          } else {
+            input.classList.remove('is-valid');
+            input.classList.add('is-invalid');
+          }
+        });
+      });
+    });
+
+  </script>
+  <script>
+    function validateForm() {
+      let isValid = true;
+
+      // Check each required field
+      document.querySelectorAll('input[required], select[required]').forEach((input) => {
+        if (!input.value) {
+          input.classList.add('is-invalid');
+          isValid = false;
+        } else {
+          input.classList.remove('is-invalid');
+        }
+      });
+
+      return isValid;
+    }
+  </script>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const form = document.getElementById("download-form");
+
+    form.addEventListener("submit", function (event) {
+        let isValid = true;
+
+        document.querySelectorAll("input[required], select[required]").forEach((input) => {
+            const feedback = input.nextElementSibling.nextElementSibling;
+            if (!input.value.trim()) {
+                input.classList.add("is-invalid");
+                if (feedback) feedback.style.display = "block";
+                isValid = false;
+            } else {
+                input.classList.remove("is-invalid");
+                if (feedback) feedback.style.display = "none";
+            }
+        });
+
+        if (!isValid) {
+            event.preventDefault();
+        }
+    });
+});
+
+</script>
+
+</body>
+
+</html>

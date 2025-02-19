@@ -22,6 +22,12 @@ public class Campaign {
 
     private String name;
 
+    private String design;
+
+    private String jsonFormat;
+
+    private String htmlFormat;
+
     @ManyToOne
     @JoinColumn(name = "admin_id")
     private Admin admin;

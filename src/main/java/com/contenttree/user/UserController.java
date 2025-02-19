@@ -93,40 +93,6 @@ public class UserController {
         this.passwordEncoder = passwordEncoder;
     }
 
-//    @PostMapping("/register")
-//    public ResponseEntity<?> registerUser(@RequestParam String name,
-//                                          @RequestParam String password,
-//                                          @RequestParam String email,
-//                                          @RequestParam String lastName,
-//                                          @RequestParam String country,
-//                                          @RequestParam String jobTitle,
-//                                          @RequestParam String company,
-//                                          @RequestParam long phone) throws MessagingException, IOException {
-//
-//        User user = new User();
-//        user.setName(name);
-//        String hasCode = passwordEncoder.encode(password);
-//        user.setPassword(hasCode);
-//        user.setEmail(email);
-//        user.setCompany(company);
-//        user.setStatus(UserStatus.ACTIVE);
-//        user.setIsSubscriber(1);
-//        user.setCountry(country);
-//        user.setLastName(lastName);
-//        user.setPhone(phone);
-//        user.setJobTitle(jobTitle);
-//        if (adminService.getAdminByEmailId(email)==null){
-//            if (vendorsService.getVendorsByEmail(email)==null){
-//                return userService.saveUser(user);
-//            }
-//        }
-//        else {
-//            return ResponseEntity.ok().body(ResponseUtils.createResponse1(null,"Cannot Create Account With This Email Id Already Registered",false));
-//        }
-//
-//
-//        return ResponseEntity.ok().body(ResponseUtils.createResponse1(user,"Account Created SuccessFully",true));
-//    }
 @PostMapping("/register")
 public ResponseEntity<?> registerUser(@RequestParam(required = false) String name,
                                       @RequestParam(required = false) String password,
@@ -188,7 +154,6 @@ public ResponseEntity<?> registerUser(@RequestParam(required = false) String nam
 
 
     userService.saveUser(user);
-    System.out.println("user_____"+user);
 
     return ResponseEntity.ok().body(ResponseUtils.createResponse1(user, "Account created successfully", true));
 
@@ -1598,7 +1563,8 @@ public ResponseEntity<ApiResponse1<?>> toggleFavorite(@AuthenticationPrincipal U
         return ResponseEntity.ok().body(ResponseUtils.createResponse1(map,"SUCCESS",true));
     }
     @PostMapping("update-password")
-    public ResponseEntity<ApiResponse1<User>> updatePassoword(@AuthenticationPrincipal User user,@RequestParam String oldpassword,@RequestParam String newpassword){
+    public ResponseEntity<ApiResponse1<User>> updatePassoword(@RequestParam String email,@RequestParam String oldpassword,@RequestParam String newpassword){
+        User user = userRepository.findByEmailIgnoreCase(email);
         if (!passwordEncoder.matches(oldpassword, user.getPassword())) {
             return ResponseEntity.ok().body(ResponseUtils.createResponse1(null,"Wrong current password",false));
         }

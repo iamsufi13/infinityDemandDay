@@ -195,7 +195,7 @@ public ResponseEntity<ApiResponse1<NewsLetter>> addNewsLetter(
                 "</div>" +
                 "<h2 style=\"text-align: center; color: #007bff; font-size: 24px;\">New Newsletter Released! " + title + "</h2>" +
                 "<p style=\"font-size: 16px; line-height: 1.5; text-align: center;\">" +
-                "We are excited to announce the release of our latest newsletter from <strong>InfiniteB2B</strong>! The new edition, titled <strong>" + title + "</strong>, is now available. Stay updated with the latest trends and insights!" +
+                "We are excited to announce the release of our latest newsletter from <strong>Infeedu</strong>! The new edition, titled <strong>" + title + "</strong>, is now available. Stay updated with the latest trends and insights!" +
                 "</p>" +
                 "<div style=\"text-align: center; margin: 30px 0;\">" +
                 "<a href=\"" + newsletterUrl + "\" style=\"font-size: 18px; padding: 12px 24px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px;\">Read the Newsletter</a>" +
@@ -208,7 +208,7 @@ public ResponseEntity<ApiResponse1<NewsLetter>> addNewsLetter(
                 "</p>" +
                 "<hr style=\"border: 0; border-top: 1px solid #e0e0e0; margin: 40px 0;\">" +
                 "<footer style=\"text-align: center; font-size: 12px; color: #999;\">" +
-                "<p>&copy; 2024 InfiniteB2B. All rights reserved.</p>" +
+                "<p>&copy; 2024 Infeedu. All rights reserved.</p>" +
                 "<p><a href=\"#\" style=\"color: #999; text-decoration: none;\">Unsubscribe</a> | <a href=\"#\" style=\"color: #999; text-decoration: none;\">Contact Us</a></p>" +
                 "</footer>" +
                 "</div>";

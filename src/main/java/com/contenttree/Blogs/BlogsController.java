@@ -72,7 +72,7 @@ public class BlogsController {
     }
     @GetMapping("/get-blogs")
     public ResponseEntity<ApiResponse1<List<Blogs>>> getAllBlogs() {
-        String basePath = "https://infiniteb2b.com/var/www/infiniteb2b/springboot/blogs/";
+        String basePath = "https://infeedu.com/var/www/infiniteb2b/springboot/blogs/";
 
         List<Blogs> list = blogsRepository.findAll().stream().map(blog -> {
             if (blog.getBlogImage() != null && !blog.getBlogImage().isEmpty()) {

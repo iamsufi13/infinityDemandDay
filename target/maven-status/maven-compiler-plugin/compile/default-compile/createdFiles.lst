@@ -53,6 +53,7 @@ com/contenttree/home/HomePageMapper.class
 com/contenttree/DemandVerse/EmailController.class
 com/contenttree/Blogs/BlogsController.class
 com/contenttree/config/CustomUserDetailsService.class
+com/contenttree/CampaignManager/CampaignController.class
 com/contenttree/security/JwtHelper.class
 com/contenttree/NewsLetter/NewsLetterRepository.class
 com/contenttree/user/UserStatus.class
